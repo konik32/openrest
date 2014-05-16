@@ -15,27 +15,14 @@
  */
 package org.springframework.data.query.parser;
 
-import java.util.Iterator;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
 
-/**
- * Base class for query creators that create criteria based queries from a
- * {@link PartTree}.
- * 
- * @param T
- *            the actual query type to be created
- * @param S
- *            the intermediate criteria type
- * @author Oliver Gierke
- */
-public abstract class AbstractQueryCreator<T, S> {
+public abstract class AbstractQueryCreator<S> {
 
-	private final ParameterAccessor parameters;
-	private final PartTree tree;
+	protected final PartTree tree;
 
 	/**
 	 * Creates a new {@link AbstractQueryCreator} for the given {@link PartTree}
@@ -48,55 +35,11 @@ public abstract class AbstractQueryCreator<T, S> {
 	 * @param parameters
 	 *            can be {@literal null}.
 	 */
-	public AbstractQueryCreator(PartTree tree, ParameterAccessor parameters) {
-
-		Assert.notNull(tree, "PartTree must not be null");
-
-		this.tree = tree;
-		this.parameters = parameters;
-	}
-
-	/**
-	 * Creates a new {@link AbstractQueryCreator} for the given {@link PartTree}
-	 * . This will cause {@literal null} be handed for the {@link Iterator} in
-	 * the callback methods.
-	 * 
-	 * @param tree
-	 *            must not be {@literal null}.
-	 */
 	public AbstractQueryCreator(PartTree tree) {
-
-		this(tree, null);
+		Assert.notNull(tree, "PartTree must not be null");
+		this.tree = tree;
 	}
 
-	/**
-	 * Creates the actual query object.
-	 * 
-	 * @return
-	 */
-	public T createQuery() {
-
-		Sort dynamicSort = parameters != null ? parameters.getSort() : null;
-		return createQuery(dynamicSort);
-	}
-
-	/**
-	 * Creates the actual query object applying the given {@link Sort}
-	 * parameter. Use this method in case you haven't provided a
-	 * {@link ParameterAccessor} in the first place but want to apply dynamic
-	 * sorting nevertheless.
-	 * 
-	 * @param dynamicSort
-	 * @return
-	 */
-	public T createQuery(Sort dynamicSort) {
-
-		Sort staticSort = tree.getSort();
-		Sort sort = staticSort != null ? staticSort.and(dynamicSort)
-				: dynamicSort;
-
-		return complete(createCriteria(tree), sort);
-	}
 
 	/**
 	 * Actual query building logic. Traverses the {@link PartTree} and invokes
@@ -105,26 +48,28 @@ public abstract class AbstractQueryCreator<T, S> {
 	 * @param tree
 	 * @return
 	 */
-	private S createCriteria(PartTree tree) {
+	public S createCriteria() {
+		return toRecursiveCriteria(tree.getPartTreeRoot());
+	}
 
-		S base = null;
-		Iterator<Object> iterator = parameters == null ? null : parameters
-				.iterator();
-
-		for (OrPart node : tree) {
-
+	private S toRecursiveCriteria(TreePart part) {
+		if (part instanceof TreeBranch) {
+			TreeBranch branch = (TreeBranch) part;
 			S criteria = null;
-
-			for (Part part : node) {
-
-				criteria = criteria == null ? create(part, iterator) : and(
-						part, criteria, iterator);
+			for (TreePart p : branch.treeParts) {
+				criteria = criteria == null ? toRecursiveCriteria(p) : decide(
+						part, criteria, toRecursiveCriteria(p));
 			}
-
-			base = base == null ? criteria : or(base, criteria);
+			return criteria;
+		} else {
+			return create((Part) part);
 		}
+	}
 
-		return base;
+	private S decide(TreePart part, S base, S criteria) {
+		if (part instanceof AndBranch)
+			return and(base, criteria);
+		return or(base, criteria);
 	}
 
 	/**
@@ -134,7 +79,7 @@ public abstract class AbstractQueryCreator<T, S> {
 	 * @param iterator
 	 * @return
 	 */
-	protected abstract S create(Part part, Iterator<Object> iterator);
+	protected abstract S create(Part part);
 
 	/**
 	 * Creates a new criteria object from the given part and and-concatenates it
@@ -146,7 +91,7 @@ public abstract class AbstractQueryCreator<T, S> {
 	 * @param iterator
 	 * @return
 	 */
-	protected abstract S and(Part part, S base, Iterator<Object> iterator);
+	protected abstract S and(S base, S criteria);
 
 	/**
 	 * Or-concatenates the given base criteria to the given new criteria.
@@ -157,15 +102,4 @@ public abstract class AbstractQueryCreator<T, S> {
 	 */
 	protected abstract S or(S base, S criteria);
 
-	/**
-	 * Actually creates the query object applying the given criteria object and
-	 * {@link Sort} definition.
-	 * 
-	 * @param criteria
-	 *            will never be {@literal null}.
-	 * @param sort
-	 *            might be {@literal null}.
-	 * @return
-	 */
-	protected abstract T complete(S criteria, Sort sort);
 }

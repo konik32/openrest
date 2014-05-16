@@ -1,27 +1,31 @@
 package org.springframework.data.query.parser;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 
-public class Part {
+public class Part implements TreePart {
 
 	protected final PropertyPath propertyPath;
 	protected final Part.Type type;
-	
+
 	private IgnoreCaseType ignoreCase = IgnoreCaseType.NEVER;
 
 	public Part(String path, Type type, Class<?> domainClass) {
 		this(path, type, domainClass, false);
 	}
-	
-	
-	public Part(String path,Type type, Class<?> domainClass, boolean alwaysIgnoreCase) {
+
+	public Part(String path, Type type, Class<?> domainClass,
+			boolean alwaysIgnoreCase) {
 		Assert.notNull(domainClass, "Type must not be null!");
-		
+
 		if (alwaysIgnoreCase && ignoreCase != IgnoreCaseType.ALWAYS) {
 			this.ignoreCase = IgnoreCaseType.WHEN_POSSIBLE;
 		}
-		this.type =  type;
+		this.type = type;
 		this.propertyPath = PropertyPath.from(path, domainClass);
 	}
 
@@ -54,12 +58,13 @@ public class Part {
 	 * 
 	 * @return
 	 */
-	public IgnoreCaseType shouldIgnoreCase(){
+	public IgnoreCaseType shouldIgnoreCase() {
 		return ignoreCase;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -74,11 +79,13 @@ public class Part {
 		}
 
 		Part that = (Part) obj;
-		return this.propertyPath.equals(that.propertyPath) && this.type.equals(that.type);
+		return this.propertyPath.equals(that.propertyPath)
+				&& this.type.equals(that.type);
 	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -92,6 +99,7 @@ public class Part {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -168,4 +176,17 @@ public class Part {
 		 */
 		WHEN_POSSIBLE
 	}
+
+	@Override
+	public List<Part> getParts() {
+		return Arrays.asList(this);
+	}
+
+	@Override
+	public List<Part> getParts(Type type) {
+		if (type.equals(this.type))
+			return Arrays.asList(this);
+		return null;
+	}
+
 }

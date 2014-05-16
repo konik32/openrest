@@ -19,7 +19,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.query.JpaParameter;
 import org.springframework.data.query.JpaParameters;
-import org.springframework.data.query.parser.OrPart;
+import org.springframework.data.query.parser.OrBranch;
 import org.springframework.data.query.parser.Part;
 import org.springframework.data.query.parser.Part.Type;
 import org.springframework.data.query.parser.PartTree;
@@ -92,11 +92,11 @@ public class PartTreeParser {
 
 		List<JpaParameter> jpaParametersList = new ArrayList<JpaParameter>();
 		List<Object> parametersValues = new ArrayList<Object>();
-		List<OrPart> orParts = new ArrayList<OrPart>(branches.size());
+		List<OrBranch> orParts = new ArrayList<OrBranch>(branches.size());
 		for (Branch branch : branches) {
 			jpaParametersList.addAll(branch.getJpaParameters());
 			parametersValues.addAll(branch.getParametersValues());
-			orParts.add(new OrPart(branch.getParts()));
+			orParts.add(new OrBranch(branch.getParts()));
 			parametersIndex += branch.getParametersValues().size();
 		}
 		Pageable pageable = parsePageable(sPageable, sOrder);

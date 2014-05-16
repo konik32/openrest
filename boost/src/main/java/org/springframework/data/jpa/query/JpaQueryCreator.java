@@ -36,11 +36,11 @@ import org.springframework.data.query.parser.PartTree;
  * @author Oliver Gierke
  */
 public class JpaQueryCreator extends
-		AbstractQueryCreator<CriteriaQuery<Object>, Predicate> {
+		AbstractQueryCreator<Predicate> {
 
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
-	private final CriteriaQuery<Object> query;
+	private final CriteriaQuery<?> query;
 	private final ParameterMetadataProvider provider;
 
 	/**
@@ -51,14 +51,12 @@ public class JpaQueryCreator extends
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Class<?> domainClass,
-			CriteriaBuilder builder, ParameterMetadataProvider provider) {
-
+	public JpaQueryCreator(PartTree tree, Root<?> root,
+			CriteriaBuilder builder, ParameterMetadataProvider provider, CriteriaQuery<?> query) {
 		super(tree);
-
 		this.builder = builder;
-		this.query = builder.createQuery().distinct(tree.isDistinct());
-		this.root = query.from(domainClass);
+		this.query = query;
+		this.root = root;
 		this.provider = provider;
 	}
 
@@ -72,88 +70,20 @@ public class JpaQueryCreator extends
 		return provider.getExpressions();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #create(org.springframework.data.repository.query.parser.Part,
-	 * java.util.Iterator)
-	 */
-	@Override
-	protected Predicate create(Part part, Iterator<Object> iterator) {
-
-		return toPredicate(part, root);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #and(org.springframework.data.repository.query.parser.Part,
-	 * java.lang.Object, java.util.Iterator)
-	 */
-	@Override
-	protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
-
-		return builder.and(base, toPredicate(part, root));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #or(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	protected Predicate or(Predicate base, Predicate predicate) {
-
 		return builder.or(base, predicate);
 	}
 
-	/**
-	 * Finalizes the given {@link Predicate} and applies the given sort.
-	 * Delegates to
-	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and
-	 * hands it the current {@link CriteriaQuery} and {@link CriteriaBuilder}.
-	 */
 	@Override
-	protected final CriteriaQuery<Object> complete(Predicate predicate,
-			Sort sort) {
-
-		return complete(predicate, sort, query, builder, root);
-	}
-
-	/**
-	 * Template method to finalize the given {@link Predicate} using the given
-	 * {@link CriteriaQuery} and {@link CriteriaBuilder}.
-	 * 
-	 * @param predicate
-	 * @param sort
-	 * @param query
-	 * @param builder
-	 * @return
-	 */
-	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
-			CriteriaQuery<Object> query, CriteriaBuilder builder, Root<?> root) {
-
-		CriteriaQuery<Object> select = this.query.select(root).orderBy(
-				OrderAndJoinQueryUtils.toOrders(sort, root, builder));
-		return predicate == null ? select : select.where(predicate);
-	}
-
-	/**
-	 * Creates a {@link Predicate} from the given {@link Part}.
-	 * 
-	 * @param part
-	 * @param root
-	 * @param iterator
-	 * @return
-	 */
-	private Predicate toPredicate(Part part, Root<?> root) {
+	protected Predicate create(Part part) {
 		return new PredicateBuilder(part, root, builder, provider).build();
 	}
+
+	@Override
+	protected Predicate and(Predicate base, Predicate criteria) {
+		return builder.and(base, criteria);
+	}
+
 
 }
