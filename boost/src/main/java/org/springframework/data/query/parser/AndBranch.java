@@ -9,6 +9,9 @@ public class AndBranch extends TreeBranch {
 	public AndBranch(List<TreePart> treeParts) {
 		super(treeParts);
 	}
+	public AndBranch() {
+		
+	}
 
 	@Override
 	public String toString() {

@@ -10,6 +10,9 @@ public class OrBranch extends TreeBranch {
 	public OrBranch(List<TreePart> treeParts) {
 		super(treeParts);
 	}
+	
+	public OrBranch() {
+	}
 	@Override
 	public String toString() {
 

@@ -105,7 +105,7 @@ public class Part implements TreePart {
 	@Override
 	public String toString() {
 
-		return String.format("%s %s", propertyPath.getSegment(), type);
+		return String.format("%s(%s)", type , propertyPath.getSegment());
 	}
 
 	/**

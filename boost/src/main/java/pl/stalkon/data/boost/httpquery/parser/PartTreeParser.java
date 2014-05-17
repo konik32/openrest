@@ -23,6 +23,7 @@ import org.springframework.data.query.parser.OrBranch;
 import org.springframework.data.query.parser.Part;
 import org.springframework.data.query.parser.Part.Type;
 import org.springframework.data.query.parser.PartTree;
+import org.springframework.data.query.parser.TreePart;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -81,8 +82,8 @@ public class PartTreeParser {
 		this.parametersValues = parametersValues;
 	}
 
-	public static PartTreeParser parse(String filter, String subject,
-			String sOrder, String sPageable, Class<?> domainClass,
+	public PartTreeParser parse(String uri, String filter, String subject,
+			String sOrder, String sPageable,
 			ObjectMapper objectMapper) {
 		Assert.notNull(filter);
 		Assert.notNull(domainClass);
@@ -121,17 +122,18 @@ public class PartTreeParser {
 				jpaParametersList, sortIndex, pageableIndex),
 				parametersValues.toArray());
 	}
+	
 
-	private static boolean parseCount(String subject) {
+	private boolean parseCount(String subject) {
 		return subject == null ? false : subject.matches("(?i)count");
 
 	}
 
-	private static boolean parseDistinct(String subject) {
+	private boolean parseDistinct(String subject) {
 		return subject == null ? false : subject.matches("(?i)distinct");
 	}
 
-	public static Sort parseSort(String order) {
+	public Sort parseSort(String order) {
 		if (order == null)
 			return null;
 		Assert.notNull(order);
@@ -151,7 +153,7 @@ public class PartTreeParser {
 		return new Sort(orders);
 	}
 
-	public static Pageable parsePageable(String pageable, String order) {
+	public Pageable parsePageable(String pageable, String order) {
 		if (pageable == null)
 			return null;
 		String parts[] = pageable.split(";");
@@ -159,7 +161,7 @@ public class PartTreeParser {
 				order != null ? parseSort(order) : null);
 	}
 
-	private static List<Branch> parseFilter(String filter,
+	private List<Branch> parseFilter(String filter,
 			Class<?> domainClass, int parametersIndex, ObjectMapper objectMapper) {
 		String sOrParts[] = filter.split(OR_SPLITTER);
 		List<Branch> branches = new ArrayList<Branch>(sOrParts.length);
@@ -173,11 +175,11 @@ public class PartTreeParser {
 	}
 
 	private static class Branch {
-		private final List<Part> parts;
+		private final List<TreePart> parts;
 		private final List<JpaParameter> jpaParameters;
 		private final List<Object> parametersValues;
 
-		public Branch(List<Part> parts, List<JpaParameter> jpaParameters,
+		public Branch(List<TreePart> parts, List<JpaParameter> jpaParameters,
 				List<Object> parametersValues) {
 			this.parts = parts;
 			this.jpaParameters = jpaParameters;
@@ -187,7 +189,7 @@ public class PartTreeParser {
 		public static Branch fromSource(String source, Class<?> domainClass,
 				int parametersIndex, ObjectMapper objectMapper) {
 			String sParts[] = source.split(AND_SPLITTER);
-			List<Part> parts = new ArrayList<Part>(sParts.length);
+			List<TreePart> parts = new ArrayList<TreePart>(sParts.length);
 			List<JpaParameter> jpaParameters = new ArrayList<JpaParameter>();
 			List<Object> parametersValues = new ArrayList<Object>();
 			for (String sPart : sParts) {
@@ -204,7 +206,7 @@ public class PartTreeParser {
 			return new Branch(parts, jpaParameters, parametersValues);
 		}
 
-		public List<Part> getParts() {
+		public List<TreePart> getParts() {
 			return parts;
 		}
 
@@ -218,11 +220,11 @@ public class PartTreeParser {
 	}
 
 	private static class Leaf {
-		private final Part part;
+		private final TreePart part;
 		private final Object parametersValues[];
 		private final JpaParameter jpaParameter;
 
-		public Leaf(Part part, Object[] parametersValues,
+		public Leaf(TreePart part, Object[] parametersValues,
 				JpaParameter jpaParameter) {
 			this.part = part;
 			this.parametersValues = parametersValues;
@@ -267,7 +269,7 @@ public class PartTreeParser {
 
 		}
 
-		public Part getPart() {
+		public TreePart getPart() {
 			return part;
 		}
 

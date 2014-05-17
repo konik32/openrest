@@ -5,5 +5,5 @@ import javax.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 
 public interface ResponseFilter {
-	boolean include(BeanPropertyWriter writer, HttpServletRequest request);
+	boolean include(BeanPropertyWriter writer, HttpServletRequest request, FiltersContext context);
 }

@@ -7,9 +7,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 
-public class ResponseFilterInvoker{
+public class ResponseFilterInvoker {
 
 	private List<ResponseFilter> filters = new ArrayList<ResponseFilter>();
+	private FiltersContext filtersContext = new FiltersContext();
 
 	public void addFilter(ResponseFilter filter) {
 		filters.add(filter);
@@ -17,7 +18,7 @@ public class ResponseFilterInvoker{
 
 	public boolean include(BeanPropertyWriter writer, HttpServletRequest request) {
 		for (ResponseFilter filter : filters) {
-			if (!filter.include(writer, request))
+			if (!filter.include(writer, request, filtersContext))
 				return false;
 		}
 		return true;

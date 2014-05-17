@@ -3,6 +3,7 @@ package org.springframework.data.query.parser;
 import java.util.Iterator;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.util.StringUtils;
 
 public class PartTree {
 
@@ -56,6 +57,11 @@ public class PartTree {
 
 	public TreeBranch getPartTreeRoot() {
 		return partTreeRoot;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Sort: %s distinct: %s countProjection: %s  %s", sort, distinct, countProjection, partTreeRoot);
 	}
 
 }

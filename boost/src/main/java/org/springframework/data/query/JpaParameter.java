@@ -22,11 +22,11 @@ public class JpaParameter extends Parameter {
 	}
 
 	public JpaParameter(Class<?> type, int index, TemporalType temporalType) {
-		this(type, null, index, temporalType);
+		this(type, "p" + index, index, temporalType);
 	}
 
 	public JpaParameter(Class<?> type, int index) {
-		this(type, null, index, null);
+		this(type, "p" + index, index, null);
 	}
 
 	public JpaParameter(Class<?> type, String name, int index) {

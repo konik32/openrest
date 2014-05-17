@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.query.OrderAndJoinQueryUtils;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.LockMetadataProvider;
 import org.springframework.stereotype.Repository;
@@ -163,7 +164,7 @@ public class BoostJpaRepository {
 		query.select(root);
 		
 		if (sort != null) {
-			query.orderBy(toOrders(sort, root, builder));
+			query.orderBy(OrderAndJoinQueryUtils.toOrders(sort, root, builder));
 		}
 		TypedQuery<T> tq = applyLockMode(em.createQuery(query));
 		return spec.getBinder().bind(tq);
