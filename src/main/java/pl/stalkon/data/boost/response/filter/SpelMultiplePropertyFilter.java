@@ -1,55 +1,67 @@
 package pl.stalkon.data.boost.response.filter;
 
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 
-public abstract class SpelMultiplePropertyFilter implements ResponseFilter {
+public class SpelMultiplePropertyFilter extends AbstractContextFilter {
 
-	private static final String FILTER_VALUE_NAME = "filter";
-	private static final String PROPERTIES = "properties";
+	public static final String FILTER_ID = "spelMultiplePropertyFilter";
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public boolean include(BeanPropertyWriter writer,
-			HttpServletRequest request, FiltersContext context) {
-//		if (!context.contains(FILTER_VALUE_NAME,
-//				SpelMultiplePropertyFilter.class)) {
-//			String spelString = writer.getContextAnnotation(
-//					ExcludeProperties.class).filter();
-//			String properties[] = writer.getContextAnnotation(
-//					ExcludeProperties.class).properties();
-//			context.add(FILTER_VALUE_NAME,
-//					getSpelValue(writer, request, spelString),
-//					SpelMultiplePropertyFilter.class);
-//			context.add(PROPERTIES,
-//					new HashSet<String>(Arrays.asList(properties)),
-//					SpelMultiplePropertyFilter.class);
-//		}
-//		boolean include = (Boolean) context.get(FILTER_VALUE_NAME,
-//				SpelMultiplePropertyFilter.class);
-//		if (include)
-//			return true;
-//		Set<String> properties = (Set<String>) context.get(PROPERTIES,
-//				SpelMultiplePropertyFilter.class);
-		
-//		return !properties.contains(writer.getName());
-		System.out.println(request.getRequestURI());
-		return true;
-	}
-
-	private boolean getSpelValue(BeanPropertyWriter writer,
+	private boolean getSpelValue(Object valueToFilter,
 			HttpServletRequest request, String spelString) {
-		
-	
-	
-		return false;
+
+		ExpressionParser parser = new SpelExpressionParser();
+		Expression exp = parser.parseExpression(spelString);
+
+		EvaluationContext context = new StandardEvaluationContext(
+				new ContextWrapper(request, valueToFilter));
+		return (Boolean) exp.getValue(context);
 	}
 
+	public void prepare(HttpServletRequest request, Object valueToFilter) {
+		SpelFilter ep = AnnotationUtils.findAnnotation(
+				valueToFilter.getClass(), SpelFilter.class);
+		String spelString = ep.value();
+		if (getSpelValue(valueToFilter, request, spelString)) {
+			propertiesToIgnore = new HashSet<String>(ep.properties().length);
+			propertiesToIgnore.addAll(Arrays.asList(ep.properties()));
+		}
+	}
+
+	private class ContextWrapper {
+		private final HttpServletRequest request;
+		private final Principal principal;
+		private final Object filteredObject;
+
+		public ContextWrapper(HttpServletRequest request, Object filteredObject) {
+			super();
+			this.request = request;
+			principal = request.getUserPrincipal();
+			this.filteredObject = filteredObject;
+		}
+
+		public HttpServletRequest getRequest() {
+			return request;
+		}
+
+		public Object getFilteredObject() {
+			return filteredObject;
+		}
+
+	}
 }

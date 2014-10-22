@@ -5,9 +5,6 @@ import java.util.Iterator;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.metamodel.EntityType;
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 public class EntityTypeExctractor {

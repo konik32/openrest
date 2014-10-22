@@ -12,22 +12,22 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.query.JpaParameter;
-import org.springframework.data.query.JpaParameters;
-import org.springframework.data.query.parser.AndBranch;
-import org.springframework.data.query.parser.OrBranch;
-import org.springframework.data.query.parser.Part;
-import org.springframework.data.query.parser.PartTree;
-import org.springframework.data.query.parser.Part.Type;
-import org.springframework.data.query.parser.TreePart;
 import org.springframework.util.Assert;
+
+import pl.stalkon.data.query.JpaParameter;
+import pl.stalkon.data.query.JpaParameters;
+import pl.stalkon.data.query.parser.AndBranch;
+import pl.stalkon.data.query.parser.OrBranch;
+import pl.stalkon.data.query.parser.Part;
+import pl.stalkon.data.query.parser.PartTree;
+import pl.stalkon.data.query.parser.TreePart;
+import pl.stalkon.data.query.parser.Part.Type;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -86,6 +86,7 @@ public class Parsers {
 	public Parsers() {
 
 	}
+	
 
 	public Parsers(IdChecker idChecker, ObjectMapper objectMapper,
 			String idPropertyName, String uriPrefix,
@@ -112,7 +113,6 @@ public class Parsers {
 			throw new IllegalArgumentException(e.getMessage());
 		}
 	}
-
 	private void addPart(List<JpaParameter> jpaParameters,
 			List<Object> parametersValues, List<TreePart> treeParts,
 			Class<?> domainClass, Type partType, String name,
@@ -185,26 +185,25 @@ public class Parsers {
 		return getDomainClass(getIds(uri));
 	}
 
-	public ParsedQueryParameters parseQueryParameters(String uri,
-			String filter, String subject, String sOrder, String sPageable,
-			String views) {
+	public ParsedQueryParameters parseQueryParameters(Class<?> domainClass,
+			String filter, String subject, String views) {
 		Assert.notNull(filter);
-		Assert.notNull(uri);
+//		Assert.notNull(uri);
 		List<JpaParameter> jpaParametersList = new ArrayList<JpaParameter>();
 		List<Object> parametersValues = new ArrayList<Object>();
 		AndBranch mainAndBranch = new AndBranch();
 		int parametersIndex = 0;
 
 		// Parse uri
-		ParsedUri parsedUri = parseUri(uri, parametersIndex);
-		parametersIndex += parsedUri.jpaParameters.size();
-		jpaParametersList.addAll(parsedUri.jpaParameters);
-		parametersValues.addAll(parsedUri.parametersValues);
-		mainAndBranch.addAll(parsedUri.parts);
+//		ParsedUri parsedUri = parseUri(uri, parametersIndex);
+//		parametersIndex += parsedUri.jpaParameters.size();
+//		jpaParametersList.addAll(parsedUri.jpaParameters);
+//		parametersValues.addAll(parsedUri.parametersValues);
+//		mainAndBranch.addAll(parsedUri.parts);
 
 		// Parse filter
 		if (!filter.isEmpty()) {
-			List<Branch> branches = parseFilter(filter, parsedUri.domainClass,
+			List<Branch> branches = parseFilter(filter, domainClass,
 					parametersIndex, objectMapper);
 			OrBranch orBranch = new OrBranch();
 
@@ -217,32 +216,32 @@ public class Parsers {
 			mainAndBranch.addPart(orBranch);
 		}
 
-		// Parse pageable and Sort
-		Pageable pageable = parsePageable(sPageable, sOrder);
-		int pageableIndex = -1;
-		int sortIndex = -1;
-		if (pageable != null) {
-			parametersValues.add(pageable);
-			pageableIndex = parametersIndex;
-			jpaParametersList.add(new JpaParameter(Pageable.class,
-					parametersIndex++));
-		} else {
-			Sort sort = parseSort(sOrder);
-			parametersValues.add(sort);
-			sortIndex = parametersIndex;
-			jpaParametersList.add(new JpaParameter(Sort.class,
-					parametersIndex++));
-		}
+//		// Parse pageable and Sort
+//		Pageable pageable = parsePageable(sPageable, sOrder);
+//		int pageableIndex = -1;
+//		int sortIndex = -1;
+//		if (pageable != null) {
+//			parametersValues.add(pageable);
+//			pageableIndex = parametersIndex;
+//			jpaParametersList.add(new JpaParameter(Pageable.class,
+//					parametersIndex++));
+//		} else {
+//			Sort sort = parseSort(sOrder);
+//			parametersValues.add(sort);
+//			sortIndex = parametersIndex;
+//			jpaParametersList.add(new JpaParameter(Sort.class,
+//					parametersIndex++));
+//		}
 
 		// Create partTree
 		PartTree partTree = new PartTree(mainAndBranch, null,
 				parseDistinct(subject), parseCount(subject));
 		List<PropertyPath> viewPropertyPaths = parseViews(views,
-				parsedUri.domainClass);
+				domainClass);
 		return new ParsedQueryParameters(partTree, new JpaParameters(
-				jpaParametersList, sortIndex, pageableIndex),
+				jpaParametersList, -1, -1),
 				parametersValues.toArray(), viewPropertyPaths,
-				(Class<Object>) parsedUri.domainClass);
+				(Class<Object>) domainClass);
 	}
 
 	private boolean parseCount(String subject) {

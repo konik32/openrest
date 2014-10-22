@@ -57,21 +57,26 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>1.5.2.RELEASE</version>
+			<version>1.6.0.RELEASE</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax</groupId> -->
-<!-- 			<artifactId>javaee-api</artifactId> -->
-<!-- 			<version>6.0</version> -->
-<!-- 			<scope>provided</scope> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>javax</groupId> -->
+		<!-- <artifactId>javaee-api</artifactId> -->
+		<!-- <version>6.0</version> -->
+		<!-- <scope>provided</scope> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.2.2</version>
+			<version>2.3.1</version>
 		</dependency>
 
-
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.14.8</version>
+			<scope>provided</scope>
+		</dependency>
 
 
 
@@ -134,18 +139,36 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.2.2</version>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-rest-core</artifactId>
+			<version>2.1.4.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-rest-webmvc</artifactId>
+			<optional>false</optional>
+			<version>2.1.4.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-hibernate4</artifactId>
-			<version>2.2.3</version>
+			<version>2.4.3</version>
 		</dependency>
+
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-webmvc</artifactId>
-			<version>2.1.0.RELEASE</version>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.8</version>
 		</dependency>
 	</dependencies>
 </project>
