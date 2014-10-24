@@ -1,6 +1,5 @@
 package pl.stalkon.data.boost.response.filter;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,7 +40,7 @@ public abstract class AbstractContextFilter extends SimpleBeanPropertyFilter {
 
 	@Override
 	protected boolean include(PropertyWriter writer) {
-		return propertiesToIgnore == null ? true : propertiesToIgnore
+		return propertiesToIgnore == null ? true : !propertiesToIgnore
 				.contains(writer.getName());
 	}
 

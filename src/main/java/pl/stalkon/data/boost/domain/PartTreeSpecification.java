@@ -6,12 +6,15 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
 import org.springframework.data.mapping.PropertyPath;
 
 import pl.stalkon.data.jpa.query.JpaQueryCreator;
 import pl.stalkon.data.jpa.query.OrderAndJoinQueryUtils;
 import pl.stalkon.data.jpa.query.ParameterMetadataProvider;
+import pl.stalkon.data.query.JpaParameters;
 import pl.stalkon.data.query.ParameterBinder;
+import pl.stalkon.data.query.ParametersParameterAccessor;
 import pl.stalkon.data.query.parser.Part;
 import pl.stalkon.data.query.parser.PartTree;
 
@@ -35,6 +38,17 @@ public class PartTreeSpecification implements BoostSpecification {
 		this.viewPropertyPaths = viewPropertyPaths;
 	}
 
+	public PartTreeSpecification(PartTree tree, JpaParameters jpaParameters,
+			Object values[], CriteriaBuilder builder,
+			List<PropertyPath> viewPropertyPaths) {
+		binder = new ParameterBinder(jpaParameters, values);
+		ParametersParameterAccessor accessor = new ParametersParameterAccessor(
+				jpaParameters, values);
+		provider = new ParameterMetadataProvider(builder, accessor);
+		this.viewPropertyPaths = viewPropertyPaths;
+		this.tree = tree;
+	}
+
 	public PartTreeSpecification(Predicate predicate, ParameterBinder binder) {
 		this.predicate = predicate;
 		this.provider = null;
@@ -56,9 +70,10 @@ public class PartTreeSpecification implements BoostSpecification {
 
 	@Override
 	public void addViewsToRoot(Root<?> root) {
-		if (viewPropertyPaths != null)
+		if (viewPropertyPaths != null){
 			for (PropertyPath path : viewPropertyPaths)
 				OrderAndJoinQueryUtils.toRecursiveFetch(path, root);
+		}
 	}
 
 	private void addJoinsToRoot(Root<?> root) {

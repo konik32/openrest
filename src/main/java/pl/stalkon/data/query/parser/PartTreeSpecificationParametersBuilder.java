@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -24,14 +23,18 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import pl.stalkon.data.boost.httpquery.parser.FilterParser;
+import pl.stalkon.data.boost.httpquery.parser.PathParser;
+import pl.stalkon.data.boost.httpquery.parser.RequestParsingException;
+import pl.stalkon.data.boost.httpquery.parser.SubjectParser;
 import pl.stalkon.data.boost.httpquery.parser.TempPart;
+import pl.stalkon.data.boost.httpquery.parser.ViewsParser;
 import pl.stalkon.data.query.JpaParameter;
 import pl.stalkon.data.query.parser.Part.Type;
 
-public class PartTreeBuilder {
+public class PartTreeSpecificationParametersBuilder {
 
-	private static Logger logger = LoggerFactory
-			.getLogger(PartTreeBuilder.class);
+	private static Logger logger = LoggerFactory.getLogger(PartTreeSpecificationParametersBuilder.class);
 
 	private static final Map<String, Type> PART_TYPES_MAP;
 	static {
@@ -73,7 +76,7 @@ public class PartTreeBuilder {
 	private List<JpaParameter> jpaParameters = new ArrayList<JpaParameter>();
 	private List<Object> parametersValues = new ArrayList<Object>();
 
-	public PartTreeBuilder(Class<?> domainClass, ObjectMapper objectMapper) {
+	public PartTreeSpecificationParametersBuilder(Class<?> domainClass, ObjectMapper objectMapper) {
 		super();
 		this.domainClass = domainClass;
 		this.objectMapper = objectMapper;
@@ -91,23 +94,20 @@ public class PartTreeBuilder {
 		parametersValues.add(getParsedObject(id, type));
 	}
 
-	public void appendParentIdPredicate(Class<?> parentType,
-			String propertyName, String id) {
-		String domainPropertyName = retrieveDomainPropertyName(parentType,
-				propertyName);
+	public void appendParentIdPredicate(Class<?> parentType, String propertyName, String id) {
+		String domainPropertyName = retrieveDomainPropertyName(parentType, propertyName);
 		String partName = domainPropertyName + ".id";
 		root.addPart(new Part(partName, Type.SIMPLE_PROPERTY, domainClass));
 		Class<?> type = PropertyPath.from(partName, domainClass).getLeafProperty().getType();
 		jpaParameters.add(new JpaParameter(type, jpaParameters.size()));
 		parametersValues.add(getParsedObject(id, type));
 	}
-	
-	public PartTree getPartTree(){
+
+	public PartTree getPartTree() {
 		return new PartTree(root, null, distinct, countProjection);
 	}
 
-	private String retrieveDomainPropertyName(Class<?> parentType,
-			String propertyName) throws ResourceNotFoundException {
+	private String retrieveDomainPropertyName(Class<?> parentType, String propertyName) throws ResourceNotFoundException {
 		Field field;
 		try {
 			field = parentType.getDeclaredField(propertyName);
@@ -119,20 +119,15 @@ public class PartTreeBuilder {
 		}
 
 		for (Annotation ann : field.getAnnotations()) {
-			if (ann.annotationType().equals(OneToMany.class)
-					|| ann.annotationType().equals(OneToOne.class)) {
-				String mappedBy = (String) AnnotationUtils.getValue(ann,
-						"mappedBy");
+			if (ann.annotationType().equals(OneToMany.class) || ann.annotationType().equals(OneToOne.class)) {
+				String mappedBy = (String) AnnotationUtils.getValue(ann, "mappedBy");
 				return mappedBy;
 			} else if (ann.annotationType().equals(ManyToOne.class)) {
 				for (Field f : field.getType().getDeclaredFields()) {
-					Annotation oneToMany = AnnotationUtils.getAnnotation(f,
-							OneToMany.class);
+					Annotation oneToMany = AnnotationUtils.getAnnotation(f, OneToMany.class);
 					if (oneToMany != null) {
-						String mappedBy = (String) AnnotationUtils.getValue(
-								oneToMany, "mappedBy");
-						if (mappedBy != null
-								&& mappedBy.compareToIgnoreCase(propertyName) == 0)
+						String mappedBy = (String) AnnotationUtils.getValue(oneToMany, "mappedBy");
+						if (mappedBy != null && mappedBy.compareToIgnoreCase(propertyName) == 0)
 							return f.getName();
 					}
 				}
@@ -154,10 +149,15 @@ public class PartTreeBuilder {
 		int i = parametersValues.size();
 		for (String[] params : parameters) {
 			for (String param : params) {
-				parametersValues.add(getParsedObject(param,
-						jpaParameters.get(i++).getType()));
+				try {
+					parametersValues.add(getParsedObject(param, jpaParameters.get(i++).getType()));
+				} catch (IndexOutOfBoundsException e) {
+					throw new RequestParsingException("Parameters values count does not match parameters count");
+				}
 			}
 		}
+		if (parametersValues.size() != jpaParameters.size())
+			throw new RequestParsingException("Parameters values count does not match parameters count");
 	}
 
 	private TreePart getTreePart(TempPart tempPart) {
@@ -176,19 +176,26 @@ public class PartTreeBuilder {
 			}
 			return part;
 		case LEAF:
-			part = new Part(tempPart.getPropertyName(),
-					PART_TYPES_MAP.get(tempPart.getFunctionName()), domainClass);
-
-			Class<?> partPropertyType = ((Part) part).getProperty()
-					.getLeafProperty().getType();
-			for (int i = 0; i < tempPart.getParametersCount(); i++)
-				jpaParameters.add(new JpaParameter(partPropertyType,
-						jpaParameters.size()));
-			return part;
+			return getLeaf(tempPart);
 		}
 
 		// should never get here
 		return null;
+	}
+
+	private TreePart getLeaf(TempPart tempPart) {
+		Type partType = PART_TYPES_MAP.get(tempPart.getFunctionName());
+		if (partType == null)
+			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " is unknown");
+		if (partType.getNumberOfArguments() != tempPart.getParametersCount()) {
+			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " should have " + partType.getNumberOfArguments() + " parameters");
+		}
+		TreePart part = new Part(tempPart.getPropertyName(), partType, domainClass);
+
+		Class<?> partPropertyType = ((Part) part).getProperty().getLeafProperty().getType();
+		for (int i = 0; i < tempPart.getParametersCount(); i++)
+			jpaParameters.add(new JpaParameter(partPropertyType, jpaParameters.size()));
+		return part;
 	}
 
 	private Object getParsedObject(String sValue, Class<?> type) {

@@ -98,7 +98,6 @@ public class BoostJpaRepository implements BoostRepository {
 	protected Page<Object> readPage(TypedQuery<Object> query,
 			Pageable pageable, BoostSpecification spec,
 			Class<Object> domainClass) {
-
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
@@ -142,12 +141,13 @@ public class BoostJpaRepository implements BoostRepository {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Object> query = builder.createQuery(domainClass);
-
+		
 		query.distinct(spec.isDistinct());
 
 		Root<Object> root = applyBoostSpecificationToCriteria(spec, query,
-				domainClass);
+				domainClass, false);
 
+		
 		query.select(root);
 
 		if (sort != null) {
@@ -172,7 +172,7 @@ public class BoostJpaRepository implements BoostRepository {
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
 		Root<Object> root = applyBoostSpecificationToCriteria(spec, query,
-				domainClass);
+				domainClass, true);
 
 		if (spec.isDistinct()) {
 			query.select(builder.countDistinct(root));
@@ -195,7 +195,7 @@ public class BoostJpaRepository implements BoostRepository {
 	 */
 	private <S> Root<Object> applyBoostSpecificationToCriteria(
 			BoostSpecification spec, CriteriaQuery<S> query,
-			Class<Object> domainClass) {
+			Class<Object> domainClass, boolean isCountQuery) {
 
 		Assert.notNull(query);
 		Root<Object> root = query.from(domainClass);
@@ -204,7 +204,8 @@ public class BoostJpaRepository implements BoostRepository {
 		}
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
-		spec.addViewsToRoot(root);
+		if(!isCountQuery)
+			spec.addViewsToRoot(root);
 		Predicate predicate = spec.toPredicate(root, query, builder);
 		if (predicate != null) {
 			query.where(predicate);

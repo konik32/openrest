@@ -30,8 +30,8 @@ public class PersistentEntityWithAssociationsJackson2Module extends PersistentEn
 			ResourceMappings mappings, PersistentEntities entities,
 			RepositoryRestConfiguration config, UriToEntityConverter converter) {
 		super(mappings, entities, config, converter);
-		AssociationLinks associationLinks = new AssociationLinks(mappings);
-		setSerializerModifier(new NotFechedAssociationOmittingSerializerModifier(entities, associationLinks, config));
+//		AssociationLinks associationLinks = new AssociationLinks(mappings);
+//		setSerializerModifier(new NotFechedAssociationOmittingSerializerModifier(entities, associationLinks, config));
 	}  
 	
 	/**

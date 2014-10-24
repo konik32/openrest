@@ -36,33 +36,9 @@ public class TempPart {
 		this.parts = new ArrayList<TempPart>();
 	}
 
-//	public TreePart getTreePart(Class<?> domainClass) {
-//		TreePart part;
-//		switch (type) {
-//		case AND:
-//			part = new AndBranch(parts.size());
-//			for (TempPart tPart : parts) {
-//				((TreeBranch) part).addPart(tPart.getTreePart(domainClass));
-//			}
-//			return part;
-//		case OR:
-//			part = new OrBranch(parts.size());
-//			for (TempPart tPart : parts) {
-//				((TreeBranch) part).addPart(tPart.getTreePart(domainClass));
-//			}
-//			return part;
-//		case LEAF:
-//			part = new Part(propertyName, PART_TYPES_MAP.get(functionName),
-//					domainClass);
-//			return part;
-//		}
-//		
-//		// should never get here
-//		return null;
-//	}
-
 	public void addPart(TempPart part) {
-		parts.add(part);
+		if (part != null)
+			parts.add(part);
 	}
 
 	public List<TempPart> getParts() {

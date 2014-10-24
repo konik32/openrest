@@ -37,7 +37,7 @@ public class SpelMultiplePropertyFilter extends AbstractContextFilter {
 		SpelFilter ep = AnnotationUtils.findAnnotation(
 				valueToFilter.getClass(), SpelFilter.class);
 		String spelString = ep.value();
-		if (getSpelValue(valueToFilter, request, spelString)) {
+		if (!getSpelValue(valueToFilter, request, spelString)) {
 			propertiesToIgnore = new HashSet<String>(ep.properties().length);
 			propertiesToIgnore.addAll(Arrays.asList(ep.properties()));
 		}

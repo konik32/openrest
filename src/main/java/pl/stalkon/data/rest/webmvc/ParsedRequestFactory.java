@@ -20,7 +20,7 @@ import pl.stalkon.data.query.JpaParameters;
 import pl.stalkon.data.query.ParameterBinder;
 import pl.stalkon.data.query.ParametersParameterAccessor;
 import pl.stalkon.data.query.parser.PartTree;
-import pl.stalkon.data.query.parser.PartTreeBuilder;
+import pl.stalkon.data.query.parser.PartTreeSpecificationParametersBuilder;
 
 public class ParsedRequestFactory {
 
@@ -49,7 +49,7 @@ public class ParsedRequestFactory {
 		ParameterBinder binder = new ParameterBinder(jpaParameters, values);
 		return new PartTreeSpecification(predicate, binder);
 	}
-	
+
 	public ParsedRequest getSpecificationInformation(String filter,
 			String views, String subject, String path, Class<?> domainClass) {
 
@@ -59,49 +59,46 @@ public class ParsedRequestFactory {
 		PathParser pathParser = new PathParser(path);
 		pathParser.parse();
 
-		PartTreeBuilder partTreeBuilder;
+		PartTreeSpecificationParametersBuilder specificationParametersBuilder;
 
 		if (pathParser.getProperty() != null) {
 			Class<?> propertyType = PropertyPath.from(pathParser.getProperty(),
 					domainClass).getType();
-			partTreeBuilder = new PartTreeBuilder(propertyType, objectMapper);
-			partTreeBuilder.appendParentIdPredicate(domainClass,
+			specificationParametersBuilder = new PartTreeSpecificationParametersBuilder(propertyType, objectMapper);
+			specificationParametersBuilder.appendParentIdPredicate(domainClass,
 					pathParser.getProperty(), pathParser.getId());
 		} else {
-			partTreeBuilder = new PartTreeBuilder(domainClass, objectMapper);
+			specificationParametersBuilder = new PartTreeSpecificationParametersBuilder(domainClass, objectMapper);
 			if (pathParser.getId() != null)
-				partTreeBuilder.appendId(pathParser.getId());
+				specificationParametersBuilder.appendId(pathParser.getId());
 		}
 
-		if(filterParser.isParsed())
-			partTreeBuilder.append(filterParser.getTempRoot(),
-				filterParser.getParameters());
+		if (filterParser.isParsed())
+			specificationParametersBuilder.append(filterParser.getTempRoot(),
+					filterParser.getParameters());
 
-		PartTree partTree = partTreeBuilder.getPartTree();
+		PartTree partTree = specificationParametersBuilder.getPartTree();
+		
 		CriteriaBuilder builder = em.getCriteriaBuilder();
+		
 		JpaParameters jpaParameters = new JpaParameters(
-				partTreeBuilder.getJpaParameters(), -1, -1);
-		Object values[] = partTreeBuilder.getParametersValues().toArray();
-
-		ParameterBinder binder = new ParameterBinder(jpaParameters, values);
-
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(
-				jpaParameters, values);
-
-		ParameterMetadataProvider provider = new ParameterMetadataProvider(
-				builder, accessor);
+				specificationParametersBuilder.getJpaParameters(), -1, -1);
+		
+		Object values[] = specificationParametersBuilder.getParametersValues().toArray();
 
 		List<PropertyPath> viewPropertyPaths = new ViewsParser(views,
-				partTreeBuilder.getDomainClass()).parse();
+				specificationParametersBuilder.getDomainClass()).parse();
+		
+		PartTreeSpecification partTreeSpecification = new PartTreeSpecification(
+				partTree, jpaParameters, values, builder, viewPropertyPaths);
+		
 		if (pathParser.getProperty() == null) {
-			return new ParsedRequest(partTreeBuilder.getDomainClass(),
-					new PartTreeSpecification(partTree, provider, binder,
-							viewPropertyPaths));
+			return new ParsedRequest(specificationParametersBuilder.getDomainClass(),
+					partTreeSpecification);
 		} else {
 			return new ParsedRequest(PropertyPath.from(
 					pathParser.getProperty(), domainClass),
-					new PartTreeSpecification(partTree, provider, binder,
-							viewPropertyPaths));
+					partTreeSpecification);
 		}
 	}
 }
