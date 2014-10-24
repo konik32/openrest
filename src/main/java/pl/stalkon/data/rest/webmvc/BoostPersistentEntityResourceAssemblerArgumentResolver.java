@@ -5,8 +5,6 @@ import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.mapping.ResourceMappings;
 import org.springframework.data.rest.core.projection.ProjectionDefinitions;
 import org.springframework.data.rest.core.projection.ProjectionFactory;
-import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
-import org.springframework.data.rest.webmvc.config.PersistentEntityResourceAssemblerArgumentResolver;
 import org.springframework.data.rest.webmvc.support.PersistentEntityProjector;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.util.Assert;

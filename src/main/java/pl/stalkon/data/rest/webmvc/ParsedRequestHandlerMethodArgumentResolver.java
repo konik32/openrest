@@ -53,7 +53,8 @@ public class ParsedRequestHandlerMethodArgumentResolver implements
 
 		String filter = webRequest.getParameter("filter");
 		String subject = webRequest.getParameter("subject");
-		String view = webRequest.getParameter("expand");
+		String expand = webRequest.getParameter("expand");
+		String sFilter = webRequest.getParameter("sFilter");
 
 		ResourceMetadata metadata = resourceMetadataResolver.resolveArgument(
 				parameter, mavContainer, webRequest, binderFactory);
@@ -63,8 +64,8 @@ public class ParsedRequestHandlerMethodArgumentResolver implements
 		// parsers.parseQueryParameters(
 		// metadata.getDomainType(), filter, subject,view);
 
-		return partTreeSpecificationFactory.getSpecificationInformation(filter, view,
-				subject, path, metadata.getDomainType());
+		return partTreeSpecificationFactory.getSpecificationInformation(filter, expand,
+				subject, path,sFilter, metadata.getDomainType());
 	}
 
 }
