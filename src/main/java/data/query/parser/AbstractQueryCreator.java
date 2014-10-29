@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
-
+/**
+ * Modification of {@link org.springframework.data.repository.query.parser.AbstractQueryCreator} to use {@link PartTree}
+ * Creator does not complete query.
+ * @author Szymon Konicki
+ *
+ */
 public abstract class AbstractQueryCreator<S> {
 
 	protected final PartTree tree;
 
 	/**
 	 * Creates a new {@link AbstractQueryCreator} for the given {@link PartTree}
-	 * and {@link ParametersParameterAccessor}. The latter is used to hand
-	 * actual parameter values into the callback methods as well as to apply
-	 * dynamic sorting via a {@link Sort} parameter.
+	 * 
 	 * 
 	 * @param tree
 	 *            must not be {@literal null}.
-	 * @param parameters
-	 *            can be {@literal null}.
 	 */
 	public AbstractQueryCreator(PartTree tree) {
 		Assert.notNull(tree, "PartTree must not be null");
@@ -45,8 +46,6 @@ public abstract class AbstractQueryCreator<S> {
 	 * Actual query building logic. Traverses the {@link PartTree} and invokes
 	 * callback methods to delegate actual criteria creation and concatenation.
 	 * 
-	 * @param tree
-	 * @return
 	 */
 	public S createCriteria() {
 		return toRecursiveCriteria(tree.getPartTreeRoot());

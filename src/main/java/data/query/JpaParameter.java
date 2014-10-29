@@ -1,22 +1,23 @@
-package pl.stalkon.data.query;
+package data.query;
 
 import java.util.Date;
 
 import javax.persistence.TemporalType;
 
+import org.springframework.data.jpa.repository.query.JpaParameters;
+
 /**
- * Custom {@link Parameter} implementation adding parameters of type
- * {@link Temporal} to the special ones.
  * 
- * @author Thomas Darimont
- * @author Oliver Gierke
+ * Modification of {@link JpaParameters.JpaParameter} to implement
+ * {@link Parameter}
+ * 
+ * @author Szymon Konicki
  */
 public class JpaParameter extends Parameter {
 
 	private TemporalType temporalType;
 
-	public JpaParameter(Class<?> type, String name, int index,
-			TemporalType temporalType) {
+	public JpaParameter(Class<?> type, String name, int index, TemporalType temporalType) {
 		super(type, name, index);
 		this.temporalType = temporalType;
 	}

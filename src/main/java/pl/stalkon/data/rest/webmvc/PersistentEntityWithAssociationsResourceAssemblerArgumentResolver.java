@@ -5,6 +5,8 @@ import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.mapping.ResourceMappings;
 import org.springframework.data.rest.core.projection.ProjectionDefinitions;
 import org.springframework.data.rest.core.projection.ProjectionFactory;
+import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
+import org.springframework.data.rest.webmvc.config.PersistentEntityResourceAssemblerArgumentResolver;
 import org.springframework.data.rest.webmvc.support.PersistentEntityProjector;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.util.Assert;
@@ -12,8 +14,12 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-public class BoostPersistentEntityResourceAssemblerArgumentResolver implements HandlerMethodArgumentResolver  {
+/**
+ * Modification of {@link PersistentEntityResourceAssemblerArgumentResolver} to return {@link PersistentEntityWithAssociationsResourceAssembler}
+ * @author Szymon Konicki
+ *
+ */
+public class PersistentEntityWithAssociationsResourceAssemblerArgumentResolver implements HandlerMethodArgumentResolver  {
 
 	private final Repositories repositories;
 	private final EntityLinks entityLinks;
@@ -21,7 +27,7 @@ public class BoostPersistentEntityResourceAssemblerArgumentResolver implements H
 	private final ProjectionFactory projectionFactory;
 	private final ResourceMappings mappings;
 	
-	public BoostPersistentEntityResourceAssemblerArgumentResolver(Repositories repositories, EntityLinks entityLinks,
+	public PersistentEntityWithAssociationsResourceAssemblerArgumentResolver(Repositories repositories, EntityLinks entityLinks,
 			ProjectionDefinitions projectionDefinitions, ProjectionFactory projectionFactory, ResourceMappings mappings) {
 		Assert.notNull(repositories, "Repositories must not be null!");
 		Assert.notNull(entityLinks, "EntityLinks must not be null!");
@@ -37,7 +43,7 @@ public class BoostPersistentEntityResourceAssemblerArgumentResolver implements H
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return BoostPersistentEntityResourceAssembler.class.equals(parameter.getParameterType());
+		return PersistentEntityWithAssociationsResourceAssembler.class.equals(parameter.getParameterType());
 	}
 	
 	@Override
@@ -46,7 +52,7 @@ public class BoostPersistentEntityResourceAssemblerArgumentResolver implements H
 		String projectionParameter = webRequest.getParameter(projectionDefinitions.getParameterName());
 		PersistentEntityProjector projector = new PersistentEntityProjector(projectionDefinitions, projectionFactory,
 				projectionParameter, mappings);
-		return new BoostPersistentEntityResourceAssembler(repositories, entityLinks, projector, mappings);
+		return new PersistentEntityWithAssociationsResourceAssembler(repositories, entityLinks, projector, mappings);
 	}
 
 }

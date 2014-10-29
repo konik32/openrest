@@ -22,20 +22,28 @@ import org.springframework.hateoas.core.EmbeddedWrapper;
 import org.springframework.hateoas.core.EmbeddedWrappers;
 import org.springframework.util.Assert;
 
-public class BoostPersistentEntityResourceAssembler extends PersistentEntityResourceAssembler {
+/**
+ * Modification of {@link PersistentEntityResourceAssembler}. Linkable
+ * associations don't need to have projections to be added to embedded wrapper.
+ * Associations are wrapped recursively
+ * 
+ * @author Szymon Konicki
+ *
+ */
+public class PersistentEntityWithAssociationsResourceAssembler extends PersistentEntityResourceAssembler {
 
 	private final Repositories repositories;
 	private final Projector projector;
 	private final ResourceMappings mappings;
 	private final EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
-	
-	public BoostPersistentEntityResourceAssembler(Repositories repositories, EntityLinks entityLinks, Projector projector, ResourceMappings mappings) {
+
+	public PersistentEntityWithAssociationsResourceAssembler(Repositories repositories, EntityLinks entityLinks, Projector projector, ResourceMappings mappings) {
 		super(repositories, entityLinks, projector, mappings);
 		this.repositories = repositories;
 		this.projector = projector;
 		this.mappings = mappings;
 	}
-	
+
 	@Override
 	public PersistentEntityResource toResource(Object instance) {
 
@@ -44,7 +52,7 @@ public class BoostPersistentEntityResourceAssembler extends PersistentEntityReso
 		return wrap(projector.projectExcerpt(instance), instance).build();
 
 	}
-	
+
 	@Override
 	public PersistentEntityResource toFullResource(Object instance) {
 		Assert.notNull(instance, "Entity instance must not be null!");
@@ -62,10 +70,11 @@ public class BoostPersistentEntityResourceAssembler extends PersistentEntityReso
 	}
 
 	/**
-	 * Returns the embedded resources to render. This will add an {@link RelatedResource} for linkable associations if
-	 * they have an excerpt projection registered.
+	 * Returns the embedded resources to render. This will add an
+	 * {@link RelatedResource} for linkable associations.
 	 * 
-	 * @param instance must not be {@literal null}.
+	 * @param instance
+	 *            must not be {@literal null}.
 	 * @return
 	 */
 	private Iterable<EmbeddedWrapper> getEmbeddedResources(Object instance) {
@@ -83,7 +92,9 @@ public class BoostPersistentEntityResourceAssembler extends PersistentEntityReso
 
 			/*
 			 * (non-Javadoc)
-			 * @see org.springframework.data.mapping.SimpleAssociationHandler#doWithAssociation(org.springframework.data.mapping.Association)
+			 * 
+			 * @see org.springframework.data.mapping.SimpleAssociationHandler#
+			 * doWithAssociation(org.springframework.data.mapping.Association)
 			 */
 			@Override
 			public void doWithAssociation(Association<? extends PersistentProperty<?>> association) {
@@ -95,13 +106,12 @@ public class BoostPersistentEntityResourceAssembler extends PersistentEntityReso
 				}
 
 				Object value = wrapper.getProperty(association.getInverse());
-				
-				
-				//TODO: find a way to check if value is lazy loaded
+
+				// TODO: find a way to check if value is lazy loaded
 				if (value == null || !value.getClass().equals(property.getActualType())) {
 					return;
 				}
-				
+
 				String rel = metadata.getMappingFor(property).getRel();
 
 				if (value instanceof Collection) {
@@ -123,7 +133,7 @@ public class BoostPersistentEntityResourceAssembler extends PersistentEntityReso
 					associationProjections.add(wrappers.wrap(nestedCollection, rel));
 
 				} else {
-					associationProjections.add(wrappers.wrap(projector.projectExcerpt(value), rel));
+					associationProjections.add(wrappers.wrap(toFullResource(value), rel));
 				}
 			}
 		});

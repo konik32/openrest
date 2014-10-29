@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.query;
+package data.query;
 
 
 
@@ -27,11 +27,9 @@ import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.util.Assert;
 
 /**
- * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
- * {@link AbstractJpaQuery} is executed.
- * 
- * @author Oliver Gierke
- * @author Thomas Darimont
+ * Modification of {@link org.springframework.data.jpa.repository.query.ParameterBinder} to use {@link Parameters} and {@link JpaParameters}
+ * @author Szymon Konicki
+ *
  */
 public class ParameterBinder {
 

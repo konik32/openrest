@@ -23,9 +23,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import data.jpa.query.OrderAndJoinQueryUtils;
 import pl.stalkon.data.boost.domain.BoostSpecification;
 import pl.stalkon.data.boost.repository.BoostRepository;
-import pl.stalkon.data.jpa.query.OrderAndJoinQueryUtils;
 
 @Repository
 public class BoostJpaRepository implements BoostRepository {

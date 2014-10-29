@@ -1,4 +1,4 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import java.util.List;
 

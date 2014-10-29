@@ -1,4 +1,4 @@
-package pl.stalkon.data.query;
+package data.query;
 
 import static java.lang.String.format;
 
@@ -9,17 +9,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
+/**
+ * Modification of {@link org.springframework.data.repository.query.Parameter}.
+ * Constructor has multiple parameters describing {@link Parameter} instead of one.
+ * 
+ * @author Szymon Konicki
+ *
+ */
 public class Parameter {
 
-	@SuppressWarnings("unchecked") public static final List<Class<?>> TYPES = Arrays.asList(Pageable.class, Sort.class);
+	@SuppressWarnings("unchecked")
+	public static final List<Class<?>> TYPES = Arrays.asList(Pageable.class, Sort.class);
 
 	private static final String NAMED_PARAMETER_TEMPLATE = ":%s";
 	private static final String POSITION_PARAMETER_TEMPLATE = "?%s";
 	private final Class<?> type;
 	private final String name;
 	private final int index;
-	
-	
+
 	public Parameter(Class<?> type, String name, int index) {
 		Assert.notNull(type);
 		Assert.state(index >= 0);
@@ -27,19 +34,9 @@ public class Parameter {
 		this.name = name;
 		this.index = index;
 	}
-	
-	
+
 	public Parameter(Class<?> type, int index) {
 		this(type, null, index);
-	}
-
-	/**
-	 * Returns whether the {@link Parameter} is the first one.
-	 * 
-	 * @return
-	 */
-	public boolean isFirst() {
-		return getIndex() == 0;
 	}
 
 	/**
@@ -62,7 +59,8 @@ public class Parameter {
 	}
 
 	/**
-	 * Returns the placeholder to be used for the parameter. Can either be a named one or positional.
+	 * Returns the placeholder to be used for the parameter. Can either be a
+	 * named one or positional.
 	 * 
 	 * @return
 	 */
@@ -76,7 +74,8 @@ public class Parameter {
 	}
 
 	/**
-	 * Returns the position index the parameter is bound to in the context of its surrounding {@link Parameters}.
+	 * Returns the position index the parameter is bound to in the context of
+	 * its surrounding {@link Parameters}.
 	 * 
 	 * @return
 	 */
@@ -85,7 +84,7 @@ public class Parameter {
 	}
 
 	/**
-	 * Returns whether the parameter is annotated with {@link Param}.
+	 * Returns whether the parameter has name field set
 	 * 
 	 * @return
 	 */
@@ -113,6 +112,7 @@ public class Parameter {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

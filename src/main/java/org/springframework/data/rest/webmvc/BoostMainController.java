@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import pl.stalkon.data.boost.repository.BoostRepository;
-import pl.stalkon.data.rest.webmvc.BoostPersistentEntityResourceAssembler;
+import pl.stalkon.data.rest.webmvc.PersistentEntityWithAssociationsResourceAssembler;
 import pl.stalkon.data.rest.webmvc.ParsedRequest;
 
 @RepositoryRestController
@@ -53,7 +53,7 @@ public class BoostMainController extends AbstractRepositoryRestController implem
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "filter")
-	public Resources<?> getResourceWithFilterParameter(ParsedRequest specificationInformation, BoostPersistentEntityResourceAssembler assembler,
+	public Resources<?> getResourceWithFilterParameter(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler,
 			DefaultedPageable pageable, Sort sort){
 		return getResources(specificationInformation, assembler, pageable, sort);
 	}
@@ -67,7 +67,7 @@ public class BoostMainController extends AbstractRepositoryRestController implem
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "filter", "expand" })
-	public Resources<?> getResourceWithFilterAndExpandParameter(ParsedRequest specificationInformation, BoostPersistentEntityResourceAssembler assembler,
+	public Resources<?> getResourceWithFilterAndExpandParameter(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler,
 			DefaultedPageable pageable, Sort sort) {
 		return getResources(specificationInformation, assembler, pageable, sort);
 	}
@@ -97,7 +97,7 @@ public class BoostMainController extends AbstractRepositoryRestController implem
 
 	@ResponseBody
 	@RequestMapping(value = { BASE_MAPPING + "/{id}" }, method = RequestMethod.GET, params = "expand")
-	public ResponseEntity<Resource<?>> getResourceWithExpandParameter(ParsedRequest specificationInformation, BoostPersistentEntityResourceAssembler assembler){
+	public ResponseEntity<Resource<?>> getResourceWithExpandParameter(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler){
 		Resource<?> resource = getResource(specificationInformation, assembler);
 		if(resource == null){
 			return new ResponseEntity<Resource<?>>(HttpStatus.NOT_FOUND);
@@ -156,25 +156,5 @@ public class BoostMainController extends AbstractRepositoryRestController implem
 		return boostJpaRepository.findAll(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass(),
 				pageable != null ? pageable.getPageable() : null, sort);
 	}
-	
-	
-//	private Resources<?> processCollectionRequest(ParsedRequest specificationInformation, PersistentEntityResourceAssembler assembler,
-//			DefaultedPageable pageable, Sort sort) throws ResourceNotFoundException, HttpRequestMethodNotSupportedException {
-//
-//		Iterable<?> results = boostJpaRepository.findAll(specificationInformation.getPartTreeSpecification(),
-//				(Class<Object>) specificationInformation.getDomainClass(), pageable.getPageable(), sort);
-//
-//		ResourceMetadata metadata = mappings.getMappingFor(specificationInformation.getDomainClass());
-//		SearchResourceMappings searchMappings = metadata.getSearchResourceMappings();
-//		List<Link> links = new ArrayList<Link>();
-//
-//		if (searchMappings.isExported()) {
-//			links.add(entityLinks.linkFor(metadata.getDomainType()).slash(searchMappings.getPath()).withRel(searchMappings.getRel()));
-//		}
-//		Link baseLink = entityLinks.linkToPagedResource(specificationInformation.getDomainClass(), pageable.isDefault() ? null : pageable.getPageable());
-//		Resources<?> resources = resultToResources(results, assembler, baseLink);
-//		resources.add(links);
-//		return resources;
-//	}
 
 }

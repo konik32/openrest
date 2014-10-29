@@ -1,4 +1,4 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -22,21 +22,24 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.util.Assert;
 
+import antlr.StringUtils;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import data.jpa.query.ParameterMetadataProvider;
+import data.query.CriteriaQueryParameterBinder;
+import data.query.JpaParameter;
+import data.query.JpaParameters;
+import data.query.ParameterBinder;
+import data.query.ParametersParameterAccessor;
+import data.query.parser.Part.Type;
 import pl.stalkon.data.boost.domain.PartTreeSpecification;
 import pl.stalkon.data.boost.httpquery.parser.FilterWrapper;
 import pl.stalkon.data.boost.httpquery.parser.RequestParsingException;
 import pl.stalkon.data.boost.httpquery.parser.TempPart;
 import pl.stalkon.data.boost.query.StaticFilterFactory;
-import pl.stalkon.data.jpa.query.ParameterMetadataProvider;
-import pl.stalkon.data.query.JpaParameter;
-import pl.stalkon.data.query.JpaParameters;
-import pl.stalkon.data.query.ParameterBinder;
-import pl.stalkon.data.query.ParametersParameterAccessor;
-import pl.stalkon.data.query.parser.Part.Type;
 
 public class PartTreeSpecificationBuilder {
 
@@ -61,10 +64,6 @@ public class PartTreeSpecificationBuilder {
 		typesMap.put("containing", Type.CONTAINING);
 		typesMap.put("notIn", Type.NOT_IN);
 		typesMap.put("in", Type.IN);
-		typesMap.put("near", Type.NEAR);
-		typesMap.put("within", Type.WITHIN);
-		typesMap.put("regex", Type.REGEX);
-		typesMap.put("exists", Type.EXISTS);
 		typesMap.put("true", Type.TRUE);
 		typesMap.put("false", Type.FALSE);
 		typesMap.put("eq", Type.SIMPLE_PROPERTY);
@@ -87,13 +86,13 @@ public class PartTreeSpecificationBuilder {
 	private List<Object> parametersValues = new ArrayList<Object>();
 	private TreeBranch partTreeRoot;
 
-	public void append(FilterWrapper filterWrapper) {
-		Assert.notNull(filterWrapper);
-		Assert.notNull(filterWrapper.getTempPart());
-		Assert.notNull(filterWrapper.getValues());
+	private int leafIndex = 0;
 
-		root.addPart(filterWrapper.getTempPart());
-		strParameters.addAll(filterWrapper.getValues());
+	public void append(FilterWrapper filterWrapper) {
+		if (filterWrapper != null) {
+			root.addPart(filterWrapper.getTempPart());
+			strParameters.addAll(filterWrapper.getValues());
+		}
 	}
 
 	public void append(String id) {
@@ -136,14 +135,19 @@ public class PartTreeSpecificationBuilder {
 	public PartTreeSpecification build() {
 		partTreeRoot = new AndBranch();
 		partTreeRoot.addPart(getTreePart(root));
-		populateJpaParameters();
+		// populateJpaParameters();
 		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), -1, -1);
 		Object values[] = parametersValues.toArray();
-		ParameterBinder binder = new ParameterBinder(jpaParameters, values);
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(jpaParameters, values);
-		ParameterMetadataProvider provider = new ParameterMetadataProvider(criteriaBuilder, accessor);
 		PartTree partTree = new PartTree(partTreeRoot, null, distinct, countProjection);
-		return new PartTreeSpecification(partTree, provider, binder, expandPropertyPaths);
+		//
+		// ParametersParameterAccessor accessor = new
+		// ParametersParameterAccessor(jpaParameters, values);
+		// ParameterMetadataProvider provider = new
+		// ParameterMetadataProvider(criteriaBuilder, accessor);
+		// ParameterBinder binder = new
+		// CriteriaQueryParameterBinder(jpaParameters, values,
+		// provider.getExpressions());
+		return new PartTreeSpecification(partTree, jpaParameters, values, criteriaBuilder, expandPropertyPaths);
 	}
 
 	public void setCountProjection() {
@@ -237,20 +241,23 @@ public class PartTreeSpecificationBuilder {
 		throw new ResourceNotFoundException();
 	}
 
-	private void populateJpaParameters() {
-		int i = parametersValues.size();
-		for (String[] params : strParameters) {
-			for (String param : params) {
-				try {
-					parametersValues.add(getParsedObject(param, jpaParameters.get(i++).getType()));
-				} catch (IndexOutOfBoundsException e) {
-					throw new RequestParsingException("Parameters values count does not match parameters count");
-				}
-			}
-		}
-		if (parametersValues.size() != jpaParameters.size())
-			throw new RequestParsingException("Parameters values count does not match parameters count");
-	}
+	// private void populateJpaParameters() {
+	// int i = parametersValues.size();
+	// for (String[] params : strParameters) {
+	// for (String param : params) {
+	// try {
+	// parametersValues.add(getParsedObject(param,
+	// jpaParameters.get(i++).getType()));
+	// } catch (IndexOutOfBoundsException e) {
+	// throw new
+	// RequestParsingException("Parameters values count does not match parameters count");
+	// }
+	// }
+	// }
+	// if (parametersValues.size() != jpaParameters.size())
+	// throw new
+	// RequestParsingException("Parameters values count does not match parameters count");
+	// }
 
 	private TreePart getTreePart(TempPart tempPart) {
 		TreePart part;
@@ -279,15 +286,48 @@ public class PartTreeSpecificationBuilder {
 		Type partType = PART_TYPES_MAP.get(tempPart.getFunctionName());
 		if (partType == null)
 			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " is unknown");
-		if (partType.getNumberOfArguments() != tempPart.getParametersCount()) {
-			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " should have " + partType.getNumberOfArguments() + " parameters");
-		}
+
 		TreePart part = new Part(tempPart.getPropertyName(), partType, getDomainClass());
 
 		Class<?> partPropertyType = ((Part) part).getProperty().getLeafProperty().getType();
-		for (int i = 0; i < tempPart.getParametersCount(); i++)
-			jpaParameters.add(new JpaParameter(partPropertyType, jpaParameters.size()));
+		
+		addJpaParametersAndValues(tempPart, partType, partPropertyType);
+		leafIndex++;
 		return part;
+	}
+
+	private void addJpaParametersAndValues(TempPart tempPart, Part.Type partType, Class<?> partPropertyType) {
+		String[] strParams = preprocessParameterValue(partType, strParameters.get(leafIndex));
+		if (partType == Type.IN || partType == Type.NOT_IN) {
+			jpaParameters.add(new JpaParameter(partPropertyType, jpaParameters.size()));
+			List<Object> inObjects = new ArrayList<Object>(strParams.length);
+			for (String param : strParams) {
+				inObjects.add(getParsedObject(param, partPropertyType));
+			}
+			parametersValues.add(inObjects);
+		} else {
+			if (partType.getNumberOfArguments() != tempPart.getParametersCount()) {
+				throw new RequestParsingException("Function " + tempPart.getFunctionName() + " should have " + partType.getNumberOfArguments() + " parameters");
+			}
+			for (int i = 0; i < tempPart.getParametersCount(); i++) {
+				jpaParameters.add(new JpaParameter(partPropertyType, jpaParameters.size()));
+			}
+			for (String param : strParams) {
+				parametersValues.add(getParsedObject(param, partPropertyType));
+			}
+		}
+
+	}
+
+	private String[] preprocessParameterValue(Type partType, String[] paramValues) {
+		String result[] = paramValues;
+		switch (partType) {
+		case LIKE:
+			for (int i=0;i<paramValues.length;i++) {
+				result[i] = paramValues[i].replace("*", "%");
+			}
+		}
+		return result;
 	}
 
 	private Object getParsedObject(String sValue, Class<?> type) {

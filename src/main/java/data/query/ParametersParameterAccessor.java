@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.query;
+package data.query;
 
 import java.util.Iterator;
 
@@ -23,9 +23,9 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.util.Assert;
 
 /**
- * {@link ParameterAccessor} implementation using a {@link Parameters} instance to find special parameters.
- * 
- * @author Oliver Gierke
+ * Modification of {@link org.springframework.data.repository.query.ParametersParameterAccessor} to use {@link Parameters}
+ * @author Szymon Konicki
+ *
  */
 public class ParametersParameterAccessor implements ParameterAccessor {
 
@@ -97,6 +97,10 @@ public class ParametersParameterAccessor implements ParameterAccessor {
 	@SuppressWarnings("unchecked")
 	protected <T> T getValue(int index) {
 		return (T) values[index];
+	}
+	
+	public Object[] getValues(){
+		return values;
 	}
 
 	/*

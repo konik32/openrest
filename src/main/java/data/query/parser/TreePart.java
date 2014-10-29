@@ -1,8 +1,8 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import java.util.List;
 
-import pl.stalkon.data.query.parser.Part.Type;
+import data.query.parser.Part.Type;
 
 public interface TreePart {
 	List<Part> getParts();

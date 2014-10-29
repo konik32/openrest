@@ -27,7 +27,7 @@ import pl.stalkon.data.boost.response.filter.BoostFilterProvider;
 import pl.stalkon.data.boost.response.filter.RequestBasedFilterIntrospector;
 import pl.stalkon.data.boost.response.filter.ContextFilterFactory;
 import pl.stalkon.data.boost.response.filter.SpelMultiplePropertyFilter;
-import pl.stalkon.data.rest.webmvc.BoostPersistentEntityResourceAssemblerArgumentResolver;
+import pl.stalkon.data.rest.webmvc.PersistentEntityWithAssociationsResourceAssemblerArgumentResolver;
 import pl.stalkon.data.rest.webmvc.ParsedRequestHandlerMethodArgumentResolver;
 import pl.stalkon.data.rest.webmvc.ParsedRequestFactory;
 
@@ -37,10 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BoostConfiguration extends RepositoryRestMvcConfiguration {
 
 	@Autowired
-	private RepositoryEntityLinks entityLinks;
-
-	@Autowired
-	ListableBeanFactory beanFactory;
+	private ListableBeanFactory beanFactory;
 
 	@Autowired
 	private PagedResourcesAssembler<Object> assembler;
@@ -48,19 +45,14 @@ public class BoostConfiguration extends RepositoryRestMvcConfiguration {
 	@Autowired
 	private PersistentEntities persistentEntities;
 
-	@Autowired(required = false)
-	RelProvider relProvider;
-	@Autowired(required = false)
-	CurieProvider curieProvider;
-
 	@Bean
 	public ParsedRequestHandlerMethodArgumentResolver partTreeSpecificationHandlerMethodArgumentResolver() {
-		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver());
+		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(), config());
 	}
 
 	@Bean
-	public BoostPersistentEntityResourceAssemblerArgumentResolver boostPersistentEntityResourceAssemblerArgumentResolver() {
-		return new BoostPersistentEntityResourceAssemblerArgumentResolver(repositories(), entityLinks(), config().projectionConfiguration(),
+	public PersistentEntityWithAssociationsResourceAssemblerArgumentResolver boostPersistentEntityResourceAssemblerArgumentResolver() {
+		return new PersistentEntityWithAssociationsResourceAssemblerArgumentResolver(repositories(), entityLinks(), config().projectionConfiguration(),
 				new ProxyProjectionFactory(beanFactory), resourceMappings());
 	}
 
@@ -88,7 +80,7 @@ public class BoostConfiguration extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public BoostMainController boostMainController() {
-		return new BoostMainController(entityLinks, assembler, boostJpaRepository(), resourceMappings());
+		return new BoostMainController(entityLinks(), assembler, boostJpaRepository(), resourceMappings());
 	}
 
 	@Bean

@@ -8,22 +8,29 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.PersistentEntities;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import data.jpa.query.ParameterMetadataProvider;
+import data.query.JpaParameters;
+import data.query.ParameterBinder;
+import data.query.ParametersParameterAccessor;
+import data.query.parser.PartTree;
+import data.query.parser.PartTreeSpecificationBuilder;
 import pl.stalkon.data.boost.domain.PartTreeSpecification;
-import pl.stalkon.data.boost.httpquery.parser.FilterParser;
-import pl.stalkon.data.boost.httpquery.parser.FilterParser.PathWrapper;
+import pl.stalkon.data.boost.httpquery.parser.Parsers;
+import pl.stalkon.data.boost.httpquery.parser.Parsers.PathWrapper;
 import pl.stalkon.data.boost.query.StaticFilterFactory;
-import pl.stalkon.data.jpa.query.ParameterMetadataProvider;
-import pl.stalkon.data.query.JpaParameters;
-import pl.stalkon.data.query.ParameterBinder;
-import pl.stalkon.data.query.ParametersParameterAccessor;
-import pl.stalkon.data.query.parser.PartTree;
-import pl.stalkon.data.query.parser.PartTreeSpecificationBuilder;
-
+/**
+ * Factory that builds and returns {@link ParsedRequest} from given parameters. TODO add caching
+ * 
+ * @author Szymon Konicki
+ *
+ */
 public class ParsedRequestFactory {
 
 	@PersistenceContext
@@ -38,48 +45,56 @@ public class ParsedRequestFactory {
 	@Autowired
 	private StaticFilterFactory staticaStaticFilterFactory;
 
-	public PartTreeSpecification getBoostSpecification(PartTree tree, JpaParameters jpaParameters, Object values[], List<PropertyPath> viewPropertyPaths) {
-		CriteriaBuilder builder = em.getCriteriaBuilder();
+	/**
+	 * Method uses {@link Parsers} to parse parameters and
+	 * {@link PartTreeSpecificationBuilder} to build
+	 * {@link PartTreeSpecification} and wrap it into {@link ParsedRequest}. For parameters format see {@link Parsers}
+	 * 
+	 * @param filter
+	 *            sql like string
+	 * @param expand
+	 *            associations to expand
+	 * @param subject
+	 *            count or distinct
+	 * @param path
+	 *            requested URI
+	 * @param sFilter
+	 *            string containing names of static filters to ignore
+	 * @param domainClass
+	 *            type of requested resource or parent resource in case path is
+	 *            like /resource/id/property. Must not be {@literal null}
+	 *
+	 * @return {@link ParsedRequest}
+	 **/
+	public ParsedRequest getParsedRequest(String filter, String expand, String subject, String path, String sFilter, Class<?> domainClass) {
+		Assert.notNull(domainClass);
 
-		ParameterBinder binder = new ParameterBinder(jpaParameters, values);
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(jpaParameters, values);
-		ParameterMetadataProvider provider = new ParameterMetadataProvider(builder, accessor);
-		return new PartTreeSpecification(tree, provider, binder, viewPropertyPaths);
-	}
+		PathWrapper pathWrapper = Parsers.parsePath(path);
 
-	public PartTreeSpecification getBoostSpecification(Predicate predicate, JpaParameters jpaParameters, Object values[]) {
-		ParameterBinder binder = new ParameterBinder(jpaParameters, values);
-		return new PartTreeSpecification(predicate, binder);
-	}
-
-	public ParsedRequest getSpecificationInformation(String filter, String expand, String subject, String path, String sFilter, Class<?> domainClass) {
-
-		PathWrapper pathWrapper = FilterParser.parsePath(path);
-
-		PartTreeSpecificationBuilder specificationParametersBuilder;
+		PartTreeSpecificationBuilder partTreeSpecificationBuilder;
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		if (pathWrapper.getProperty() != null) {
 			Class<?> propertyType = PropertyPath.from(pathWrapper.getProperty(), domainClass).getType();
-			specificationParametersBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(propertyType), objectMapper, builder,
+			partTreeSpecificationBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(propertyType), objectMapper, builder,
 					staticaStaticFilterFactory);
-			specificationParametersBuilder.append(persistentEntities.getPersistentEntity(domainClass), pathWrapper.getProperty(), pathWrapper.getId());
+			partTreeSpecificationBuilder.append(persistentEntities.getPersistentEntity(domainClass), pathWrapper.getProperty(), pathWrapper.getId());
 		} else {
-			specificationParametersBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper, builder,
+			partTreeSpecificationBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper, builder,
 					staticaStaticFilterFactory);
 			if (pathWrapper.getId() != null)
-				specificationParametersBuilder.append(pathWrapper.getId());
+				partTreeSpecificationBuilder.append(pathWrapper.getId());
 		}
 
-		specificationParametersBuilder.append(FilterParser.parseFilter(filter));
+		partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
 
-		specificationParametersBuilder.appendStaticFilters(FilterParser.parseSFilter(sFilter));
+		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
 
-		specificationParametersBuilder.setExpandPropertyPaths(FilterParser.parseExpand(expand, specificationParametersBuilder.getDomainClass()));
+		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass()));
 
-		PartTreeSpecification partTreeSpecification = specificationParametersBuilder.build();
+		PartTreeSpecification partTreeSpecification = partTreeSpecificationBuilder.build();
 
 		if (pathWrapper.getProperty() == null) {
-			return new ParsedRequest(specificationParametersBuilder.getDomainClass(), partTreeSpecification);
+			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), partTreeSpecification);
 		} else {
 			return new ParsedRequest(PropertyPath.from(pathWrapper.getProperty(), domainClass), partTreeSpecification);
 		}

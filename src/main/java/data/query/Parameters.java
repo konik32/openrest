@@ -1,4 +1,4 @@
-package pl.stalkon.data.query;
+package data.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +8,13 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParameterOutOfBoundsException;
+
+/**
+ * Modification of {@link org.springframework.data.repository.query.Parameters}
+ * Object is created from {@link List} of {@link Parameter}s and sort and pageable indexes
+ * @author Szymon Konicki
+ *
+ */
 
 public abstract class Parameters<S extends Parameters<S, T>, T extends Parameter>
 		implements Iterable<T> {

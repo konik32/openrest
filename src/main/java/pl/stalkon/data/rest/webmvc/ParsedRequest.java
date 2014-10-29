@@ -3,6 +3,11 @@ package pl.stalkon.data.rest.webmvc;
 import org.springframework.data.mapping.PropertyPath;
 
 import pl.stalkon.data.boost.domain.PartTreeSpecification;
+/**
+ * Wrapper containing information about requested and filtered resource
+ * @author Szymon Konicki
+ *
+ */
 
 public class ParsedRequest {
 

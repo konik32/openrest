@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.PersistentEntities;
 
-import pl.stalkon.data.boost.httpquery.parser.FilterParser;
+import pl.stalkon.data.boost.httpquery.parser.Parsers;
 import pl.stalkon.data.boost.httpquery.parser.FilterWrapper;
 
 public class StaticFilterFactory implements InitializingBean {
@@ -51,7 +51,7 @@ public class StaticFilterFactory implements InitializingBean {
 	}
 
 	private FilterWrapper create(StaticFilter staticFilter) {
-		FilterWrapper filterWrapper = FilterParser.parseFilter(staticFilter.value());
+		FilterWrapper filterWrapper = Parsers.parseFilter(staticFilter.value());
 		filterWrapper.setName(staticFilter.name());
 		return filterWrapper;
 	}

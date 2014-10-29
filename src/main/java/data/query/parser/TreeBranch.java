@@ -1,10 +1,10 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import pl.stalkon.data.query.parser.Part.Type;
+import data.query.parser.Part.Type;
 
 public abstract class TreeBranch implements TreePart{
 	

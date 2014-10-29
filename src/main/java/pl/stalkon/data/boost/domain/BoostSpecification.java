@@ -5,7 +5,7 @@ import javax.persistence.criteria.Root;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import pl.stalkon.data.query.ParameterBinder;
+import data.query.ParameterBinder;
 
 
 public interface BoostSpecification extends Specification<Object> {

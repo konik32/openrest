@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.jpa.query;
+package data.jpa.query;
 
 import java.util.List;
 
@@ -22,18 +22,20 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import pl.stalkon.data.jpa.query.ParameterMetadataProvider.ParameterMetadata;
-import pl.stalkon.data.query.parser.AbstractQueryCreator;
-import pl.stalkon.data.query.parser.Part;
-import pl.stalkon.data.query.parser.PartTree;
+import data.jpa.query.ParameterMetadataProvider.ParameterMetadata;
+import data.query.parser.AbstractQueryCreator;
+import data.query.parser.Part;
+import data.query.parser.PartTree;
 
 /**
- * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
+ * Modification of
+ * {@link org.springframework.data.jpa.repository.query.JpaQueryCreator} to use
+ * {@link ParameterMetadataProvider}.
  * 
- * @author Oliver Gierke
+ * @author Szymon Konicki
+ *
  */
-public class JpaQueryCreator extends
-		AbstractQueryCreator<Predicate> {
+public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
 
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
@@ -48,8 +50,7 @@ public class JpaQueryCreator extends
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Root<?> root,
-			CriteriaBuilder builder, ParameterMetadataProvider provider, CriteriaQuery<?> query) {
+	public JpaQueryCreator(PartTree tree, Root<?> root, CriteriaBuilder builder, ParameterMetadataProvider provider, CriteriaQuery<?> query) {
 		super(tree);
 		this.builder = builder;
 		this.query = query;
@@ -81,6 +82,5 @@ public class JpaQueryCreator extends
 	protected Predicate and(Predicate base, Predicate criteria) {
 		return builder.and(base, criteria);
 	}
-
 
 }

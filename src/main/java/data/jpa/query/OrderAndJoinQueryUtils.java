@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.jpa.query;
+package data.jpa.query;
 
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.*;
 
@@ -45,16 +45,16 @@ import javax.persistence.metamodel.PluralAttribute;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 
 /**
- * Simple utility class to create JPA queries.
+ * Modification of {@link QueryUtils} to provide functions not visible from outside of org.springframework.data.jpa.repository.query package.
+ * Provides method for adding fetch to root
  * 
- * @author Oliver Gierke
- * @author Kevin Raymond
- * @author Thomas Darimont
- * @author Komi Innocent
+ * @author Szymon Konicki
+ *
  */
 public abstract class OrderAndJoinQueryUtils {
 
@@ -225,7 +225,7 @@ public abstract class OrderAndJoinQueryUtils {
 		return from.join(attribute, JoinType.LEFT);
 	}
 	
-	
+
 	public static void toRecursiveFetch(PropertyPath property, From<?, ?> from){
 		Bindable<?> model = from.getModel();
 		String segment = property.getSegment();

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.query;
+package data.query;
 
 
 
@@ -21,20 +21,14 @@ package pl.stalkon.data.query;
 
 import java.lang.reflect.Method;
 import java.util.List;
-
-
 /**
- * Custom extension of {@link Parameters} discovering additional query parameter annotations.
+ * Custom extension to {@link Parameters}
  * 
- * @author Thomas Darimont
+ * @author Szymon Konicki
+ *
  */
 public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
-	/**
-	 * Creates a new {@link JpaParameters} instance from the given {@link Method}.
-	 * 
-	 * @param method must not be {@literal null}.
-	 */
 	public JpaParameters(List<JpaParameter> parameters, int sortIndex, int pageableIndex) {
 		super(parameters,sortIndex, pageableIndex);
 	}

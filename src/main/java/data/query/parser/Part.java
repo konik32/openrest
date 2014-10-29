@@ -1,4 +1,4 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,6 +6,12 @@ import java.util.List;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 
+/**
+ * Modification of {@link org.springframework.data.repository.query.parser.Part}
+ * 
+ * @author Szymon Konicki
+ *
+ */
 public class Part implements TreePart {
 
 	protected final PropertyPath propertyPath;
@@ -17,8 +23,7 @@ public class Part implements TreePart {
 		this(path, type, domainClass, false);
 	}
 
-	public Part(String path, Type type, Class<?> domainClass,
-			boolean alwaysIgnoreCase) {
+	public Part(String path, Type type, Class<?> domainClass, boolean alwaysIgnoreCase) {
 		Assert.notNull(domainClass, "Type must not be null!");
 
 		if (alwaysIgnoreCase && ignoreCase != IgnoreCaseType.ALWAYS) {
@@ -78,8 +83,7 @@ public class Part implements TreePart {
 		}
 
 		Part that = (Part) obj;
-		return this.propertyPath.equals(that.propertyPath)
-				&& this.type.equals(that.type);
+		return this.propertyPath.equals(that.propertyPath) && this.type.equals(that.type);
 	}
 
 	/*
@@ -104,7 +108,7 @@ public class Part implements TreePart {
 	@Override
 	public String toString() {
 
-		return String.format("%s(%s)", type , propertyPath.getSegment());
+		return String.format("%s(%s)", type, propertyPath.getSegment());
 	}
 
 	/**

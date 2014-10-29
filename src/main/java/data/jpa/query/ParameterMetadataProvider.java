@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.stalkon.data.jpa.query;
+package data.jpa.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,16 +29,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
-import pl.stalkon.data.query.Parameter;
-import pl.stalkon.data.query.Parameters;
-import pl.stalkon.data.query.ParametersParameterAccessor;
-import pl.stalkon.data.query.parser.Part;
-import pl.stalkon.data.query.parser.Part.Type;
+import data.query.Parameter;
+import data.query.Parameters;
+import data.query.ParametersParameterAccessor;
+import data.query.parser.Part;
+import data.query.parser.Part.Type;
 
 /**
- * Helper class to allow easy creation of {@link ParameterMetadata}s.
- * 
- * @author Oliver Gierke
+ * Modification of {@link org.springframework.data.jpa.repository.query.ParameterMetadataProvider} to use {@link Parameter}
+ * @author Szymon Konicki
+ *
  */
 public class ParameterMetadataProvider {
 
@@ -130,7 +130,7 @@ public class ParameterMetadataProvider {
 		return value;
 	}
 
-	static class ParameterMetadata<T> {
+	public static class ParameterMetadata<T> {
 
 		static final Object PLACEHOLDER = new Object();
 

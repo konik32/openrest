@@ -1,7 +1,11 @@
-package pl.stalkon.data.query.parser;
+package data.query.parser;
 
 import org.springframework.data.domain.Sort;
-
+/**
+ * Modification of {@link org.springframework.data.repository.query.parser.PartTree} to create it from any source.
+ * @author Szymon Konicki
+ *
+ */
 public class PartTree {
 
 	private Sort sort;

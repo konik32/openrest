@@ -12,13 +12,53 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-public class FilterParser {
+import data.query.parser.PartTreeSpecificationBuilder;
+
+/**
+ * Set of parsers that parse strings into help objects used to create
+ * {@link PartTreeSpecification}
+ * 
+ * @author Szymon Konicki
+ *
+ */
+
+public class Parsers {
+
+	/**
+	 * Parses <b>filterStr</b> into {@link FilterWrapper}
+	 * 
+	 * @param filterStr
+	 *            should consist functions: <br/>
+	 *            <b>function_name(resource_property_name,
+	 *            resource_property_values ...)</b> <br/>
+	 *            delimited by logical operators: <br/>
+	 *            <b> ;and; ;or;</b> <br/>
+	 *            Right now parsing extra brackets is not implemented. For
+	 *            function names see {@link PartTreeSpecificationBuilder} <br/>
+	 *            <b>examples:</b> <br/>
+	 *            <b> eq(id,1) ;and; between(product.price,1.50,2.00) ;or;
+	 *            like(name,GSM)</b>
+	 * 
+	 * @return {@link FilterWrapper}
+	 */
 
 	public static FilterWrapper parseFilter(String filterStr) {
+		// TODO: add parsing extra brackets
 		return new FilterParserWithContext().parse(StringUtils.trimAllWhitespace(filterStr));
 	}
 
+	/**
+	 * Parses <b>expand</b> string into {@link List} of {@link PropertyPath}s
+	 * 
+	 * @param expand
+	 *            format: <b>association_property_name,
+	 *            association_property_name.association_property_name</b>
+	 * @param domainType
+	 *            must not be null
+	 * @return {@link List} of {@link PropertyPath}s
+	 */
 	public static List<PropertyPath> parseExpand(String expand, Class<?> domainType) {
+		Assert.notNull(domainType);
 		if (expand == null || expand.isEmpty())
 			return null;
 		String parts[] = StringUtils.trimAllWhitespace(expand).split(",");
@@ -30,14 +70,36 @@ public class FilterParser {
 		return viewsPropertyPaths;
 	}
 
+	/**
+	 * Checks if <b>subject</b> contains <b>count</b> or <b>distinct</b> and
+	 * returns {@link SubjectWrapper}
+	 * 
+	 * @param subject
+	 *            format: <b>count, distinct</b>
+	 * @return {@link SubjectWrapper}
+	 */
 	public static SubjectWrapper parseSubject(String subject) {
 		return new SubjectWrapper().parse(StringUtils.trimAllWhitespace(subject));
 	}
 
+	/**
+	 * Parses <b>path</b> string into {@link PathWrapper}
+	 * 
+	 * @param path
+	 *            format: <b>/resource/id/property</b>
+	 * @return {@link PathWrapper}
+	 */
 	public static PathWrapper parsePath(String path) {
 		return new PathWrapper().parse(StringUtils.trimAllWhitespace(path));
 	}
 
+	/**
+	 * 
+	 * @param sFilter
+	 *            format: <b>static_filter_name_to_ignore,
+	 *            static_filter_name_to_ignore</b>
+	 * 
+	 */
 	public static String[] parseSFilter(String sFilter) {
 		sFilter = StringUtils.trimAllWhitespace(sFilter);
 		return sFilter == null ? null : sFilter.split(",");
@@ -89,7 +151,7 @@ public class FilterParser {
 		private @Getter TempPart tempRoot = new TempPart(TempPart.Type.AND, 1);
 
 		public FilterWrapper parse(String filterStr) {
-			if (filterStr == null)
+			if (filterStr == null || filterStr.isEmpty())
 				return null;
 			tempRoot.addPart(parseOrBranch(filterStr));
 			return new FilterWrapper(tempRoot, parameters);
