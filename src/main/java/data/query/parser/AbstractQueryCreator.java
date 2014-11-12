@@ -16,8 +16,6 @@
 package data.query.parser;
 
 
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
 /**
  * Modification of {@link org.springframework.data.repository.query.parser.AbstractQueryCreator} to use {@link PartTree}

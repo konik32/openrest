@@ -39,7 +39,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
 
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
-	private final CriteriaQuery<?> query;
 	private final ParameterMetadataProvider provider;
 
 	/**
@@ -50,10 +49,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Root<?> root, CriteriaBuilder builder, ParameterMetadataProvider provider, CriteriaQuery<?> query) {
+	public JpaQueryCreator(PartTree tree, Root<?> root, CriteriaBuilder builder, ParameterMetadataProvider provider) {
 		super(tree);
 		this.builder = builder;
-		this.query = query;
 		this.root = root;
 		this.provider = provider;
 	}

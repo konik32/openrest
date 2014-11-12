@@ -145,8 +145,9 @@ public class PredicateBuilder {
 			if (canUpperCase(expression)) {
 				return (Expression<T>) builder.upper((Expression<String>) expression);
 			}
+		default:
+			return (Expression<T>) expression;
 		}
-		return (Expression<T>) expression;
 	}
 
 	private boolean canUpperCase(Expression<?> expression) {

@@ -19,7 +19,6 @@ package data.query;
 
 
 
-import java.lang.reflect.Method;
 import java.util.List;
 /**
  * Custom extension to {@link Parameters}
