@@ -12,6 +12,7 @@ import openrest.response.filter.SpelMultiplePropertyFilter;
 import openrest.webmvc.ParsedRequestFactory;
 import openrest.webmvc.ParsedRequestHandlerMethodArgumentResolver;
 import openrest.webmvc.PersistentEntityWithAssociationsResourceAssemblerArgumentResolver;
+import openrest.webmvc.support.OpenRestEntityLinks;
 
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -24,6 +25,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.rest.core.projection.ProxyProjectionFactory;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
+import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
@@ -56,6 +58,12 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	@Bean
 	public StaticFilterFactory staticFilterFactory(){
 		return new StaticFilterFactory();
+	}
+	
+	@Bean
+	public OpenRestEntityLinks entityLinks() {
+		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(),
+				backendIdConverterRegistry(), partTreeSpecificationHandlerMethodArgumentResolver());
 	}
 	
 	@Override

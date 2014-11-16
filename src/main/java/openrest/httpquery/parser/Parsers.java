@@ -22,7 +22,10 @@ import org.springframework.util.StringUtils;
  */
 
 public class Parsers {
-
+	public static final String OR_SPLITTER = ";or;";
+	public static final String AND_SPLITTER = ";and;";
+	public static final String PARAMETER_SPLITTER = ",";
+	public static final Pattern FUNCTION_PARAMETER_MATCHER = Pattern.compile("^(.*)\\((.*)\\)$");
 	/**
 	 * Parses <b>filterStr</b> into {@link TempPart}
 	 * 
@@ -143,9 +146,6 @@ public class Parsers {
 
 	private static class FilterParser {
 
-		private static final String OR_SPLITTER = ";or;";
-		private static final String AND_SPLITTER = ";and;";
-		private static final Pattern FUNCTION_PARAMETER_MATCHER = Pattern.compile("^(.*)\\((.*)\\)$");
 
 		public static TempPart parse(String filterStr) {
 			if (filterStr == null || filterStr.isEmpty())
@@ -190,7 +190,7 @@ public class Parsers {
 						+ " .Correct function format: function_name(propertyName, parameters...) ");
 			}
 			String functionName = matcher.group(1).trim();
-			String functionParams[] = matcher.group(2).split(",");
+			String functionParams[] = matcher.group(2).split(PARAMETER_SPLITTER);
 
 			if (functionParams.length < 1 || functionParams[0].isEmpty())
 				throw new RequestParsingException("Exception in parsing function " + partStr

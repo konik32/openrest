@@ -63,7 +63,6 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 	private Builder wrap(Object instance, Object source) {
 
 		PersistentEntity<?, ?> entity = repositories.getPersistentEntity(source.getClass());
-
 		return PersistentEntityResource.build(instance, entity).//
 				withEmbedded(getEmbeddedResources(source)).//
 				withLink(getSelfLinkFor(source));
