@@ -7,8 +7,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.Getter;
+import openrest.antlr.ORLLexer;
+import openrest.antlr.ORLParser;
+import openrest.antlr.ORLParserListener;
+import openrest.antlr.SyntaxErrorListener;
 import openrest.domain.PartTreeSpecificationBuilder;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -32,18 +40,26 @@ public class Parsers {
 	 *            resource_property_values ...)</b> <br/>
 	 *            delimited by logical operators: <br/>
 	 *            <b> ;and; ;or;</b> <br/>
-	 *            Right now parsing extra brackets is not implemented. For
+	 *            For
 	 *            function names see {@link PartTreeSpecificationBuilder} <br/>
 	 *            <b>examples:</b> <br/>
 	 *            <b> eq(id,1) ;and; between(product.price,1.50,2.00) ;or;
-	 *            like(name,GSM)</b>
+	 *            like(name,'GSM')</b>
 	 * 
 	 * @return {@link TempPart}
 	 */
 
 	public static TempPart parseFilter(String filterStr) {
-		// TODO: add parsing extra brackets
-		return FilterParser.parse(StringUtils.trimAllWhitespace(filterStr));
+		Assert.notNull(filterStr);
+		ANTLRInputStream input = new ANTLRInputStream(filterStr);
+		ORLLexer lexer = new ORLLexer(input);
+        TokenStream tokens = new CommonTokenStream(lexer);
+        ORLParser parser = new ORLParser(tokens);
+        parser.addErrorListener(new SyntaxErrorListener());
+        ParseTreeWalker walker = new ParseTreeWalker();
+        ORLParserListener parserListener = new ORLParserListener();
+        walker.walk(parserListener, parser.logicalExpression());
+		return parserListener.getRoot();
 	}
 
 	/**
@@ -139,66 +155,5 @@ public class Parsers {
 			}
 			return this;
 		}
-	}
-
-	private static class FilterParser {
-
-		private static final String OR_SPLITTER = ";or;";
-		private static final String AND_SPLITTER = ";and;";
-		private static final Pattern FUNCTION_PARAMETER_MATCHER = Pattern.compile("^(.*)\\((.*)\\)$");
-
-		public static TempPart parse(String filterStr) {
-			if (filterStr == null || filterStr.isEmpty())
-				return null;
-			TempPart tempRoot = new TempPart(TempPart.Type.AND, 1);
-			tempRoot.addPart(parseOrBranch(filterStr));
-			return tempRoot;
-		}
-
-		private static TempPart parseOrBranch(String sOrBranch) {
-			String sOrParts[] = sOrBranch.split(OR_SPLITTER);
-			if (sOrBranch.endsWith(OR_SPLITTER))
-				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
-			TempPart orBranch = new TempPart(TempPart.Type.OR, sOrParts.length);
-			for (String sOrPart : sOrParts) {
-				if (sOrPart.isEmpty())
-					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
-				orBranch.addPart(parseAnd(sOrPart.trim()));
-			}
-			return orBranch;
-		}
-
-		private static TempPart parseAnd(String sAndBranch) {
-			String sAndParts[] = sAndBranch.split(AND_SPLITTER);
-			if (sAndBranch.endsWith(AND_SPLITTER))
-				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
-			TempPart andBranch = new TempPart(TempPart.Type.AND, sAndParts.length);
-			for (String sAndPart : sAndParts) {
-				if (sAndPart.isEmpty())
-					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
-				andBranch.addPart(parsePartString(sAndPart.trim()));
-			}
-			return andBranch;
-		}
-
-		private static TempPart parsePartString(String partStr) {
-
-			Matcher matcher = FUNCTION_PARAMETER_MATCHER.matcher(partStr);
-
-			if (!matcher.find() || matcher.groupCount() != 2) {
-				throw new RequestParsingException("Exception in parsing function " + partStr
-						+ " .Correct function format: function_name(propertyName, parameters...) ");
-			}
-			String functionName = matcher.group(1).trim();
-			String functionParams[] = matcher.group(2).split(",");
-
-			if (functionParams.length < 1 || functionParams[0].isEmpty())
-				throw new RequestParsingException("Exception in parsing function " + partStr
-						+ " .Correct function format: function_name(propertyName, parameters...) ");
-
-			TempPart part = new TempPart(functionName, functionParams[0], Arrays.copyOfRange(functionParams, 1, functionParams.length));
-			return part;
-		}
-
 	}
 }
