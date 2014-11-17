@@ -1,6 +1,7 @@
 package openrest.httpquery.parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,15 +20,21 @@ public class TempPart {
 	private List<TempPart> parts;
 	private String functionName;
 	private String propertyName;
-	private String[] parameters;
+	private List<String> tempParameters;
+
 	private boolean ignoreCase;
-	private final Type type;
+	private Type type;
+
+	public TempPart() {
+		this.tempParameters = new ArrayList<String>();
+		this.parts = new ArrayList<TempPart>();
+	}
 
 	public TempPart(String functionName, String propertyName, String[] parameters) {
 		super();
 		this.functionName = detectAndSetIgnoreCase(functionName);
 		this.propertyName = propertyName;
-		this.parameters = parameters;
+		this.tempParameters = Arrays.asList(parameters);
 		this.type = Type.LEAF;
 	}
 
@@ -75,13 +82,33 @@ public class TempPart {
 		return type;
 	}
 
-
 	public boolean shouldIgnoreCase() {
 		return ignoreCase;
 	}
 
 	public String[] getParameters() {
-		return parameters;
+
+		return tempParameters.toArray(new String[] {});
+	}
+
+	public void setParts(List<TempPart> parts) {
+		this.parts = parts;
+	}
+
+	public void setFunctionName(String functionName) {
+		this.functionName = detectAndSetIgnoreCase(functionName);
+	}
+
+	public void addParameter(String parameter) {
+		tempParameters.add(parameter);
+	}
+
+	public void setType(Type type) {
+		this.type = type;
+	}
+
+	public void setPropertyName(String propertyName) {
+		this.propertyName = propertyName;
 	}
 
 }

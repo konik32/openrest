@@ -75,7 +75,8 @@ public class ParsedRequestFactory {
 				partTreeSpecificationBuilder.append(pathWrapper.getId());
 		}
 
-		partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
+		if(filter!= null)
+			partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
 
 		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
 

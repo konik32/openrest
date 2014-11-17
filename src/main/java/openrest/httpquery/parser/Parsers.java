@@ -7,8 +7,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.Getter;
+import openrest.antlr.ORLLexer;
+import openrest.antlr.ORLParser;
+import openrest.antlr.ORLParserListener;
+import openrest.antlr.SyntaxErrorListener;
 import openrest.domain.PartTreeSpecificationBuilder;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -35,18 +43,26 @@ public class Parsers {
 	 *            resource_property_values ...)</b> <br/>
 	 *            delimited by logical operators: <br/>
 	 *            <b> ;and; ;or;</b> <br/>
-	 *            Right now parsing extra brackets is not implemented. For
+	 *            For
 	 *            function names see {@link PartTreeSpecificationBuilder} <br/>
 	 *            <b>examples:</b> <br/>
 	 *            <b> eq(id,1) ;and; between(product.price,1.50,2.00) ;or;
-	 *            like(name,GSM)</b>
+	 *            like(name,'GSM')</b>
 	 * 
 	 * @return {@link TempPart}
 	 */
 
 	public static TempPart parseFilter(String filterStr) {
-		// TODO: add parsing extra brackets
-		return FilterParser.parse(StringUtils.trimAllWhitespace(filterStr));
+		Assert.notNull(filterStr);
+		ANTLRInputStream input = new ANTLRInputStream(filterStr);
+		ORLLexer lexer = new ORLLexer(input);
+        TokenStream tokens = new CommonTokenStream(lexer);
+        ORLParser parser = new ORLParser(tokens);
+        parser.addErrorListener(new SyntaxErrorListener());
+        ParseTreeWalker walker = new ParseTreeWalker();
+        ORLParserListener parserListener = new ORLParserListener();
+        walker.walk(parserListener, parser.logicalExpression());
+		return parserListener.getRoot();
 	}
 
 	/**
