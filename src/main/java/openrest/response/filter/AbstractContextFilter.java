@@ -23,7 +23,7 @@ public abstract class AbstractContextFilter extends SimpleBeanPropertyFilter {
 	protected void setPropertiesToIgnoreFromContextFilterAnnotation(Object valueToFilter) {
 		ContextFilter cf = AnnotationUtils.findAnnotation(
 				valueToFilter.getClass(), ContextFilter.class);
-		Assert.notNull(cf, "Method handles only object with ContextFilter annotation");
+		Assert.notNull(cf, "Method handles only object of classes with ContextFilter annotation");
 		addAll(propertiesToIgnore);
 	}
 	

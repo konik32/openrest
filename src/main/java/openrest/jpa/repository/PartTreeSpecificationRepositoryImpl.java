@@ -35,13 +35,6 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 
 	private CrudMethodMetadata crudMethodMetadata;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaBoostSpecificationExecutor
-	 * #findAll(org.springframework.data.jpa.domain.BoostSpecification)
-	 */
 	@Transactional
 	public Iterable<Object> findAll(PartTreeSpecification spec,
 			Class<Object> domainClass, Pageable pageable, Sort sort) {
@@ -51,14 +44,6 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 			return findAll(spec, pageable, domainClass);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaBoostSpecificationExecutor
-	 * #findAll(org.springframework.data.jpa.domain.BoostSpecification,
-	 * org.springframework.data.domain.Pageable)
-	 */
 	@Transactional
 	private Page<Object> findAll(PartTreeSpecification spec, Pageable pageable,
 			Class<Object> domainClass) {
@@ -67,14 +52,6 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 				: readPage(query, pageable, spec, domainClass);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaBoostSpecificationExecutor
-	 * #findAll(org.springframework.data.jpa.domain.BoostSpecification,
-	 * org.springframework.data.domain.Sort)
-	 */
 	@Transactional
 	private List<Object> findAll(PartTreeSpecification spec, Sort sort,
 			Class<Object> domainClass) {

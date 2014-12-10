@@ -111,19 +111,8 @@ public class PartTreeSpecificationBuilder {
 	public void append(PersistentEntity<?, ?> parentPersistentEntity, String propertyName, String parentId) throws ResourceNotFoundException {
 		Assert.notNull(parentPersistentEntity);
 		Assert.notNull(propertyName);
-		// PersistentProperty<?> persistentProperty =
-		// parentPersistentEntity.getPersistentProperty(propertyName);
-		// if (persistentProperty == null)
-		// throw new RequestParsingException("There is no property with name " +
-		// propertyName + " in " + parentPersistentEntity.getType());
-		// if (persistentProperty.isAssociation()) {
-		// PersistentProperty<?> propertyInDomainEntity =
-		// persistentProperty.getAssociation().getObverse();
-		// if (propertyInDomainEntity != null) {
 		String partName = retrieveDomainPropertyName(parentPersistentEntity.getType(), propertyName) + "." + getIdPropertyName(parentPersistentEntity);
 		root.addPart(new TempPart("eq", partName, new String[] { parentId }));
-		// }
-		// }
 	}
 
 	public PartTreeSpecificationImpl build() {
@@ -133,14 +122,6 @@ public class PartTreeSpecificationBuilder {
 		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), -1, -1);
 		Object values[] = parametersValues.toArray();
 		PartTree partTree = new PartTree(partTreeRoot, null, distinct, countProjection);
-		//
-		// ParametersParameterAccessor accessor = new
-		// ParametersParameterAccessor(jpaParameters, values);
-		// ParameterMetadataProvider provider = new
-		// ParameterMetadataProvider(criteriaBuilder, accessor);
-		// ParameterBinder binder = new
-		// CriteriaQueryParameterBinder(jpaParameters, values,
-		// provider.getExpressions());
 		return new PartTreeSpecificationImpl(partTree, jpaParameters, values, criteriaBuilder, expandPropertyPaths);
 	}
 
@@ -162,7 +143,6 @@ public class PartTreeSpecificationBuilder {
 		return persistentEntity.getIdProperty().getName();
 	}
 
-	// private final TreeBranch root = new AndBranch();
 
 	public PartTreeSpecificationBuilder(PersistentEntity<?, ?> persistentEntity, ObjectMapper objectMapper, CriteriaBuilder criteriaBuilder,
 			StaticFilterFactory staticFilterFactory) {
@@ -175,35 +155,6 @@ public class PartTreeSpecificationBuilder {
 		this.criteriaBuilder = criteriaBuilder;
 		this.staticFilterFactory = staticFilterFactory;
 	}
-
-	// public void append(TempPart tempPart, List<String[]> parameters) {
-	// root.addPart(getTreePart(tempPart));
-	// appendParametersValues(parameters);
-	// }
-	//
-	// public void appendId(String id) {
-	// root.addPart(new Part("id", Type.SIMPLE_PROPERTY, domainClass));
-	// Class<?> type = PropertyPath.from("id",
-	// domainClass).getLeafProperty().getType();
-	// jpaParameters.add(new JpaParameter(type, jpaParameters.size()));
-	// parametersValues.add(getParsedObject(id, type));
-	// }
-	//
-	// public void appendParentIdPredicate(Class<?> parentType, String
-	// propertyName, String id) {
-	// String domainPropertyName = retrieveDomainPropertyName(parentType,
-	// propertyName);
-	// String partName = domainPropertyName + ".id";
-	// root.addPart(new Part(partName, Type.SIMPLE_PROPERTY, domainClass));
-	// Class<?> type = PropertyPath.from(partName,
-	// domainClass).getLeafProperty().getType();
-	// jpaParameters.add(new JpaParameter(type, jpaParameters.size()));
-	// parametersValues.add(getParsedObject(id, type));
-	// }
-
-	// public PartTree getPartTree() {
-	// return new PartTree(root, null, distinct, countProjection);
-	// }
 
 	private String retrieveDomainPropertyName(Class<?> parentType, String propertyName) throws ResourceNotFoundException {
 		Field field;
@@ -229,29 +180,10 @@ public class PartTreeSpecificationBuilder {
 							return f.getName();
 					}
 				}
-
 			}
 		}
 		throw new ResourceNotFoundException();
 	}
-
-	// private void populateJpaParameters() {
-	// int i = parametersValues.size();
-	// for (String[] params : strParameters) {
-	// for (String param : params) {
-	// try {
-	// parametersValues.add(getParsedObject(param,
-	// jpaParameters.get(i++).getType()));
-	// } catch (IndexOutOfBoundsException e) {
-	// throw new
-	// RequestParsingException("Parameters values count does not match parameters count");
-	// }
-	// }
-	// }
-	// if (parametersValues.size() != jpaParameters.size())
-	// throw new
-	// RequestParsingException("Parameters values count does not match parameters count");
-	// }
 
 	private TreePart getTreePart(TempPart tempPart) {
 		TreePart part;
@@ -310,24 +242,6 @@ public class PartTreeSpecificationBuilder {
 				jpaParameters.add(new JpaParameter(partPropertyType, jpaParameters.size()));
 			}
 		}
-
-		// if (partType == Type.IN || partType == Type.NOT_IN) {
-		//
-		// List<Object> inObjects = new ArrayList<Object>(strParams.length);
-		// for (String param : strParams) {
-		// inObjects.add(getParsedObject(param, partPropertyType));
-		// }
-		// parametersValues.add(inObjects);
-		// } else {
-		//
-		// for (int i = 0; i < tempPart.getParametersCount(); i++) {
-		// jpaParameters.add(new JpaParameter(partPropertyType,
-		// jpaParameters.size()));
-		// }
-		// for (String param : strParams) {
-		// parametersValues.add(getParsedObject(param, partPropertyType));
-		// }
-		// }
 
 	}
 
