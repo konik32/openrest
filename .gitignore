@@ -3,6 +3,6 @@
 .classpath
 target
 .settings
-src/test
 WebContent
 resources
+.springBeans
