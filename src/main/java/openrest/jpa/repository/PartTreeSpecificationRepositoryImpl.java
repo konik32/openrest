@@ -59,6 +59,12 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 		return getQuery(spec, sort, domainClass).getResultList();
 	}
 
+	@Override
+	@Transactional
+	public Long getCount(PartTreeSpecification spec, Class<Object> domainClass) {
+		return QueryUtils.executeCountQuery(getCountQuery(spec, domainClass));
+	}
+	
 	/**
 	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given
 	 * {@link Pageable} and {@link PartTreeSpecification}.
@@ -214,5 +220,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 			CrudMethodMetadata crudMethodMetadata) {
 		this.crudMethodMetadata = crudMethodMetadata;
 	}
+
+
 
 }

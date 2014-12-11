@@ -56,7 +56,7 @@ public class ParsedRequestFactory {
 	 *
 	 * @return {@link ParsedRequest}
 	 **/
-	public ParsedRequest getParsedRequest(String filter, String expand, String subject, String path, String sFilter, Class<?> domainClass) {
+	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String sFilter, Class<?> domainClass) {
 		Assert.notNull(domainClass);
 
 		PathWrapper pathWrapper = Parsers.parsePath(path);
@@ -77,9 +77,11 @@ public class ParsedRequestFactory {
 
 		if(filter!= null)
 			partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
-
+		if(distinct != null)
+			partTreeSpecificationBuilder.setDistinct();
+		if(count != null)
+			partTreeSpecificationBuilder.setCountProjection();
 		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
-
 		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass()));
 
 		PartTreeSpecificationImpl partTreeSpecification = partTreeSpecificationBuilder.build();

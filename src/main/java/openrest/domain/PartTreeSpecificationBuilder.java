@@ -15,6 +15,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import openrest.httpquery.parser.FilterWrapper;
+import openrest.httpquery.parser.Parsers;
+import openrest.httpquery.parser.Parsers.SubjectWrapper;
 import openrest.httpquery.parser.RequestParsingException;
 import openrest.httpquery.parser.TempPart;
 import openrest.query.StaticFilterFactory;
@@ -132,7 +134,7 @@ public class PartTreeSpecificationBuilder {
 	public void setDistinct() {
 		distinct = true;
 	}
-
+	
 	public void setExpandPropertyPaths(List<PropertyPath> expandPropertyPaths) {
 		this.expandPropertyPaths = expandPropertyPaths;
 	}

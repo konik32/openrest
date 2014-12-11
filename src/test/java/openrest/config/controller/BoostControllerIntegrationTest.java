@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
+
 import openrest.config.Application;
 import openrest.config.domain.Category;
 import openrest.config.domain.CategoryRepository;
@@ -42,6 +49,9 @@ public class BoostControllerIntegrationTest {
 
 	@Autowired
 	private WebApplicationContext webApplicationContext;
+	
+	@PersistenceContext
+	private EntityManager em;
 
 	@Before
 	public void setUp() {

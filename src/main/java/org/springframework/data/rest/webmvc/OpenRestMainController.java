@@ -2,6 +2,7 @@ package org.springframework.data.rest.webmvc;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import openrest.httpquery.parser.RequestParsingException;
@@ -75,6 +76,23 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 			DefaultedPageable pageable, Sort sort) {
 		return getResources(specificationInformation, assembler, pageable, sort);
 	}
+
+	@ResponseBody
+	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "orest", "count" })
+	public ResponseEntity<?> getResourceCountWithFilter(ParsedRequest specificationInformation) {
+		Long count = boostJpaRepository
+				.getCount(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = { "orest", "count" })
+	public ResponseEntity<?> getResourcePropertyCountWithFilter(ParsedRequest specificationInformation) {
+		Long count = boostJpaRepository
+				.getCount(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
+	}
+
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = "orest")

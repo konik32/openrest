@@ -8,4 +8,6 @@ import org.springframework.data.domain.Sort;
 public interface PartTreeSpecificationRepository {
 	public Iterable<Object> findAll(PartTreeSpecification spec,
 			Class<Object> domainClass, Pageable pageable, Sort sort);
+	public Long getCount(PartTreeSpecification spec,
+			Class<Object> domainClass);
 }

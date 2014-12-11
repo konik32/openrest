@@ -31,7 +31,8 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 	
 	private static final String FILTER_PARAM_NAME = "filter";
 	private static final String EXPAND_PARAM_NAME = "expand";
-	private static final String SUBJECT_PARAM_NAME = "subject";
+	private static final String DISTINCT_PARAM_NAME = "distinct";
+	private static final String COUNT_PARAM_NAME = "count";
 	private static final String STATIC_FILTER_PARAM_NAME = "sFilter";
 	private static final String OREST_PARAM_NAME = "orest";
 	public ParsedRequestHandlerMethodArgumentResolver(ParsedRequestFactory partTreeSpecificationFactory,
@@ -68,7 +69,8 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 			WebDataBinderFactory binderFactory) throws Exception {
 
 		String filter = webRequest.getParameter(FILTER_PARAM_NAME);
-		String subject = webRequest.getParameter(SUBJECT_PARAM_NAME);
+		String distinct = webRequest.getParameter(DISTINCT_PARAM_NAME);
+		String count = webRequest.getParameter(COUNT_PARAM_NAME);
 		String expand = webRequest.getParameter(EXPAND_PARAM_NAME);
 		String sFilter = webRequest.getParameter(STATIC_FILTER_PARAM_NAME);
 
@@ -83,15 +85,18 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 		// parsers.parseQueryParameters(
 		// metadata.getDomainType(), filter, subject,view);
 
-		return partTreeSpecificationFactory.getParsedRequest(filter, expand, subject, path, sFilter, metadata.getDomainType());
+		return partTreeSpecificationFactory.getParsedRequest(filter, expand, distinct,count, path, sFilter, metadata.getDomainType());
 	}
 
 	public TemplateVariables getTemplateVariables(UriComponents template, boolean isCollection) {
 		List<TemplateVariable> names = new ArrayList<TemplateVariable>();
 		MultiValueMap<String, String> queryParameters = template.getQueryParams();
 		boolean append = !queryParameters.isEmpty();
-		List<String> propertyNames = new ArrayList<String>(Arrays.asList(OREST_PARAM_NAME,EXPAND_PARAM_NAME, STATIC_FILTER_PARAM_NAME));
-		if(isCollection) propertyNames.add(FILTER_PARAM_NAME);
+		List<String> propertyNames = new ArrayList<String>(Arrays.asList(OREST_PARAM_NAME,EXPAND_PARAM_NAME, STATIC_FILTER_PARAM_NAME,DISTINCT_PARAM_NAME));
+		if(isCollection){
+			propertyNames.add(FILTER_PARAM_NAME);
+			propertyNames.add(COUNT_PARAM_NAME);
+		}
 		for (String propertyName : propertyNames) {
 			if (!queryParameters.containsKey(propertyName)) {
 				VariableType type = append ? REQUEST_PARAM_CONTINUED : REQUEST_PARAM;
