@@ -206,7 +206,7 @@ public abstract class OrderAndJoinQueryUtils {
 	 * @param attribute the {@link Attribute} to look for in the current joins.
 	 * @return will never be {@literal null}.
 	 */
-	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute) {
+	public static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute) {
 
 		for (Fetch<?, ?> join : from.getFetches()) {
 			boolean sameName = join.getAttribute().getName().equals(attribute);
@@ -257,7 +257,7 @@ public abstract class OrderAndJoinQueryUtils {
 		return true;
 	}
 	
-	private static Fetch<?, ?> getOrCreateFetch(From<?, ?> from, String segment){
+	public static Fetch<?, ?> getOrCreateFetch(From<?, ?> from, String segment){
 		for (Fetch<?, ?> fetch : from.getFetches()) {
 			boolean sameName = fetch.getAttribute().getName().equals(segment);
 			if (sameName && fetch.getJoinType().equals(JoinType.LEFT)) {

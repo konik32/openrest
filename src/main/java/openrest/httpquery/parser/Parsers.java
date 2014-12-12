@@ -75,7 +75,7 @@ public class Parsers {
 	 *            must not be null
 	 * @return {@link List} of {@link PropertyPath}s
 	 */
-	public static List<PropertyPath> parseExpand(String expand, Class<?> domainType) {
+	public static List<PropertyPath> parseExpand(String expand, Class<?> domainType, String alias) {
 		Assert.notNull(domainType);
 		if (expand == null || expand.isEmpty())
 			return null;
@@ -83,6 +83,7 @@ public class Parsers {
 		List<PropertyPath> viewsPropertyPaths = new ArrayList<PropertyPath>(parts.length);
 		for (String part : parts) {
 			part = part.trim();
+			part = alias != null? alias + "." + part:part;
 			viewsPropertyPaths.add(PropertyPath.from(part, domainType));
 		}
 		return viewsPropertyPaths;

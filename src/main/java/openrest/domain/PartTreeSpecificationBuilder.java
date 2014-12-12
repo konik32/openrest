@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.criteria.CriteriaBuilder;
 
+import open.rest.data.query.parser.OpenRestPartTree;
 import openrest.httpquery.parser.FilterWrapper;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.Parsers.SubjectWrapper;
@@ -24,6 +25,8 @@ import openrest.query.StaticFilterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -82,10 +85,26 @@ public class PartTreeSpecificationBuilder {
 	private Boolean countProjection;
 	private Boolean distinct;
 	private List<PropertyPath> expandPropertyPaths;
+	private List<PropertyPath> selectionPaths;
 
 	private List<JpaParameter> jpaParameters = new ArrayList<JpaParameter>();
 	private List<Object> parametersValues = new ArrayList<Object>();
 	private TreeBranch partTreeRoot;
+
+	private TempPart propertyTempPart;
+	private boolean propertyQuery = false;
+	private String propertyName;
+	private Class<?> propertyType;
+
+	private Pageable pageable;
+	private Sort sort;
+
+	public void append(Pageable pageable) {
+		this.pageable = pageable;
+		if(pageable != null)
+			sort = pageable.getSort();
+	}
+
 
 	public void append(TempPart tempPart) {
 		if (tempPart != null) {
@@ -98,7 +117,8 @@ public class PartTreeSpecificationBuilder {
 	}
 
 	public void appendStaticFilters(String... filtersToIgnore) {
-		List<FilterWrapper> filterWrappers = staticFilterFactory.get(getDomainClass());
+		Class<?> type = propertyTempPart != null ? propertyType : getDomainClass();
+		List<FilterWrapper> filterWrappers = staticFilterFactory.get(type);
 		for (FilterWrapper fw : filterWrappers) {
 			boolean add = true;
 			if (filtersToIgnore != null)
@@ -113,18 +133,38 @@ public class PartTreeSpecificationBuilder {
 	public void append(PersistentEntity<?, ?> parentPersistentEntity, String propertyName, String parentId) throws ResourceNotFoundException {
 		Assert.notNull(parentPersistentEntity);
 		Assert.notNull(propertyName);
-		String partName = retrieveDomainPropertyName(parentPersistentEntity.getType(), propertyName) + "." + getIdPropertyName(parentPersistentEntity);
-		root.addPart(new TempPart("eq", partName, new String[] { parentId }));
+		propertyTempPart = new TempPart("eq", getIdPropertyName(parentPersistentEntity), new String[] { parentId });
+		this.propertyName = propertyName;
+		propertyType = parentPersistentEntity.getPersistentProperty(propertyName).getType();
+		propertyQuery = true;
 	}
 
-	public PartTreeSpecificationImpl build() {
+	public OpenRestQueryParameterHolder build() {
 		partTreeRoot = new AndBranch();
 		partTreeRoot.addPart(getTreePart(root));
-		// populateJpaParameters();
-		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), -1, -1);
+		if (propertyQuery) {
+			propertyQuery = false;
+			partTreeRoot.addPart(getTreePart(propertyTempPart));
+			propertyQuery = true;
+		}
+		int pageableIndex = -1;
+		int sortIndex = -1;
+		
+		if(pageable != null){
+			parametersValues.add(pageable);
+			jpaParameters.add(new JpaParameter(Pageable.class, jpaParameters.size()));
+			pageableIndex = jpaParameters.size()-1;
+		}
+		if(sort != null){
+			parametersValues.add(sort);
+			jpaParameters.add(new JpaParameter(Pageable.class, jpaParameters.size()));
+			sortIndex = jpaParameters.size()-1;
+		}
+		
+		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), sortIndex, pageableIndex);
 		Object values[] = parametersValues.toArray();
-		PartTree partTree = new PartTree(partTreeRoot, null, distinct, countProjection);
-		return new PartTreeSpecificationImpl(partTree, jpaParameters, values, criteriaBuilder, expandPropertyPaths);
+		OpenRestPartTree partTree = new OpenRestPartTree(partTreeRoot, null, distinct, countProjection,expandPropertyPaths, propertyName);
+		return new OpenRestQueryParameterHolder(partTree, values, jpaParameters);
 	}
 
 	public void setCountProjection() {
@@ -134,17 +174,16 @@ public class PartTreeSpecificationBuilder {
 	public void setDistinct() {
 		distinct = true;
 	}
-	
+
 	public void setExpandPropertyPaths(List<PropertyPath> expandPropertyPaths) {
 		this.expandPropertyPaths = expandPropertyPaths;
 	}
-
+	
 	private String getIdPropertyName(PersistentEntity<?, ?> persistentEntity) {
 		if (domainPersistentEntity.getIdProperty() == null)
 			throw new RequestParsingException("There is no id property in " + persistentEntity.getType());
 		return persistentEntity.getIdProperty().getName();
 	}
-
 
 	public PartTreeSpecificationBuilder(PersistentEntity<?, ?> persistentEntity, ObjectMapper objectMapper, CriteriaBuilder criteriaBuilder,
 			StaticFilterFactory staticFilterFactory) {
@@ -156,35 +195,6 @@ public class PartTreeSpecificationBuilder {
 		this.objectMapper = objectMapper;
 		this.criteriaBuilder = criteriaBuilder;
 		this.staticFilterFactory = staticFilterFactory;
-	}
-
-	private String retrieveDomainPropertyName(Class<?> parentType, String propertyName) throws ResourceNotFoundException {
-		Field field;
-		try {
-			field = parentType.getDeclaredField(propertyName);
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-			throw new ResourceNotFoundException();
-		} catch (SecurityException e) {
-			throw new ResourceNotFoundException();
-		}
-
-		for (Annotation ann : field.getAnnotations()) {
-			if (ann.annotationType().equals(OneToMany.class) || ann.annotationType().equals(OneToOne.class)) {
-				String mappedBy = (String) AnnotationUtils.getValue(ann, "mappedBy");
-				return mappedBy;
-			} else if (ann.annotationType().equals(ManyToOne.class)) {
-				for (Field f : field.getType().getDeclaredFields()) {
-					Annotation oneToMany = AnnotationUtils.getAnnotation(f, OneToMany.class);
-					if (oneToMany != null) {
-						String mappedBy = (String) AnnotationUtils.getValue(oneToMany, "mappedBy");
-						if (mappedBy != null && mappedBy.compareToIgnoreCase(propertyName) == 0)
-							return f.getName();
-					}
-				}
-			}
-		}
-		throw new ResourceNotFoundException();
 	}
 
 	private TreePart getTreePart(TempPart tempPart) {
@@ -214,8 +224,8 @@ public class PartTreeSpecificationBuilder {
 		Type partType = PART_TYPES_MAP.get(tempPart.getFunctionName());
 		if (partType == null)
 			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " is unknown");
-
-		TreePart part = new Part(tempPart.getPropertyName(), partType, getDomainClass(), tempPart.shouldIgnoreCase());
+		String source = propertyQuery ? propertyName + "." + tempPart.getPropertyName() : tempPart.getPropertyName();
+		TreePart part = new Part(source, partType, getDomainClass(), tempPart.shouldIgnoreCase());
 
 		Class<?> partPropertyType = ((Part) part).getProperty().getLeafProperty().getType();
 

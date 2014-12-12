@@ -80,16 +80,14 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "orest", "count" })
 	public ResponseEntity<?> getResourceCountWithFilter(ParsedRequest specificationInformation) {
-		Long count = boostJpaRepository
-				.getCount(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
 		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
 	}
 	
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = { "orest", "count" })
 	public ResponseEntity<?> getResourcePropertyCountWithFilter(ParsedRequest specificationInformation) {
-		Long count = boostJpaRepository
-				.getCount(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
 		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
 	}
 
@@ -97,7 +95,7 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<ResourceSupport> getResourcePropertyWithFilterParameter(ParsedRequest specificationInformation,
-			PersistentEntityResourceAssembler assembler, DefaultedPageable pageable, Sort sort) {
+			PersistentEntityWithAssociationsResourceAssembler assembler, DefaultedPageable pageable, Sort sort) {
 		return getResourceSupporResponseEntity(specificationInformation, assembler, pageable, sort);
 	}
 
@@ -164,17 +162,16 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	}
 
 	private Resource<?> getResource(ParsedRequest specificationInformation, PersistentEntityResourceAssembler assembler) {
-		Iterable<?> results = findAll(specificationInformation, null, null);
-		if (!results.iterator().hasNext()) {
-			return null;
+		Object result = boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		if (result == null) {
+			throw new ResourceNotFoundException();
 		}
-		PersistentEntityResource resource = assembler.toFullResource(results.iterator().next());
+		PersistentEntityResource resource = assembler.toFullResource(result);
 		return resource;
 	}
 
 	private Iterable<?> findAll(ParsedRequest specificationInformation, DefaultedPageable pageable, Sort sort) {
-		return boostJpaRepository.findAll(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass(),
-				pageable != null ? pageable.getPageable() : null, sort);
+		return boostJpaRepository.findAll(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
 	}
 
 }

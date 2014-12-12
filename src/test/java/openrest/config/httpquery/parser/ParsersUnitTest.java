@@ -29,7 +29,7 @@ public class ParsersUnitTest {
 
 		pathWrapper = Parsers.parsePath(path);
 		subjectWrapper = Parsers.parseSubject(subject);
-		expand = Parsers.parseExpand(views, User.class);
+		expand = Parsers.parseExpand(views, User.class,null);
 	}
 
 //	@Test

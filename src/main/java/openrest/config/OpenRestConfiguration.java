@@ -46,7 +46,7 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	
 	@Bean
 	public ParsedRequestHandlerMethodArgumentResolver partTreeSpecificationHandlerMethodArgumentResolver() {
-		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(), config());
+		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(), pageableResolver(), config());
 	}
 
 	@Bean

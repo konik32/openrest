@@ -16,6 +16,10 @@
 package data.query.parser;
 
 
+import javax.persistence.criteria.CriteriaQuery;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.util.Assert;
 /**
  * Modification of {@link org.springframework.data.repository.query.parser.AbstractQueryCreator} to use {@link PartTree}
@@ -23,7 +27,7 @@ import org.springframework.util.Assert;
  * @author Szymon Konicki
  *
  */
-public abstract class AbstractQueryCreator<S> {
+public abstract class AbstractQueryCreator<T,S> {
 
 	protected final PartTree tree;
 
@@ -39,7 +43,29 @@ public abstract class AbstractQueryCreator<S> {
 		this.tree = tree;
 	}
 
+	/**
+	 * Creates the actual query object.
+	 * 
+	 * @return
+	 */
+	public T createQuery() {
+		return createQuery(null);
+	}
 
+	/**
+	 * Creates the actual query object applying the given {@link Sort} parameter. Use this method in case you haven't
+	 * provided a {@link ParameterAccessor} in the first place but want to apply dynamic sorting nevertheless.
+	 * 
+	 * @param dynamicSort
+	 * @return
+	 */
+	public T createQuery(Sort dynamicSort) {
+
+		Sort staticSort = tree.getSort();
+		Sort sort = staticSort != null ? staticSort.and(dynamicSort) : dynamicSort;
+
+		return complete(createCriteria(), sort);
+	}
 	/**
 	 * Actual query building logic. Traverses the {@link PartTree} and invokes
 	 * callback methods to delegate actual criteria creation and concatenation.
@@ -98,5 +124,14 @@ public abstract class AbstractQueryCreator<S> {
 	 * @return
 	 */
 	protected abstract S or(S base, S criteria);
+	
+	/**
+	 * Actually creates the query object applying the given criteria object and {@link Sort} definition.
+	 * 
+	 * @param criteria will never be {@literal null}.
+	 * @param sort might be {@literal null}.
+	 * @return
+	 */
+	protected abstract T complete(S criteria, Sort sort);
 
 }

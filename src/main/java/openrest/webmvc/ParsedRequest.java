@@ -1,6 +1,6 @@
 package openrest.webmvc;
 
-import openrest.domain.PartTreeSpecificationImpl;
+import openrest.domain.OpenRestQueryParameterHolder;
 
 import org.springframework.data.mapping.PropertyPath;
 /**
@@ -11,26 +11,26 @@ import org.springframework.data.mapping.PropertyPath;
 
 public class ParsedRequest {
 
-	private final PartTreeSpecificationImpl partTreeSpecification;
+	private final OpenRestQueryParameterHolder partTreeSpecification;
 	private final Class<?> domainClass;
 	private final PropertyPath propertyPath;
 
 	public ParsedRequest(Class<?> domainClass,
-			PartTreeSpecificationImpl partTreeSpecification) {
+			OpenRestQueryParameterHolder partTreeSpecification) {
 		super();
 		this.domainClass = domainClass;
 		this.partTreeSpecification = partTreeSpecification;
 		this.propertyPath = null;
 	}
 
-	public ParsedRequest(PropertyPath propertyPath,
-			PartTreeSpecificationImpl partTreeSpecification) {
-		this.domainClass = propertyPath.getType();
+	public ParsedRequest(Class<?> domainClass,PropertyPath propertyPath,
+			OpenRestQueryParameterHolder partTreeSpecification) {
+		this.domainClass = domainClass;
 		this.partTreeSpecification = partTreeSpecification;
 		this.propertyPath = propertyPath;
 	}
 
-	public PartTreeSpecificationImpl getPartTreeSpecification() {
+	public OpenRestQueryParameterHolder getPartTreeSpecification() {
 		return partTreeSpecification;
 	}
 

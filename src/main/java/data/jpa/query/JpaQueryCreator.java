@@ -22,6 +22,15 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+
+
+
+
+import javax.persistence.criteria.Selection;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.QueryUtils;
+
 import data.jpa.query.ParameterMetadataProvider.ParameterMetadata;
 import data.query.parser.AbstractQueryCreator;
 import data.query.parser.Part;
@@ -35,11 +44,12 @@ import data.query.parser.PartTree;
  * @author Szymon Konicki
  *
  */
-public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
+public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>, Predicate> {
 
-	private final CriteriaBuilder builder;
-	private final Root<?> root;
-	private final ParameterMetadataProvider provider;
+	protected final CriteriaBuilder builder;
+	protected final Root<?> root;
+	protected final CriteriaQuery<Object> query;
+	protected final ParameterMetadataProvider provider;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -49,10 +59,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Root<?> root, CriteriaBuilder builder, ParameterMetadataProvider provider) {
+	public JpaQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
+			ParameterMetadataProvider provider) {
 		super(tree);
 		this.builder = builder;
-		this.root = root;
+		this.query = builder.createQuery().distinct(tree.isDistinct());
+		this.root = query.from(domainClass);
 		this.provider = provider;
 	}
 
@@ -79,6 +91,41 @@ public class JpaQueryCreator extends AbstractQueryCreator<Predicate> {
 	@Override
 	protected Predicate and(Predicate base, Predicate criteria) {
 		return builder.and(base, criteria);
+	}
+
+	/**
+	 * Finalizes the given {@link Predicate} and applies the given sort. Delegates to
+	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and hands it the current {@link CriteriaQuery}
+	 * and {@link CriteriaBuilder}.
+	 */
+	@Override
+	protected final CriteriaQuery<Object> complete(Predicate predicate, Sort sort) {
+		return complete(predicate, sort, query, builder, root);
+	}
+
+	/**
+	 * Template method to finalize the given {@link Predicate} using the given {@link CriteriaQuery} and
+	 * {@link CriteriaBuilder}.
+	 * 
+	 * @param predicate
+	 * @param sort
+	 * @param query
+	 * @param builder
+	 * @return
+	 */
+	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
+			CriteriaBuilder builder, Root<?> root) {
+		modifyQuery(query, root, predicate, builder);
+		CriteriaQuery<Object> select = this.query.select(getSelection(root)).orderBy(QueryUtils.toOrders(sort, root, builder));
+		return predicate == null ? select : select.where(predicate);
+	}
+	
+	protected Selection<?> getSelection(Root<?> root){
+		return root;
+	}
+	
+	protected void modifyQuery(CriteriaQuery<Object> query, Root<?> root, Predicate predicate, CriteriaBuilder builder){
+		
 	}
 
 }

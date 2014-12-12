@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
@@ -23,7 +24,7 @@ public class Category extends AbstractPersistable<Long> {
 
 	private String name;
 
-	@OneToMany(mappedBy = "category", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "category", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private List<Product> products;
 	public Category(){}
 	public Category(String name) {

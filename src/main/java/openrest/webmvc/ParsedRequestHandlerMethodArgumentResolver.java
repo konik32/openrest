@@ -10,9 +10,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.core.mapping.ResourceMetadata;
 import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.hateoas.TemplateVariable;
 import org.springframework.hateoas.TemplateVariables;
 import org.springframework.hateoas.TemplateVariable.VariableType;
@@ -27,6 +29,7 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 
 	private ParsedRequestFactory partTreeSpecificationFactory;
 	private final ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver;
+	private final PageableHandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver;
 	private RepositoryRestConfiguration config;
 	
 	private static final String FILTER_PARAM_NAME = "filter";
@@ -35,10 +38,12 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 	private static final String COUNT_PARAM_NAME = "count";
 	private static final String STATIC_FILTER_PARAM_NAME = "sFilter";
 	private static final String OREST_PARAM_NAME = "orest";
+	
 	public ParsedRequestHandlerMethodArgumentResolver(ParsedRequestFactory partTreeSpecificationFactory,
-			ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver, RepositoryRestConfiguration config) {
+			ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver,PageableHandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver, RepositoryRestConfiguration config) {
 		this.partTreeSpecificationFactory = partTreeSpecificationFactory;
 		this.resourceMetadataResolver = resourceMetadataResolver;
+		this.pageableHandlerMethodArgumentResolver = pageableHandlerMethodArgumentResolver;
 		this.config = config;
 	}
 
@@ -75,7 +80,8 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 		String sFilter = webRequest.getParameter(STATIC_FILTER_PARAM_NAME);
 
 		ResourceMetadata metadata = resourceMetadataResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
-
+		Pageable pageable = pageableHandlerMethodArgumentResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+		
 		String path = webRequest.getNativeRequest(HttpServletRequest.class).getRequestURI();
 		if (path.startsWith(config.getBaseUri().getPath())) {
 			path = path.replace(config.getBaseUri().getPath(), "");
@@ -85,7 +91,7 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 		// parsers.parseQueryParameters(
 		// metadata.getDomainType(), filter, subject,view);
 
-		return partTreeSpecificationFactory.getParsedRequest(filter, expand, distinct,count, path, sFilter, metadata.getDomainType());
+		return partTreeSpecificationFactory.getParsedRequest(filter, expand, distinct,count, path, sFilter, metadata.getDomainType(), pageable);
 	}
 
 	public TemplateVariables getTemplateVariables(UriComponents template, boolean isCollection) {

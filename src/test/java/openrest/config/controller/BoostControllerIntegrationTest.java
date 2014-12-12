@@ -8,8 +8,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import openrest.config.Application;
 import openrest.config.domain.Category;
@@ -25,10 +30,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.context.WebApplicationContext;
 
+import data.jpa.query.OrderAndJoinQueryUtils;
 import static com.jayway.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
@@ -103,6 +111,5 @@ public class BoostControllerIntegrationTest {
 	public void doesFilterByIdsInUri(){
 		given().param("orest").when().get("/users/2/products").then().assertThat().body("page.totalElements", equalTo(1));
 	}
-	
 	
 }
