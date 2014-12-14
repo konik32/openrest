@@ -34,6 +34,7 @@ public class Parsers {
 	public static final String AND_SPLITTER = ";and;";
 	public static final String PARAMETER_SPLITTER = ",";
 	public static final Pattern FUNCTION_PARAMETER_MATCHER = Pattern.compile("^(.*)\\((.*)\\)$");
+
 	/**
 	 * Parses <b>filterStr</b> into {@link TempPart}
 	 * 
@@ -43,8 +44,7 @@ public class Parsers {
 	 *            resource_property_values ...)</b> <br/>
 	 *            delimited by logical operators: <br/>
 	 *            <b> ;and; ;or;</b> <br/>
-	 *            For
-	 *            function names see {@link PartTreeSpecificationBuilder} <br/>
+	 *            For function names see {@link PartTreeSpecificationBuilder} <br/>
 	 *            <b>examples:</b> <br/>
 	 *            <b> eq(id,1) ;and; between(product.price,1.50,2.00) ;or;
 	 *            like(name,'GSM')</b>
@@ -56,12 +56,12 @@ public class Parsers {
 		Assert.notNull(filterStr);
 		ANTLRInputStream input = new ANTLRInputStream(filterStr);
 		ORLLexer lexer = new ORLLexer(input);
-        TokenStream tokens = new CommonTokenStream(lexer);
-        ORLParser parser = new ORLParser(tokens);
-        parser.addErrorListener(new SyntaxErrorListener());
-        ParseTreeWalker walker = new ParseTreeWalker();
-        ORLParserListener parserListener = new ORLParserListener();
-        walker.walk(parserListener, parser.logicalExpression());
+		TokenStream tokens = new CommonTokenStream(lexer);
+		ORLParser parser = new ORLParser(tokens);
+		parser.addErrorListener(new SyntaxErrorListener());
+		ParseTreeWalker walker = new ParseTreeWalker();
+		ORLParserListener parserListener = new ORLParserListener();
+		walker.walk(parserListener, parser.logicalExpression());
 		return parserListener.getRoot();
 	}
 
@@ -83,7 +83,7 @@ public class Parsers {
 		List<PropertyPath> viewsPropertyPaths = new ArrayList<PropertyPath>(parts.length);
 		for (String part : parts) {
 			part = part.trim();
-			part = alias != null? alias + "." + part:part;
+			part = alias != null ? alias + "." + part : part;
 			viewsPropertyPaths.add(PropertyPath.from(part, domainType));
 		}
 		return viewsPropertyPaths;
@@ -124,6 +124,11 @@ public class Parsers {
 		return sFilter == null ? null : sFilter.split(",");
 	}
 
+	public static String[] parseDtos(String dtos) {
+		dtos = StringUtils.trimAllWhitespace(dtos);
+		return dtos == null ? null : dtos.split(",");
+	}
+
 	public static class PathWrapper {
 		private @Getter String id;
 		private @Getter String property;
@@ -162,7 +167,6 @@ public class Parsers {
 	}
 
 	private static class FilterParser {
-
 
 		public static TempPart parse(String filterStr) {
 			if (filterStr == null || filterStr.isEmpty())

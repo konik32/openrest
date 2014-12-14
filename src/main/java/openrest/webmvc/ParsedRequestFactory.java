@@ -17,8 +17,10 @@ import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * Factory that builds and returns {@link ParsedRequest} from given parameters. TODO add caching
+ * Factory that builds and returns {@link ParsedRequest} from given parameters.
+ * TODO add caching
  * 
  * @author Szymon Konicki
  *
@@ -40,7 +42,8 @@ public class ParsedRequestFactory {
 	/**
 	 * Method uses {@link Parsers} to parse parameters and
 	 * {@link PartTreeSpecificationBuilder} to build
-	 * {@link PartTreeSpecificationImpl} and wrap it into {@link ParsedRequest}. For parameters format see {@link Parsers}
+	 * {@link PartTreeSpecificationImpl} and wrap it into {@link ParsedRequest}.
+	 * For parameters format see {@link Parsers}
 	 * 
 	 * @param filter
 	 *            sql like string
@@ -58,7 +61,8 @@ public class ParsedRequestFactory {
 	 *
 	 * @return {@link ParsedRequest}
 	 **/
-	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String sFilter, Class<?> domainClass,Pageable pageable) {
+	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String sFilter, String dtos,
+			Class<?> domainClass, Pageable pageable) {
 		Assert.notNull(domainClass);
 
 		PathWrapper pathWrapper = Parsers.parsePath(path);
@@ -77,21 +81,23 @@ public class ParsedRequestFactory {
 				partTreeSpecificationBuilder.append(pathWrapper.getId());
 		}
 
-		if(filter!= null)
+		if (filter != null)
 			partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
-		if(distinct != null)
+		if (distinct != null)
 			partTreeSpecificationBuilder.setDistinct();
-		if(count != null)
+		if (count != null)
 			partTreeSpecificationBuilder.setCountProjection();
 		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
-		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass(),pathWrapper.getProperty()));
+		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass(),
+				pathWrapper.getProperty()));
 		partTreeSpecificationBuilder.append(pageable);
 		OpenRestQueryParameterHolder partTreeSpecification = partTreeSpecificationBuilder.build();
-
+		String[] dtosArr = Parsers.parseDtos(dtos);
 		if (pathWrapper.getProperty() == null) {
-			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), partTreeSpecification);
+			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), partTreeSpecification, dtosArr);
 		} else {
-			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), PropertyPath.from(pathWrapper.getProperty(), partTreeSpecificationBuilder.getDomainClass()), partTreeSpecification);
+			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), PropertyPath.from(pathWrapper.getProperty(),
+					partTreeSpecificationBuilder.getDomainClass()), partTreeSpecification, dtosArr);
 		}
 	}
 }

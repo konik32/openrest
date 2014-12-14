@@ -3,6 +3,10 @@ package openrest.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import openrest.dto.DtoPopulatorEvent;
+import openrest.dto.DtoPopulatorInvoker;
+import openrest.dto.EmbeddedWrapperFactory;
+import openrest.event.AnnotatedEventHandlerBeanPostProcessor;
 import openrest.jpa.repository.PartTreeSpecificationRepositoryImpl;
 import openrest.query.StaticFilterFactory;
 import openrest.response.filter.ContextFilterFactory;
@@ -17,10 +21,12 @@ import openrest.webmvc.support.OpenRestEntityLinks;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.rest.core.projection.ProxyProjectionFactory;
@@ -40,32 +46,52 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 
 	@Autowired
 	private PagedResourcesAssembler<Object> assembler;
-	
+
 	@Autowired
 	private PersistentEntities persistentEntities;
 	
+	@Autowired
+	private ApplicationEventPublisher publisher;
+
 	@Bean
 	public ParsedRequestHandlerMethodArgumentResolver partTreeSpecificationHandlerMethodArgumentResolver() {
-		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(), pageableResolver(), config());
+		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(),
+				pageableResolver(), config());
+	}
+
+	@Bean
+	public static DtoPopulatorInvoker dtoPopulatorInvoker() {
+		return new DtoPopulatorInvoker();
+	}
+	
+	@Bean
+	@Scope(value="request",proxyMode=ScopedProxyMode.TARGET_CLASS)
+	public EmbeddedWrapperFactory embeddedWrapperFactory(){
+		return new EmbeddedWrapperFactory(boostPersistentEntityResourceAssemblerArgumentResolver());
 	}
 
 	@Bean
 	public PersistentEntityWithAssociationsResourceAssemblerArgumentResolver boostPersistentEntityResourceAssemblerArgumentResolver() {
 		return new PersistentEntityWithAssociationsResourceAssemblerArgumentResolver(repositories(), entityLinks(), config().projectionConfiguration(),
-				new ProxyProjectionFactory(beanFactory), resourceMappings());
+				new ProxyProjectionFactory(beanFactory), resourceMappings(),publisher);
 	}
 
 	@Bean
-	public StaticFilterFactory staticFilterFactory(){
+	public StaticFilterFactory staticFilterFactory() {
 		return new StaticFilterFactory();
 	}
-	
+
 	@Bean
 	public OpenRestEntityLinks entityLinks() {
-		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(),
-				backendIdConverterRegistry(), partTreeSpecificationHandlerMethodArgumentResolver());
+		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(), backendIdConverterRegistry(),
+				partTreeSpecificationHandlerMethodArgumentResolver());
 	}
-	
+
+//	@Bean
+//	public static AnnotatedEventHandlerBeanPostProcessor annotatedEventHandlerBeanPostProcessor() {
+//		return new AnnotatedEventHandlerBeanPostProcessor();
+//	}
+
 	@Override
 	@Bean
 	public RequestMappingHandlerAdapter repositoryExporterHandlerAdapter() {
@@ -82,11 +108,12 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 		PropertyAccessorFactory.forDirectFieldAccess(adapter).setPropertyValue("argumentResolvers", argumentResolvers);
 		return adapter;
 	}
-	
-//	@Bean
-//	public OpenRestMainController boostMainController() {
-//		return new OpenRestMainController(repositories(), config(),entityLinks(), assembler, conversionService, boostJpaRepository(), resourceMappings());
-//	}
+
+	// @Bean
+	// public OpenRestMainController boostMainController() {
+	// return new OpenRestMainController(repositories(), config(),entityLinks(),
+	// assembler, conversionService, boostJpaRepository(), resourceMappings());
+	// }
 
 	@Bean
 	public PartTreeSpecificationRepositoryImpl boostJpaRepository() {

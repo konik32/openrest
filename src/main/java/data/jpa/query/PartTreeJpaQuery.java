@@ -8,7 +8,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import net.spy.memcached.internal.SingleElementInfiniteIterator;
 
 import org.springframework.data.domain.Sort;
 import  data.jpa.query.JpaQueryExecution;

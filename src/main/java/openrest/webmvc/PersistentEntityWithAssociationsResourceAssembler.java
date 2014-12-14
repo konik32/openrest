@@ -2,8 +2,16 @@ package openrest.webmvc;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import openrest.dto.DtoPopulatorEvent;
+
+import org.hibernate.collection.internal.PersistentBag;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
@@ -37,35 +45,56 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 	private final ResourceMappings mappings;
 	private final EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
 
-	public PersistentEntityWithAssociationsResourceAssembler(Repositories repositories, EntityLinks entityLinks, Projector projector, ResourceMappings mappings) {
+	private final ApplicationEventPublisher publisher;
+	private final String[] dtos;
+
+	private Set<Object> currProcessedObjects = new HashSet<Object>();
+
+	public PersistentEntityWithAssociationsResourceAssembler(Repositories repositories, EntityLinks entityLinks, Projector projector,
+			ResourceMappings mappings, ApplicationEventPublisher publisher, String[] dtos) {
 		super(repositories, entityLinks, projector, mappings);
 		this.repositories = repositories;
 		this.projector = projector;
 		this.mappings = mappings;
+		this.publisher = publisher;
+		this.dtos = dtos;
 	}
 
 	@Override
 	public PersistentEntityResource toResource(Object instance) {
-
-		Assert.notNull(instance, "Entity instance must not be null!");
-
-		return wrap(projector.projectExcerpt(instance), instance).build();
-
+		return toFullResource(instance);
 	}
 
 	@Override
 	public PersistentEntityResource toFullResource(Object instance) {
+		if (currProcessedObjects.contains(instance))
+			return null;
+		currProcessedObjects.add(instance);
 		Assert.notNull(instance, "Entity instance must not be null!");
-		return wrap(projector.project(instance), instance).//
+		PersistentEntityResource pe = wrap(projector.project(instance), instance).//
 				renderAllAssociationLinks().build();
+		currProcessedObjects.remove(instance);
+		return pe;
 	}
 
 	private Builder wrap(Object instance, Object source) {
-
 		PersistentEntity<?, ?> entity = repositories.getPersistentEntity(source.getClass());
 		return PersistentEntityResource.build(instance, entity).//
-				withEmbedded(getEmbeddedResources(source)).//
+				withEmbedded(getEmbeddeds(source)).//
 				withLink(getSelfLinkFor(source));
+	}
+
+	private Iterable<EmbeddedWrapper> getEmbeddeds(Object instance) {
+		List<EmbeddedWrapper> embeddeds = getAssociationsEmbeddedResources(instance);
+		if (dtos != null)
+			embeddeds.addAll(getDtoEmbeddeds(instance));
+		return embeddeds;
+	}
+
+	private List<EmbeddedWrapper> getDtoEmbeddeds(Object instance) {
+		List<EmbeddedWrapper> embeddeds = new ArrayList<EmbeddedWrapper>();
+		publisher.publishEvent(new DtoPopulatorEvent(instance, embeddeds, dtos));
+		return embeddeds;
 	}
 
 	/**
@@ -76,7 +105,7 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 	 *            must not be {@literal null}.
 	 * @return
 	 */
-	private Iterable<EmbeddedWrapper> getEmbeddedResources(Object instance) {
+	private List<EmbeddedWrapper> getAssociationsEmbeddedResources(Object instance) {
 
 		Assert.notNull(instance, "Entity instance must not be null!");
 
@@ -107,10 +136,14 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 				Object value = wrapper.getProperty(association.getInverse());
 
 				// TODO: find a way to check if value is lazy loaded
-				if (value == null || !value.getClass().equals(property.getActualType())) {
-					return;
+				if (value instanceof PersistentBag) {
+					if (!((PersistentBag) value).wasInitialized())
+						return;
+				} else {
+					if (value == null || !value.getClass().equals(property.getActualType())) {
+						return;
+					}
 				}
-
 				String rel = metadata.getMappingFor(property).getRel();
 
 				if (value instanceof Collection) {
@@ -125,7 +158,7 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 
 					for (Object element : collection) {
 						if (element != null) {
-							nestedCollection.add(projector.projectExcerpt(element));
+							nestedCollection.add(wrappers.wrap(toFullResource(element)));
 						}
 					}
 

@@ -1,10 +1,17 @@
 package org.springframework.data.rest.webmvc;
 
+import static org.springframework.data.rest.webmvc.ControllerUtils.EMPTY_RESOURCE_LIST;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import openrest.dto.PersistentEntityResourceExtender;
+import openrest.event.AfterCollectionGetEvent;
+import openrest.event.AfterGetEvent;
+import openrest.event.BeforeCollectionGetEvent;
+import openrest.event.BeforeGetEvent;
 import openrest.httpquery.parser.RequestParsingException;
 import openrest.jpa.repository.PartTreeSpecificationRepository;
 import openrest.webmvc.ParsedRequest;
@@ -15,6 +22,7 @@ import openrest.webmvc.support.OpenRestEntityLinks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.rest.core.mapping.ResourceMappings;
@@ -57,7 +65,6 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	private final OpenRestEntityLinks entityLinks;
 	private final PartTreeSpecificationRepository boostJpaRepository;
 	private final ResourceMappings mappings;
-	private final ParsedRequestHandlerMethodArgumentResolver resolver;
 	private ApplicationEventPublisher publisher;
 
 	@Autowired
@@ -67,30 +74,33 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 		this.boostJpaRepository = boostJpaRepository;
 		this.entityLinks = entityLinks;
 		this.mappings = mappings;
-		this.resolver = resolver;
 	}
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
 	public Resources<?> getResourceWithFilterParameter(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler,
 			DefaultedPageable pageable, Sort sort) {
-		return getResources(specificationInformation, assembler, pageable, sort);
+		publisher.publishEvent(new BeforeCollectionGetEvent(specificationInformation, specificationInformation.getDomainClass()));
+		Resources<?> resources = getResources(specificationInformation, assembler, pageable, sort);
+		publisher.publishEvent(new AfterCollectionGetEvent(resources, specificationInformation.getDomainClass()));
+		return resources;
 	}
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "orest", "count" })
 	public ResponseEntity<?> getResourceCountWithFilter(ParsedRequest specificationInformation) {
-		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
-		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
-	}
-	
-	@ResponseBody
-	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = { "orest", "count" })
-	public ResponseEntity<?> getResourcePropertyCountWithFilter(ParsedRequest specificationInformation) {
-		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(),
+				(Class<Object>) specificationInformation.getDomainClass());
 		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
 	}
 
+	@ResponseBody
+	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = { "orest", "count" })
+	public ResponseEntity<?> getResourcePropertyCountWithFilter(ParsedRequest specificationInformation) {
+		Long count = (Long) boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(),
+				(Class<Object>) specificationInformation.getDomainClass());
+		return new ResponseEntity(Collections.singletonMap("count", count), HttpStatus.OK);
+	}
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/{id}/{property}", method = RequestMethod.GET, params = "orest")
@@ -103,7 +113,9 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	@RequestMapping(value = { BASE_MAPPING + "/{id}" }, method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Resource<?>> getResourceWithExpandParameter(ParsedRequest specificationInformation,
 			PersistentEntityWithAssociationsResourceAssembler assembler) {
+		publisher.publishEvent(new BeforeGetEvent(specificationInformation, specificationInformation.getDomainClass()));
 		Resource<?> resource = getResource(specificationInformation, assembler);
+		publisher.publishEvent(new AfterGetEvent(resource, specificationInformation.getDomainClass()));
 		if (resource == null) {
 			return new ResponseEntity<Resource<?>>(HttpStatus.NOT_FOUND);
 		}
@@ -122,13 +134,16 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 	}
 
 	private ResponseEntity<ResourceSupport> getResourceSupporResponseEntity(ParsedRequest specificationInformation,
-			PersistentEntityResourceAssembler assembler, DefaultedPageable pageable, Sort sort) {
+			PersistentEntityWithAssociationsResourceAssembler assembler, DefaultedPageable pageable, Sort sort) {
 
 		final HttpHeaders headers = new HttpHeaders();
 		ResourceSupport responseResource;
 		if (specificationInformation.getPropertyPath().isCollection()) {
+			publisher.publishEvent(new BeforeCollectionGetEvent(specificationInformation, specificationInformation.getPropertyPath().getLeafProperty()
+					.getType()));
 			responseResource = getResources(specificationInformation, assembler, pageable, sort);
 		} else {
+			publisher.publishEvent(new BeforeGetEvent(specificationInformation, specificationInformation.getPropertyPath().getLeafProperty().getType()));
 			Resource<?> r = getResource(specificationInformation, assembler);
 			if (r == null)
 				return new ResponseEntity<ResourceSupport>(HttpStatus.NOT_FOUND);
@@ -136,10 +151,12 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 			headers.set("Content-Location", resource.getId().getHref());
 			responseResource = resource;
 		}
+		publisher.publishEvent(new AfterGetEvent(responseResource, specificationInformation.getPropertyPath().getLeafProperty().getType()));
 		return ControllerUtils.toResponseEntity(HttpStatus.OK, headers, responseResource);
 	}
 
-	private Resources<?> getResources(ParsedRequest specificationInformation, PersistentEntityResourceAssembler assembler, DefaultedPageable pageable, Sort sort) {
+	private Resources<?> getResources(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler,
+			DefaultedPageable pageable, Sort sort) {
 		Iterable<?> results = findAll(specificationInformation, pageable, sort);
 
 		ResourceMetadata metadata = mappings.getMappingFor(specificationInformation.getDomainClass());
@@ -161,8 +178,9 @@ public class OpenRestMainController extends AbstractRepositoryRestController imp
 		return resources;
 	}
 
-	private Resource<?> getResource(ParsedRequest specificationInformation, PersistentEntityResourceAssembler assembler) {
-		Object result = boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(), (Class<Object>) specificationInformation.getDomainClass());
+	private Resource<?> getResource(ParsedRequest specificationInformation, PersistentEntityWithAssociationsResourceAssembler assembler) {
+		Object result = boostJpaRepository.findOne(specificationInformation.getPartTreeSpecification(),
+				(Class<Object>) specificationInformation.getDomainClass());
 		if (result == null) {
 			throw new ResourceNotFoundException();
 		}
