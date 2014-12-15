@@ -1,23 +1,5 @@
 openrest
 ========
-<html><head>
-<meta charset="UTF-8">
-<link href="bootstrap.min.css" rel="stylesheet">
-<style type="text/css">
-pre.prettyprint {
-	overflow: auto;
-	max-height: 300px;
-	max-width: 920px;
-	word-wrap: normal;
-	white-space: pre;
-	word-wrap: normal;
-}
-</style>
-<style type="text/css"></style><link rel="stylesheet" type="text/css" href="https://google-code-prettify.googlecode.com/svn/loader/prettify.css">
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-<title>Przykład</title>
-</head>
-<body>
 	<section class="col-sm-12">
 		<article>
 			<h3>Podstawowe informacje</h3>
@@ -701,7 +683,3 @@ pre.prettyprint {
 
 
 	</section>
-
-
-
-</body></html>
