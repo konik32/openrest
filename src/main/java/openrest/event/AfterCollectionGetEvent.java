@@ -1,7 +1,5 @@
 package openrest.event;
 
-import org.springframework.data.rest.core.event.RepositoryEvent;
-import org.springframework.hateoas.Resources;
 
 public class AfterCollectionGetEvent extends ResourceSupportEvent {
 

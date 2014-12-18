@@ -2,13 +2,12 @@ package openrest.webmvc;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import openrest.dto.DtoPopulatorEvent;
+import openrest.security.validator.ResourceFilterInvoker;
 
 import org.hibernate.collection.internal.PersistentBag;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,9 +30,8 @@ import org.springframework.hateoas.core.EmbeddedWrappers;
 import org.springframework.util.Assert;
 
 /**
- * Modification of {@link PersistentEntityResourceAssembler}. Linkable
- * associations don't need to have projections to be added to embedded wrapper.
- * Associations are wrapped recursively
+ * Modification of {@link PersistentEntityResourceAssembler}. Dto system was
+ * implemented instead of projections
  * 
  * @author Szymon Konicki
  *
@@ -41,12 +39,13 @@ import org.springframework.util.Assert;
 public class PersistentEntityWithAssociationsResourceAssembler extends PersistentEntityResourceAssembler {
 
 	private final Repositories repositories;
-	private final Projector projector;
 	private final ResourceMappings mappings;
 	private final EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
 
 	private final ApplicationEventPublisher publisher;
 	private final String[] dtos;
+
+	private ResourceFilterInvoker resourceFilterInvoker;
 
 	private Set<Object> currProcessedObjects = new HashSet<Object>();
 
@@ -54,7 +53,6 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 			ResourceMappings mappings, ApplicationEventPublisher publisher, String[] dtos) {
 		super(repositories, entityLinks, projector, mappings);
 		this.repositories = repositories;
-		this.projector = projector;
 		this.mappings = mappings;
 		this.publisher = publisher;
 		this.dtos = dtos;
@@ -67,25 +65,31 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 
 	@Override
 	public PersistentEntityResource toFullResource(Object instance) {
+		return toFullResource(instance, null);
+	}
+
+	public PersistentEntityResource toFullResource(Object instance, ParentAwareObject parent) {
+		if (!include(instance, parent))
+			return null;
 		if (currProcessedObjects.contains(instance))
 			return null;
 		currProcessedObjects.add(instance);
 		Assert.notNull(instance, "Entity instance must not be null!");
-		PersistentEntityResource pe = wrap(projector.project(instance), instance).//
+		PersistentEntityResource pe = wrap(instance, instance, parent).//
 				renderAllAssociationLinks().build();
 		currProcessedObjects.remove(instance);
 		return pe;
 	}
 
-	private Builder wrap(Object instance, Object source) {
+	private Builder wrap(Object instance, Object source, ParentAwareObject parent) {
 		PersistentEntity<?, ?> entity = repositories.getPersistentEntity(source.getClass());
 		return PersistentEntityResource.build(instance, entity).//
-				withEmbedded(getEmbeddeds(source)).//
+				withEmbedded(getEmbeddeds(source, parent)).//
 				withLink(getSelfLinkFor(source));
 	}
 
-	private Iterable<EmbeddedWrapper> getEmbeddeds(Object instance) {
-		List<EmbeddedWrapper> embeddeds = getAssociationsEmbeddedResources(instance);
+	private Iterable<EmbeddedWrapper> getEmbeddeds(Object instance, ParentAwareObject parent) {
+		List<EmbeddedWrapper> embeddeds = getAssociationsEmbeddedResources(instance, parent);
 		if (dtos != null)
 			embeddeds.addAll(getDtoEmbeddeds(instance));
 		return embeddeds;
@@ -105,7 +109,7 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 	 *            must not be {@literal null}.
 	 * @return
 	 */
-	private List<EmbeddedWrapper> getAssociationsEmbeddedResources(Object instance) {
+	private List<EmbeddedWrapper> getAssociationsEmbeddedResources(final Object instance, final ParentAwareObject parent) {
 
 		Assert.notNull(instance, "Entity instance must not be null!");
 
@@ -158,19 +162,35 @@ public class PersistentEntityWithAssociationsResourceAssembler extends Persisten
 
 					for (Object element : collection) {
 						if (element != null) {
-							nestedCollection.add(wrappers.wrap(toFullResource(element)));
+							ParentAwareObject parentAwareObject = new ParentAwareObject(parent, instance);
+							EmbeddedWrapper ew = wrappers.wrap(toFullResource(element, parentAwareObject));
+							if (ew != null)
+								nestedCollection.add(ew);
 						}
 					}
-
-					associationProjections.add(wrappers.wrap(nestedCollection, rel));
+					if (!nestedCollection.isEmpty())
+						associationProjections.add(wrappers.wrap(nestedCollection, rel));
 
 				} else {
-					associationProjections.add(wrappers.wrap(toFullResource(value), rel));
+					ParentAwareObject parentAwareObject = new ParentAwareObject(parent, instance);
+					EmbeddedWrapper ew = wrappers.wrap(toFullResource(value, parentAwareObject), rel);
+					if (ew != null)
+						associationProjections.add(ew);
 				}
 			}
 		});
 
 		return associationProjections;
+	}
+
+	public boolean include(Object instance, ParentAwareObject parent) {
+		if (resourceFilterInvoker == null)
+			return true;
+		return resourceFilterInvoker.includeResource(instance, parent);
+	}
+
+	public void setResourceFilterInvoker(ResourceFilterInvoker resourceFilterInvoker) {
+		this.resourceFilterInvoker = resourceFilterInvoker;
 	}
 
 }

@@ -3,6 +3,7 @@ package openrest.webmvc;
 import openrest.dto.DtoPopulatorEvent;
 import openrest.dto.DtoPopulatorInvoker;
 import openrest.httpquery.parser.Parsers;
+import openrest.security.validator.ResourceFilterInvoker;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,6 +39,8 @@ public class PersistentEntityWithAssociationsResourceAssemblerArgumentResolver i
 	private final ResourceMappings mappings;
 	private final ApplicationEventPublisher publisher;
 
+	private ResourceFilterInvoker resourceFilterInvoker;
+
 	@Autowired
 	public PersistentEntityWithAssociationsResourceAssemblerArgumentResolver(Repositories repositories, EntityLinks entityLinks,
 			ProjectionDefinitions projectionDefinitions, ProjectionFactory projectionFactory, ResourceMappings mappings, ApplicationEventPublisher publisher) {
@@ -70,7 +73,14 @@ public class PersistentEntityWithAssociationsResourceAssemblerArgumentResolver i
 		String projectionParameter = webRequest.getParameter(projectionDefinitions.getParameterName());
 		String dtos = webRequest.getParameter(ParsedRequestHandlerMethodArgumentResolver.DTO_PARAM_NAME);
 		PersistentEntityProjector projector = new PersistentEntityProjector(projectionDefinitions, projectionFactory, projectionParameter, mappings);
-		return new PersistentEntityWithAssociationsResourceAssembler(repositories, entityLinks, projector, mappings, publisher, Parsers.parseDtos(dtos));
+		PersistentEntityWithAssociationsResourceAssembler assembler = new PersistentEntityWithAssociationsResourceAssembler(repositories, entityLinks,
+				projector, mappings, publisher, Parsers.parseDtos(dtos));
+		assembler.setResourceFilterInvoker(resourceFilterInvoker);
+		return assembler;
+	}
+
+	public void setResourceFilterInvoker(ResourceFilterInvoker resourceFilterInvoker) {
+		this.resourceFilterInvoker = resourceFilterInvoker;
 	}
 
 }
