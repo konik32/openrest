@@ -5,6 +5,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import openrest.domain.OpenRestQueryParameterHolder;
+import openrest.domain.ParameterProcessor;
 import openrest.domain.PartTreeSpecificationBuilder;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.Parsers.PathWrapper;
@@ -39,6 +40,8 @@ public class ParsedRequestFactory {
 	@Autowired
 	private StaticFilterFactory staticaStaticFilterFactory;
 
+	private ParameterProcessor parameterProcessor;
+
 	/**
 	 * Method uses {@link Parsers} to parse parameters and
 	 * {@link PartTreeSpecificationBuilder} to build
@@ -61,7 +64,7 @@ public class ParsedRequestFactory {
 	 *
 	 * @return {@link ParsedRequest}
 	 **/
-	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String sFilter, String dtos,
+	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String dtos,
 			Class<?> domainClass, Pageable pageable) {
 		Assert.notNull(domainClass);
 
@@ -87,10 +90,12 @@ public class ParsedRequestFactory {
 			partTreeSpecificationBuilder.setDistinct();
 		if (count != null)
 			partTreeSpecificationBuilder.setCountProjection();
-		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
+//		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
 		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass(),
 				pathWrapper.getProperty()));
 		partTreeSpecificationBuilder.append(pageable);
+
+		partTreeSpecificationBuilder.setParameterProcessor(parameterProcessor);
 		OpenRestQueryParameterHolder partTreeSpecification = partTreeSpecificationBuilder.build();
 		String[] dtosArr = Parsers.parseDtos(dtos);
 		if (pathWrapper.getProperty() == null) {
@@ -99,5 +104,9 @@ public class ParsedRequestFactory {
 			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), PropertyPath.from(pathWrapper.getProperty(),
 					partTreeSpecificationBuilder.getDomainClass()), partTreeSpecification, dtosArr);
 		}
+	}
+
+	public void setParameterProcessor(ParameterProcessor parameterProcessor) {
+		this.parameterProcessor = parameterProcessor;
 	}
 }

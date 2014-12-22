@@ -5,3 +5,11 @@
 /ORLListener.java
 /ORLParser.java
 /ORLParserListener.java
+/ORLWithObjectParam.tokens
+/ORLWithObjectParamBaseListener.java
+/ORLWithObjectParamLexer.java
+/ORLWithObjectParamLexer.tokens
+/ORLWithObjectParamListener.java
+/ORLWithObjectParamParser.java
+/ORLWithObjectParam.g4
+/ORLWithObjectParamParserListener.java

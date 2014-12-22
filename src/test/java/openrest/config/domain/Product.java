@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
-import openrest.response.filter.SpelFilter;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -12,7 +11,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@SpelFilter(value="filteredObject.id == 10000",properties="name")
 public class Product extends AbstractPersistable<Long> {/**
 	 * 
 	 */

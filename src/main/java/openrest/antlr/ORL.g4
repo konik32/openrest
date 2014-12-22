@@ -68,17 +68,23 @@ FUNCTION_NAME
 		| 'le'
 		| 'before'
 		| 'after'
-		| 'notLike'
-		| 'like'
-		| 'statingWith'
-		| 'endingWith'
-		| 'containing'
+		| 'notLike' (IGNORE_CASE)?
+		| 'like' (IGNORE_CASE)?
+		| 'startingWith' (IGNORE_CASE)?
+		| 'endingWith' (IGNORE_CASE)?
+		| 'containing' (IGNORE_CASE)?
 		| 'notIn'
 		| 'in'
 		| 'true'
 		| 'false'
-		| 'eq'
+		| 'eq' (IGNORE_CASE)?
+		| 'notEq' (IGNORE_CASE)?
 	)
+;
+
+IGNORE_CASE
+:
+	'IgnoreCase'
 ;
 
 PROPERTY
@@ -97,7 +103,14 @@ PROPERTY
 		| '.'
 	)*
 ;
-WHITESPACE: (' ' | '\t')+ -> skip;
+
+WHITESPACE
+:
+	(
+		' '
+		| '\t'
+	)+ -> skip
+;
 
 TEXT
 :

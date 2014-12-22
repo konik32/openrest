@@ -9,15 +9,12 @@ import javax.persistence.OneToMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import openrest.query.StaticFilter;
-import openrest.response.filter.SpelFilter;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
 @Data
 @EqualsAndHashCode
-@SpelFilter(value="filteredObject.id ==10000",properties="username")
-@StaticFilter(name="user_filter", value="eq(username,10)")
 public class User extends AbstractPersistable<Long> {
 	/**
 	 * 

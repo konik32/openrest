@@ -81,26 +81,24 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-dependencies</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
+			<version>1.2.0.RELEASE</version>
 			<type>pom</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
-			<scope>test</scope>
+			<version>1.2.0.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-rest</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
-			<scope>test</scope>
+			<version>1.2.0.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
+			<version>1.2.0.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -118,7 +116,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
+			<version>1.2.0.RELEASE</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
@@ -130,7 +128,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jetty</artifactId>
-			<version>1.2.0.BUILD-SNAPSHOT</version>
+			<version>1.2.0.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 

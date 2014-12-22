@@ -31,17 +31,17 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 	private final ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver;
 	private final PageableHandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver;
 	private RepositoryRestConfiguration config;
-	
+
 	public static final String FILTER_PARAM_NAME = "filter";
 	public static final String EXPAND_PARAM_NAME = "expand";
 	public static final String DISTINCT_PARAM_NAME = "distinct";
 	public static final String COUNT_PARAM_NAME = "count";
-	public static final String STATIC_FILTER_PARAM_NAME = "sFilter";
 	public static final String OREST_PARAM_NAME = "orest";
 	public static final String DTO_PARAM_NAME = "dto";
-	
+
 	public ParsedRequestHandlerMethodArgumentResolver(ParsedRequestFactory partTreeSpecificationFactory,
-			ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver,PageableHandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver, RepositoryRestConfiguration config) {
+			ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver,
+			PageableHandlerMethodArgumentResolver pageableHandlerMethodArgumentResolver, RepositoryRestConfiguration config) {
 		this.partTreeSpecificationFactory = partTreeSpecificationFactory;
 		this.resourceMetadataResolver = resourceMetadataResolver;
 		this.pageableHandlerMethodArgumentResolver = pageableHandlerMethodArgumentResolver;
@@ -78,12 +78,11 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 		String distinct = webRequest.getParameter(DISTINCT_PARAM_NAME);
 		String count = webRequest.getParameter(COUNT_PARAM_NAME);
 		String expand = webRequest.getParameter(EXPAND_PARAM_NAME);
-		String sFilter = webRequest.getParameter(STATIC_FILTER_PARAM_NAME);
-		String dtos =  webRequest.getParameter(DTO_PARAM_NAME);
+		String dtos = webRequest.getParameter(DTO_PARAM_NAME);
 
 		ResourceMetadata metadata = resourceMetadataResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 		Pageable pageable = pageableHandlerMethodArgumentResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
-		
+
 		String path = webRequest.getNativeRequest(HttpServletRequest.class).getRequestURI();
 		if (path.startsWith(config.getBaseUri().getPath())) {
 			path = path.replace(config.getBaseUri().getPath(), "");
@@ -93,15 +92,15 @@ public class ParsedRequestHandlerMethodArgumentResolver implements HandlerMethod
 		// parsers.parseQueryParameters(
 		// metadata.getDomainType(), filter, subject,view);
 
-		return partTreeSpecificationFactory.getParsedRequest(filter, expand, distinct,count, path, sFilter,dtos, metadata.getDomainType(), pageable);
+		return partTreeSpecificationFactory.getParsedRequest(filter, expand, distinct, count, path, dtos, metadata.getDomainType(), pageable);
 	}
 
 	public TemplateVariables getTemplateVariables(UriComponents template, boolean isCollection) {
 		List<TemplateVariable> names = new ArrayList<TemplateVariable>();
 		MultiValueMap<String, String> queryParameters = template.getQueryParams();
 		boolean append = !queryParameters.isEmpty();
-		List<String> propertyNames = new ArrayList<String>(Arrays.asList(OREST_PARAM_NAME,EXPAND_PARAM_NAME, STATIC_FILTER_PARAM_NAME,DISTINCT_PARAM_NAME,DTO_PARAM_NAME));
-		if(isCollection){
+		List<String> propertyNames = new ArrayList<String>(Arrays.asList(OREST_PARAM_NAME, EXPAND_PARAM_NAME, DISTINCT_PARAM_NAME, DTO_PARAM_NAME));
+		if (isCollection) {
 			propertyNames.add(FILTER_PARAM_NAME);
 			propertyNames.add(COUNT_PARAM_NAME);
 		}

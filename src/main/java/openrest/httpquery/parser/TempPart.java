@@ -17,7 +17,7 @@ public class TempPart {
 
 	private static final Pattern IGNORE_CASE = Pattern.compile("IgnoreCase");
 
-	private List<TempPart> parts;
+	private List<TempPart> parts;                    
 	private String functionName;
 	private String propertyName;
 	private List<String> tempParameters;
@@ -101,6 +101,10 @@ public class TempPart {
 
 	public void addParameter(String parameter) {
 		tempParameters.add(parameter);
+	}
+
+	public void setParameters(String[] parameters) {
+		tempParameters = Arrays.asList(parameters);
 	}
 
 	public void setType(Type type) {

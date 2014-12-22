@@ -10,6 +10,9 @@ import lombok.Getter;
 import openrest.antlr.ORLLexer;
 import openrest.antlr.ORLParser;
 import openrest.antlr.ORLParserListener;
+import openrest.antlr.ORLWithObjectParamLexer;
+import openrest.antlr.ORLWithObjectParamParser;
+import openrest.antlr.ORLWithObjectParamParserListener;
 import openrest.antlr.SyntaxErrorListener;
 import openrest.domain.PartTreeSpecificationBuilder;
 
@@ -61,6 +64,19 @@ public class Parsers {
 		parser.addErrorListener(new SyntaxErrorListener());
 		ParseTreeWalker walker = new ParseTreeWalker();
 		ORLParserListener parserListener = new ORLParserListener();
+		walker.walk(parserListener, parser.logicalExpression());
+		return parserListener.getRoot();
+	}
+	
+	public static TempPart parseStaticFilter(String filterStr) {
+		Assert.notNull(filterStr);
+		ANTLRInputStream input = new ANTLRInputStream(filterStr);
+		ORLWithObjectParamLexer lexer = new ORLWithObjectParamLexer(input);
+		TokenStream tokens = new CommonTokenStream(lexer);
+		ORLWithObjectParamParser parser = new ORLWithObjectParamParser(tokens);
+		parser.addErrorListener(new SyntaxErrorListener());
+		ParseTreeWalker walker = new ParseTreeWalker();
+		ORLWithObjectParamParserListener parserListener = new ORLWithObjectParamParserListener();
 		walker.walk(parserListener, parser.logicalExpression());
 		return parserListener.getRoot();
 	}

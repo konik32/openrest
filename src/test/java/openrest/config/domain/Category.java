@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
+import openrest.query.StaticFilter;
+
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import lombok.Data;
@@ -15,6 +17,7 @@ import lombok.EqualsAndHashCode;
 @Entity
 @Data
 @EqualsAndHashCode
+@StaticFilter(name="user_filter", value="eq(name,10)")
 public class Category extends AbstractPersistable<Long> {
 
 	/**

@@ -1,12 +1,13 @@
 package openrest.query;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import openrest.httpquery.parser.FilterWrapper;
 import openrest.httpquery.parser.Parsers;
+import openrest.httpquery.parser.TempPart;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,27 +16,32 @@ import org.springframework.data.mapping.context.PersistentEntities;
 
 public class StaticFilterFactory implements InitializingBean {
 
-	@Autowired
 	private PersistentEntities persistentEntities;
 
-	private Map<Class<?>, FilterWrapper> staticFilters = new HashMap<Class<?>, FilterWrapper>();
+	private StaticFilterInclusionManager inclusionManager;
+
+	protected Map<Class<?>, StaticFilterWrapper> staticFilters = new HashMap<Class<?>, StaticFilterWrapper>();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		registerStaticFilters();
 	}
 
-	public List<FilterWrapper> get(Class<?> type) {
-		List<FilterWrapper> filterWrappers = new ArrayList<FilterWrapper>();
+	public List<StaticFilterWrapper> get(Class<?> type, String alias) {
+		List<StaticFilterWrapper> filterWrappers = new ArrayList<StaticFilterWrapper>();
 		for (Class<?> filteredClass : staticFilters.keySet()) {
 			if (filteredClass.isAssignableFrom(type)) {
-				filterWrappers.add(staticFilters.get(filteredClass));
+				StaticFilterWrapper filterWrapper = staticFilters.get(filteredClass);
+				if (alias != null)
+					filterWrapper = addAlias(filterWrapper, alias);
+				if (includeFilter(filterWrapper))
+					filterWrappers.add(filterWrapper);
 			}
 		}
 		return filterWrappers;
 	}
 
-	private void registerStaticFilters() {
+	protected void registerStaticFilters() {
 		for (PersistentEntity persistentEntity : persistentEntities) {
 			StaticFilter staticFilter = (StaticFilter) persistentEntity.findAnnotation(StaticFilter.class);
 			if (staticFilter != null) {
@@ -43,39 +49,52 @@ public class StaticFilterFactory implements InitializingBean {
 			} else {
 				StaticFilters sFilters = (StaticFilters) persistentEntity.findAnnotation(StaticFilters.class);
 				if (sFilters != null)
-					for (StaticFilter filter : sFilters.filters()) {
-						staticFilters.put(persistentEntity.getType(), create(filter));
-					}
+					addFilterCollection(sFilters, persistentEntity.getType());
 			}
 		}
 	}
 
-	private FilterWrapper create(StaticFilter staticFilter) {
-		FilterWrapper filterWrapper = new FilterWrapper(Parsers.parseFilter(staticFilter.value()), staticFilter.name());
-		return filterWrapper;
+	protected StaticFilterWrapper create(StaticFilter staticFilter) {
+		return new StaticFilterWrapper(Parsers.parseStaticFilter(staticFilter.value()), staticFilter.name(), staticFilter.condition());
 	}
 
-	// private FilterWrapper addAlias(FilterWrapper filterWrapper, String
-	// alias){
-	// TempPart tempPart = addAliasRecursively(filterWrapper.getTempPart(),
-	// alias);
-	// return new FilterWrapper(tempPart, filterWrapper.getValues(),
-	// filterWrapper.getName());
-	// }
-	//
-	// private TempPart addAliasRecursively(TempPart tempPart, String alias){
-	// if(tempPart.getType().equals(TempPart.Type.LEAF))
-	// return new TempPart(tempPart.getFunctionName(), alias != null? alias +
-	// "." + tempPart.getPropertyName(): tempPart.getPropertyName(),
-	// tempPart.getParametersCount());
-	// else{
-	// TempPart newTempPart = new TempPart(tempPart.getType(),
-	// tempPart.getParts().size());
-	// for(TempPart tp: tempPart.getParts()){
-	// newTempPart.addPart(addAliasRecursively(tp, alias));
-	// }
-	// return newTempPart;
-	// }
-	// }
+	protected boolean includeFilter(StaticFilterWrapper filterWrapper) {
+		if (inclusionManager != null)
+			return inclusionManager.includeFilter(filterWrapper);
+		return true;
+	}
+
+	protected void addFilterCollection(StaticFilters ann, Class<?> type) {
+		for (StaticFilter filter : ann.filters()) {
+			staticFilters.put(type, create(filter));
+		}
+
+	}
+
+	private StaticFilterWrapper addAlias(StaticFilterWrapper filterWrapper, String alias) {
+		TempPart tempPart = addAliasRecursively(filterWrapper.getTempPart(), alias);
+		return new StaticFilterWrapper(tempPart, filterWrapper.getName(), filterWrapper.getCondition());
+	}
+
+	private TempPart addAliasRecursively(TempPart tempPart, String alias) {
+		if (tempPart.getType().equals(TempPart.Type.LEAF))
+			return new TempPart(tempPart.getFunctionName(), alias != null ? alias + "." + tempPart.getPropertyName() : tempPart.getPropertyName(),
+					tempPart.getParameters());
+		else {
+			TempPart newTempPart = new TempPart(tempPart.getType(), tempPart.getParts().size());
+			for (TempPart tp : tempPart.getParts()) {
+				newTempPart.addPart(addAliasRecursively(tp, alias));
+			}
+			return newTempPart;
+		}
+	}
+
+	public void setPersistentEntities(PersistentEntities persistentEntities) {
+		this.persistentEntities = persistentEntities;
+	}
+
+	public void setInclusionManager(StaticFilterInclusionManager inclusionManager) {
+		this.inclusionManager = inclusionManager;
+	}
 
 }

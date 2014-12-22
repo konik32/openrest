@@ -9,10 +9,6 @@ import openrest.dto.EmbeddedWrapperFactory;
 import openrest.event.AnnotatedEventHandlerBeanPostProcessor;
 import openrest.jpa.repository.PartTreeSpecificationRepositoryImpl;
 import openrest.query.StaticFilterFactory;
-import openrest.response.filter.ContextFilterFactory;
-import openrest.response.filter.ContextFilterProvider;
-import openrest.response.filter.RequestBasedFilterIntrospector;
-import openrest.response.filter.SpelMultiplePropertyFilter;
 import openrest.webmvc.ParsedRequestFactory;
 import openrest.webmvc.ParsedRequestHandlerMethodArgumentResolver;
 import openrest.webmvc.PersistentEntityWithAssociationsResourceAssemblerArgumentResolver;
@@ -26,17 +22,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.rest.core.projection.ProxyProjectionFactory;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
-import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
 
 @Configuration
 public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
@@ -49,9 +44,15 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 
 	@Autowired
 	private PersistentEntities persistentEntities;
-	
+
 	@Autowired
 	private ApplicationEventPublisher publisher;
+
+	@Autowired(required = false)
+	private FilterProvider filterProvider;
+
+	@Autowired(required = false)
+	private JacksonAnnotationIntrospector introspector;
 
 	@Bean
 	public ParsedRequestHandlerMethodArgumentResolver partTreeSpecificationHandlerMethodArgumentResolver() {
@@ -63,22 +64,25 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	public static DtoPopulatorInvoker dtoPopulatorInvoker() {
 		return new DtoPopulatorInvoker();
 	}
-	
+
 	@Bean
-	@Scope(value="request",proxyMode=ScopedProxyMode.TARGET_CLASS)
-	public EmbeddedWrapperFactory embeddedWrapperFactory(){
+	@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+	public EmbeddedWrapperFactory embeddedWrapperFactory() {
 		return new EmbeddedWrapperFactory(boostPersistentEntityResourceAssemblerArgumentResolver());
 	}
 
 	@Bean
 	public PersistentEntityWithAssociationsResourceAssemblerArgumentResolver boostPersistentEntityResourceAssemblerArgumentResolver() {
 		return new PersistentEntityWithAssociationsResourceAssemblerArgumentResolver(repositories(), entityLinks(), config().projectionConfiguration(),
-				new ProxyProjectionFactory(beanFactory), resourceMappings(),publisher);
+				new ProxyProjectionFactory(beanFactory), resourceMappings(), publisher);
 	}
 
 	@Bean
-	public StaticFilterFactory staticFilterFactory() {
-		return new StaticFilterFactory();
+	@Autowired
+	public StaticFilterFactory filterFactory(PersistentEntities persistentEntities) {
+		StaticFilterFactory factory = new StaticFilterFactory();
+		factory.setPersistentEntities(persistentEntities);
+		return factory;
 	}
 
 	@Bean
@@ -87,10 +91,11 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 				partTreeSpecificationHandlerMethodArgumentResolver());
 	}
 
-//	@Bean
-//	public static AnnotatedEventHandlerBeanPostProcessor annotatedEventHandlerBeanPostProcessor() {
-//		return new AnnotatedEventHandlerBeanPostProcessor();
-//	}
+	// @Bean
+	// public static AnnotatedEventHandlerBeanPostProcessor
+	// annotatedEventHandlerBeanPostProcessor() {
+	// return new AnnotatedEventHandlerBeanPostProcessor();
+	// }
 
 	@Override
 	@Bean
@@ -125,32 +130,23 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 		return new ParsedRequestFactory();
 	}
 
-	@Bean
-	@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
-	public ContextFilterFactory contextFilterFactory() {
-		return new ContextFilterFactory();
-	}
-
-	@Bean
-	public ContextFilterProvider boostFilterProvider() {
-		ContextFilterProvider provider = new ContextFilterProvider();
-		provider.addContextFilter(SpelMultiplePropertyFilter.FILTER_ID, SpelMultiplePropertyFilter.class);
-		return provider;
-	}
-
 	@Override
 	public ObjectMapper objectMapper() {
 		ObjectMapper mapper = super.objectMapper();
-		mapper.setFilters(boostFilterProvider());
-		mapper.setAnnotationIntrospector(new RequestBasedFilterIntrospector());
+		if (filterProvider != null && introspector != null) {
+			mapper.setFilters(filterProvider);
+			mapper.setAnnotationIntrospector(introspector);
+		}
 		return mapper;
 	}
 
 	@Bean
 	public ObjectMapper halObjectMapper() {
 		ObjectMapper mapper = super.halObjectMapper();
-		mapper.setFilters(boostFilterProvider());
-		mapper.setAnnotationIntrospector(new RequestBasedFilterIntrospector());
+		if (filterProvider != null && introspector != null) {
+			mapper.setFilters(filterProvider);
+			mapper.setAnnotationIntrospector(introspector);
+		}
 		return mapper;
 	}
 

@@ -88,24 +88,19 @@ public class BoostControllerIntegrationTest {
 	
 	@Test
 	public void isStaticFilterFilterCalled(){
-		given().param("filter", "between(id,1,10)").param("orest").when().get("/users").then().assertThat().body("page.totalElements", equalTo(0));
+		given().param("filter", "between(id,1,10)").param("orest").when().get("/categories").then().assertThat().body("page.totalElements", equalTo(0));
 	}
 	
-	
-	@Test
-	public void doesStaticFilterIgnoreWork(){
-		given().param("filter", "between(id,1,10)").param("orest").param("sFilter", "user_filter").when().get("/users").then().assertThat().body("page.totalElements", greaterThan(0));
-	}
 	
 	@Test
 	public void isResourceExpanded(){
 		given().param("expand", "user").param("orest").when().get("/products/1").then().assertThat().body("_embedded.user", notNullValue());
 	}
 	
-	@Test
-	public void doesSpelFilterFilterOutProductNameParameter(){
-		given().param("orest").when().get("/products/1").then().assertThat().body("price", notNullValue(), "name", nullValue());
-	}
+//	@Test
+//	public void doesSpelFilterFilterOutProductNameParameter(){
+//		given().param("orest").when().get("/products/1").then().assertThat().body("price", notNullValue(), "name", nullValue());
+//	}
 	
 	@Test
 	public void doesFilterByIdsInUri(){

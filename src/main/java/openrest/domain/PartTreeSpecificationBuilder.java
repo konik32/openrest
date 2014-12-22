@@ -6,8 +6,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -15,11 +19,11 @@ import javax.persistence.OneToOne;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import open.rest.data.query.parser.OpenRestPartTree;
-import openrest.httpquery.parser.FilterWrapper;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.Parsers.SubjectWrapper;
 import openrest.httpquery.parser.RequestParsingException;
 import openrest.httpquery.parser.TempPart;
+import openrest.query.StaticFilterWrapper;
 import openrest.query.StaticFilterFactory;
 
 import org.slf4j.Logger;
@@ -49,7 +53,8 @@ import data.query.parser.Part.Type;
 public class PartTreeSpecificationBuilder {
 
 	private static Logger logger = LoggerFactory.getLogger(PartTreeSpecificationBuilder.class);
-
+	private static final String EXPRESSION_BOUND_SIGN = "#";
+	private static final String EXPRESSION_PATTERN = EXPRESSION_BOUND_SIGN + ".*" + EXPRESSION_BOUND_SIGN;
 	private static final Map<String, Type> PART_TYPES_MAP;
 	static {
 		Map<String, Type> typesMap = new HashMap<String, Type>();
@@ -81,6 +86,8 @@ public class PartTreeSpecificationBuilder {
 	private final CriteriaBuilder criteriaBuilder;
 	private final StaticFilterFactory staticFilterFactory;
 
+	private ParameterProcessor parameterProcessor;
+
 	private TempPart root = new TempPart(TempPart.Type.AND);
 	private Boolean countProjection;
 	private Boolean distinct;
@@ -99,12 +106,13 @@ public class PartTreeSpecificationBuilder {
 	private Pageable pageable;
 	private Sort sort;
 
+	public Set<String> joins = new HashSet<String>();
+
 	public void append(Pageable pageable) {
 		this.pageable = pageable;
-		if(pageable != null)
+		if (pageable != null)
 			sort = pageable.getSort();
 	}
-
 
 	public void append(TempPart tempPart) {
 		if (tempPart != null) {
@@ -116,26 +124,12 @@ public class PartTreeSpecificationBuilder {
 		root.addPart(new TempPart("eq", getIdPropertyName(domainPersistentEntity), new String[] { id }));
 	}
 
-	public void appendStaticFilters(String... filtersToIgnore) {
-		Class<?> type = propertyTempPart != null ? propertyType : getDomainClass();
-		List<FilterWrapper> filterWrappers = staticFilterFactory.get(type);
-		for (FilterWrapper fw : filterWrappers) {
-			boolean add = true;
-			if (filtersToIgnore != null)
-				for (String ignore : filtersToIgnore)
-					if (fw.getName().equals(ignore))
-						add = false;
-			if (add)
-				append(fw.getTempPart());
-		}
-	}
-
 	public void append(PersistentEntity<?, ?> parentPersistentEntity, String propertyName, String parentId) throws ResourceNotFoundException {
 		Assert.notNull(parentPersistentEntity);
 		Assert.notNull(propertyName);
 		propertyTempPart = new TempPart("eq", getIdPropertyName(parentPersistentEntity), new String[] { parentId });
 		this.propertyName = propertyName;
-		propertyType = parentPersistentEntity.getPersistentProperty(propertyName).getType();
+		propertyType = parentPersistentEntity.getPersistentProperty(propertyName).getActualType();
 		propertyQuery = true;
 	}
 
@@ -147,23 +141,25 @@ public class PartTreeSpecificationBuilder {
 			partTreeRoot.addPart(getTreePart(propertyTempPart));
 			propertyQuery = true;
 		}
+
+		appendStaticFilters();
 		int pageableIndex = -1;
 		int sortIndex = -1;
-		
-		if(pageable != null){
+
+		if (pageable != null) {
 			parametersValues.add(pageable);
 			jpaParameters.add(new JpaParameter(Pageable.class, jpaParameters.size()));
-			pageableIndex = jpaParameters.size()-1;
+			pageableIndex = jpaParameters.size() - 1;
 		}
-		if(sort != null){
+		if (sort != null) {
 			parametersValues.add(sort);
 			jpaParameters.add(new JpaParameter(Pageable.class, jpaParameters.size()));
-			sortIndex = jpaParameters.size()-1;
+			sortIndex = jpaParameters.size() - 1;
 		}
-		
+
 		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), sortIndex, pageableIndex);
 		Object values[] = parametersValues.toArray();
-		OpenRestPartTree partTree = new OpenRestPartTree(partTreeRoot, null, distinct, countProjection,expandPropertyPaths, propertyName);
+		OpenRestPartTree partTree = new OpenRestPartTree(partTreeRoot, null, distinct, countProjection, expandPropertyPaths, propertyName);
 		return new OpenRestQueryParameterHolder(partTree, values, jpaParameters);
 	}
 
@@ -178,7 +174,7 @@ public class PartTreeSpecificationBuilder {
 	public void setExpandPropertyPaths(List<PropertyPath> expandPropertyPaths) {
 		this.expandPropertyPaths = expandPropertyPaths;
 	}
-	
+
 	private String getIdPropertyName(PersistentEntity<?, ?> persistentEntity) {
 		if (domainPersistentEntity.getIdProperty() == null)
 			throw new RequestParsingException("There is no id property in " + persistentEntity.getType());
@@ -202,8 +198,9 @@ public class PartTreeSpecificationBuilder {
 		switch (tempPart.getType()) {
 		case AND:
 			part = new AndBranch(tempPart.getParts().size());
-			for (TempPart tPart : tempPart.getParts()) {
-				((TreeBranch) part).addPart(getTreePart(tPart));
+			Iterator<TempPart> it = tempPart.getParts().iterator();
+			while (it.hasNext()) {
+				((TreeBranch) part).addPart(getTreePart(it.next()));
 			}
 			return part;
 		case OR:
@@ -224,6 +221,7 @@ public class PartTreeSpecificationBuilder {
 		Type partType = PART_TYPES_MAP.get(tempPart.getFunctionName());
 		if (partType == null)
 			throw new RequestParsingException("Function " + tempPart.getFunctionName() + " is unknown");
+		appendJoins(tempPart.getPropertyName());
 		String source = propertyQuery ? propertyName + "." + tempPart.getPropertyName() : tempPart.getPropertyName();
 		TreePart part = new Part(source, partType, getDomainClass(), tempPart.shouldIgnoreCase());
 
@@ -233,10 +231,71 @@ public class PartTreeSpecificationBuilder {
 		return part;
 	}
 
+	private void appendJoins(String propertyName) {
+		int index = propertyName.lastIndexOf(".");
+		if (index != -1) {
+			propertyName = propertyName.substring(0, index);
+			if (!joins.contains(propertyName)) {
+				joins.add(propertyName);
+			}
+		}
+	}
+
+	private List<TempPart> appendStaticFilters(Class<?> type, String alias) {
+		List<StaticFilterWrapper> filterWrappers = staticFilterFactory.get(type, alias);
+		List<TempPart> parts = new ArrayList<TempPart>(filterWrappers.size());
+		for (StaticFilterWrapper fw : filterWrappers) {
+			parts.add(fw.getTempPart());
+		}
+		return parts;
+	}
+
+	private void appendStaticFilters() {
+		List<TempPart> parts = new ArrayList<TempPart>();
+		parts.addAll(appendStaticFilters(getDomainClass(), null));
+		if (propertyQuery) {
+			propertyQuery = false;
+			appendTempPartToTreePart(parts);
+			parts = new ArrayList<TempPart>();
+			propertyQuery = true;
+			appendStaticFilters(propertyType, propertyName);
+		}
+		appendTempPartToTreePart(parts);
+		appendJoinsStaticFilters();
+	}
+
+	private void appendTempPartToTreePart(List<TempPart> parts) {
+		for (TempPart part : parts) {
+			partTreeRoot.addPart(getTreePart(part));
+		}
+	}
+
+	private void appendJoinsStaticFilters() {
+		Iterator<String> it = joins.iterator();
+		Class<?> domainType = propertyTempPart != null ? propertyType : getDomainClass();
+		List<TempPart> parts = new ArrayList<TempPart>();
+		while (it.hasNext()) {
+			String alias = it.next();
+			Class<?> joinType = PropertyPath.from(alias, domainType).getType();
+			parts.addAll(appendStaticFilters(joinType, alias));
+			it.remove();
+		}
+		for (TempPart part : parts) {
+			partTreeRoot.addPart(getTreePart(part));
+		}
+	}
+
 	private void addJpaParametersAndValues(TempPart tempPart, Part.Type partType, Class<?> partPropertyType) {
 		String[] strParams = preprocessParameterValue(partType, tempPart);
 		List<Object> values = new ArrayList<Object>(strParams.length);
 		for (String param : strParams) {
+			if (Pattern.matches(EXPRESSION_PATTERN, param)) {
+				if (parameterProcessor != null) {
+					param = param.replaceAll(EXPRESSION_BOUND_SIGN, "");
+					param = parameterProcessor.processFParam(param);
+				} else
+					throw new RequestParsingException("Not parameterProcessor specified. Could not process " + param);
+			}
 			values.add(getParsedObject(param, partPropertyType));
 		}
 		switch (partType) {
@@ -291,6 +350,10 @@ public class PartTreeSpecificationBuilder {
 
 	public Class<?> getDomainClass() {
 		return domainPersistentEntity.getType();
+	}
+
+	public void setParameterProcessor(ParameterProcessor parameterProcessor) {
+		this.parameterProcessor = parameterProcessor;
 	}
 
 }

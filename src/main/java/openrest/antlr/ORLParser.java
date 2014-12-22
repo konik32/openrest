@@ -15,11 +15,11 @@ public class ORLParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, OR=2, AND=3, LPAREN=4, RPAREN=5, FUNCTION_NAME=6, PROPERTY=7, 
-		WHITESPACE=8, TEXT=9, NUMBER=10, FLOAT=11, INT=12;
+		T__0=1, OR=2, AND=3, LPAREN=4, RPAREN=5, FUNCTION_NAME=6, IGNORE_CASE=7, 
+		PROPERTY=8, WHITESPACE=9, TEXT=10, NUMBER=11, FLOAT=12, INT=13;
 	public static final String[] tokenNames = {
 		"<INVALID>", "','", "';or;'", "';and;'", "'('", "')'", "FUNCTION_NAME", 
-		"PROPERTY", "WHITESPACE", "TEXT", "NUMBER", "FLOAT", "INT"
+		"'IgnoreCase'", "PROPERTY", "WHITESPACE", "TEXT", "NUMBER", "FLOAT", "INT"
 	};
 	public static final int
 		RULE_functionName = 0, RULE_function = 1, RULE_propertyName = 2, RULE_parameter = 3, 
@@ -445,7 +445,7 @@ public class ORLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\16\64\4\2\t\2\4\3"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\17\64\4\2\t\2\4\3"+
 		"\t\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\3\2\3\3\3\3\3\3\3\3\3\3\7\3\24\n\3\f"+
 		"\3\16\3\27\13\3\3\3\3\3\3\4\3\4\3\5\3\5\5\5\37\n\5\3\6\3\6\3\6\3\6\3\6"+
 		"\3\6\5\6\'\n\6\3\6\3\6\3\6\3\6\3\6\3\6\7\6/\n\6\f\6\16\6\62\13\6\3\6\2"+
@@ -453,12 +453,12 @@ public class ORLParser extends Parser {
 		"\2\2\n&\3\2\2\2\f\r\7\b\2\2\r\3\3\2\2\2\16\17\5\2\2\2\17\20\7\6\2\2\20"+
 		"\25\5\6\4\2\21\22\7\3\2\2\22\24\5\b\5\2\23\21\3\2\2\2\24\27\3\2\2\2\25"+
 		"\23\3\2\2\2\25\26\3\2\2\2\26\30\3\2\2\2\27\25\3\2\2\2\30\31\7\7\2\2\31"+
-		"\5\3\2\2\2\32\33\7\t\2\2\33\7\3\2\2\2\34\37\7\f\2\2\35\37\7\13\2\2\36"+
-		"\34\3\2\2\2\36\35\3\2\2\2\37\t\3\2\2\2 !\b\6\1\2!\"\7\6\2\2\"#\5\n\6\2"+
-		"#$\7\7\2\2$\'\3\2\2\2%\'\5\4\3\2& \3\2\2\2&%\3\2\2\2\'\60\3\2\2\2()\f"+
-		"\6\2\2)*\7\5\2\2*/\5\n\6\7+,\f\5\2\2,-\7\4\2\2-/\5\n\6\6.(\3\2\2\2.+\3"+
-		"\2\2\2/\62\3\2\2\2\60.\3\2\2\2\60\61\3\2\2\2\61\13\3\2\2\2\62\60\3\2\2"+
-		"\2\7\25\36&.\60";
+		"\5\3\2\2\2\32\33\7\n\2\2\33\7\3\2\2\2\34\37\7\r\2\2\35\37\7\f\2\2\36\34"+
+		"\3\2\2\2\36\35\3\2\2\2\37\t\3\2\2\2 !\b\6\1\2!\"\7\6\2\2\"#\5\n\6\2#$"+
+		"\7\7\2\2$\'\3\2\2\2%\'\5\4\3\2& \3\2\2\2&%\3\2\2\2\'\60\3\2\2\2()\f\6"+
+		"\2\2)*\7\5\2\2*/\5\n\6\7+,\f\5\2\2,-\7\4\2\2-/\5\n\6\6.(\3\2\2\2.+\3\2"+
+		"\2\2/\62\3\2\2\2\60.\3\2\2\2\60\61\3\2\2\2\61\13\3\2\2\2\62\60\3\2\2\2"+
+		"\7\25\36&.\60";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

@@ -48,9 +48,8 @@ public class StaticFilterFactoryUnitTest {
 
 	@Test
 	public void doesGetReturnNotEmptyFilterWrappersList() {
-		Assert.assertTrue(factory.get(Foo.class).size() > 0);
+		Assert.assertTrue(factory.get(Foo.class, null).size() > 0);
 	}
-
 
 	@Data
 	@StaticFilter(name = "fooFilter", value = "like(name,'test');and;eq(price,10.0)")
