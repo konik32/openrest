@@ -6,6 +6,7 @@ import orest.expression.ExpressionBuilder;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
+import orest.expression.registry.ProjectionExpandsRegistry;
 import orest.parser.FilterPart;
 import orest.parser.FilterStringParser;
 import orest.repository.PredicateContext;
@@ -32,24 +33,27 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
 	private final FilterStringParser filterStringParser;
 	private final ExpressionBuilder expressionBuilder;
+	private final ProjectionExpandsRegistry projectionExpandsRegistry;
 
 	private final EntityExpressionMethodsRegistry entityExpressionMethodsRegistry;
 
 	@Autowired
 	public ExpressionController(PagedResourcesAssembler<Object> pagedResourcesAssembler, FilterStringParser filterStringParser,
-			ExpressionBuilder expressionBuilder, EntityExpressionMethodsRegistry entityExpressionMethodsRegistry) {
+			ExpressionBuilder expressionBuilder, EntityExpressionMethodsRegistry entityExpressionMethodsRegistry,
+			ProjectionExpandsRegistry projectionExpandsRegistry) {
 		super(pagedResourcesAssembler);
 		this.filterStringParser = filterStringParser;
 		this.expressionBuilder = expressionBuilder;
 		this.entityExpressionMethodsRegistry = entityExpressionMethodsRegistry;
+		this.projectionExpandsRegistry = projectionExpandsRegistry;
 	}
 
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/search/{search}", method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> executeSearchWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, Sort sort,
 			PersistentEntityResourceAssembler assembler, @PathVariable String search, @RequestParam(value = "filters", required = false) String filters,
-			@RequestParam(value = "expand", required = false) String expand) {
-		Object result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, search, null);
+			@RequestParam(value = "expand", required = false) String expand, @RequestParam(value = "projection", required = false) String projection) {
+		Object result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, search, null, projection);
 		return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
 	}
 
@@ -57,8 +61,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> getCollectionWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, Sort sort,
 			PersistentEntityResourceAssembler assembler, @RequestParam(value = "filters", required = false) String filters,
-			@RequestParam(value = "expand", required = false) String expand) {
-		Object result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, null, null);
+			@RequestParam(value = "expand", required = false) String expand, @RequestParam(value = "projection", required = false) String projection) {
+		Object result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, null, null, projection);
 		return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
 	}
 
@@ -66,16 +70,16 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	@RequestMapping(value = BASE_MAPPING + "/{id}", method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> getWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, Sort sort,
 			PersistentEntityResourceAssembler assembler, @PathVariable("id") String id, @RequestParam(value = "filters", required = false) String filters,
-			@RequestParam(value = "expand", required = false) String expand) {
-		Iterable<Object> result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, null, id);
+			@RequestParam(value = "expand", required = false) String expand, @RequestParam(value = "projection", required = false) String projection) {
+		Iterable<Object> result = getResult(rootResourceInformation, assembler, pageable, sort, filters, expand, null, id, projection);
 		Iterator<Object> it = result.iterator();
-		if(!it.hasNext())
+		if (!it.hasNext())
 			throw new ResourceNotFoundException();
 		return new ResponseEntity<Object>(assembler.toFullResource(it.next()), HttpStatus.OK);
 	}
 
-	private Iterable<Object> getResult(RootResourceInformation rootResourceInformation, PersistentEntityResourceAssembler assembler, DefaultedPageable pageable,
-			Sort sort, String filters, String expand, String search, String id) {
+	private Iterable<Object> getResult(RootResourceInformation rootResourceInformation, PersistentEntityResourceAssembler assembler,
+			DefaultedPageable pageable, Sort sort, String filters, String expand, String search, String id, String projection) {
 
 		ExpressionEntityInformation expEntityInfo = entityExpressionMethodsRegistry.getEntityInformation(rootResourceInformation.getDomainType());
 		if (expEntityInfo == null)
@@ -93,7 +97,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 		BooleanExpression idPredicate = expressionBuilder.createIdEqualsExpression(id, expEntityInfo);
 
 		expressionBuilder.addExpandJoins(predicateContext, expand, expEntityInfo.getEntityType());
-
+		predicateContext.addJoins(projectionExpandsRegistry.getExpands(projection));
 		BooleanExpression finalPredicate = searchMethodPredicate == null ? null : searchMethodPredicate;
 
 		finalPredicate = finalPredicate == null ? idPredicate : finalPredicate.and(idPredicate);
@@ -127,5 +131,6 @@ public class ExpressionController extends AbstractRepositoryRestController {
 			result = invoker.invokeFindAll(finalExpression, predicateContext, pageable.getPageable());
 		return result;
 	}
+	
 
 }

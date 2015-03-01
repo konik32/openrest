@@ -1,6 +1,8 @@
 package orest.config;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Validator;
 
@@ -9,9 +11,10 @@ import orest.dto.DtoDomainRegistry;
 import orest.expression.ExpressionBuilder;
 import orest.expression.SpelEvaluatorBean;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
+import orest.expression.registry.Expand;
+import orest.expression.registry.ProjectionExpandsRegistry;
 import orest.json.DtoAwareDeserializerModifier;
 import orest.parser.FilterStringParser;
-import orest.repository.ExpressionJpaFactoryBean;
 import orest.security.ExpressionEvaluator;
 import orest.security.SecurityExpressionContextHolder;
 import orest.security.SecurityExpressionContextHolderImpl;
@@ -25,15 +28,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
+import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.PersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.data.rest.webmvc.mapping.AssociationLinks;
+import org.springframework.data.util.AnnotatedTypeScanner;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -42,6 +47,8 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.mysema.query.types.path.PathBuilder;
+import com.mysema.query.types.path.PathBuilderFactory;
 
 @Configuration
 public class ORestConfig extends RepositoryRestMvcConfiguration {
@@ -154,5 +161,28 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	@Bean
 	public OpenRestEntityLinks entityLinks() {
 		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(), backendIdConverterRegistry());
+	}
+
+	@Bean
+	public ProjectionExpandsRegistry projectionExpandsRegistry() {
+		Set<String> packagesToScan = new HashSet<String>();
+
+		for (Class<?> domainType : repositories()) {
+			packagesToScan.add(domainType.getPackage().getName());
+		}
+
+		Set<Class<?>> expandedProjections = new AnnotatedTypeScanner(Expand.class).findTypes(packagesToScan);
+		ProjectionExpandsRegistry expandsRegistry = new ProjectionExpandsRegistry();
+		for (Class<?> expandedProjection : expandedProjections) {
+			Projection projection = AnnotationUtils.findAnnotation(expandedProjection, Projection.class);
+			Expand expand = AnnotationUtils.findAnnotation(expandedProjection, Expand.class);
+			if (projection == null)
+				continue;
+			for (Class<?> entityType : projection.types()) {
+				PathBuilder<?> builder = new PathBuilderFactory().create(entityType);
+				expandsRegistry.addExpand(projection.name(), expand.value(), entityType, builder);
+			}
+		}
+		return expandsRegistry;
 	}
 }
