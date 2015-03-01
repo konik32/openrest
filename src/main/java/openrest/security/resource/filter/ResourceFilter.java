@@ -1,4 +1,4 @@
-package openrest.security.validator;
+package openrest.security.resource.filter;
 
 import javax.servlet.http.HttpServletRequest;
 

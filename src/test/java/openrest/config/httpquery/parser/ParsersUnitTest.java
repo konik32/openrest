@@ -44,25 +44,25 @@ public class ParsersUnitTest {
 	@Test(expected = RequestParsingException.class)
 	public void doesThrowParsingExceptionOnFunctionWithoutBrackets() {
 		String filter = "eq";
-		Parsers.parseFilter(filter);
+		Parsers.parseFilter(filter, false);
 	}
 
 	@Test(expected = RequestParsingException.class)
 	public void doesThrowParsingExceptionOnFunctionWithoutParameters() {
 		String filter = "eq()";
-		Parsers.parseFilter(filter);
+		Parsers.parseFilter(filter, false);
 	}
 
 	@Test(expected = RequestParsingException.class)
 	public void doesThrowParsingExceptionOnSingleOrCondition() {
 		String filter = "eq(id,1);or;;or;";
-		Parsers.parseFilter(filter);
+		Parsers.parseFilter(filter, false);
 	}
 
 	@Test(expected = RequestParsingException.class)
 	public void doesThrowParsingExceptionOnSingleAndCondition() {
 		String filter = "eq(id;1) ;and;";
-		Parsers.parseFilter(filter);
+		Parsers.parseFilter(filter, false);
 	}
 
 	@Test

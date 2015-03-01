@@ -1,10 +1,9 @@
 package openrest.jpa.query;
 
 import javax.persistence.EntityManager;
-
 import javax.persistence.criteria.CriteriaBuilder;
 
-import open.rest.data.query.parser.OpenRestPartTree;
+import openrest.data.query.parser.OpenRestPartTree;
 import data.jpa.query.JpaQueryCreator;
 import data.jpa.query.ParameterMetadataProvider;
 import data.jpa.query.PartTreeJpaQuery;

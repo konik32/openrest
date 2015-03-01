@@ -1,4 +1,4 @@
-package openrest.query;
+package openrest.query.filter;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class StaticFilterFactory implements InitializingBean {
 	}
 
 	protected StaticFilterWrapper create(StaticFilter staticFilter) {
-		return new StaticFilterWrapper(Parsers.parseStaticFilter(staticFilter.value()), staticFilter.name(), staticFilter.condition());
+		return new StaticFilterWrapper(Parsers.parseFilter(staticFilter.value(), true), staticFilter.name(), staticFilter.condition());
 	}
 
 	protected boolean includeFilter(StaticFilterWrapper filterWrapper) {

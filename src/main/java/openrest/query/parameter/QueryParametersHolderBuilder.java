@@ -1,4 +1,4 @@
-package openrest.domain;
+package openrest.query.parameter;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -18,13 +18,13 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.criteria.CriteriaBuilder;
 
-import open.rest.data.query.parser.OpenRestPartTree;
+import openrest.data.query.parser.OpenRestPartTree;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.Parsers.SubjectWrapper;
 import openrest.httpquery.parser.RequestParsingException;
 import openrest.httpquery.parser.TempPart;
-import openrest.query.StaticFilterWrapper;
-import openrest.query.StaticFilterFactory;
+import openrest.query.filter.StaticFilterFactory;
+import openrest.query.filter.StaticFilterWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +50,9 @@ import data.query.parser.TreeBranch;
 import data.query.parser.TreePart;
 import data.query.parser.Part.Type;
 
-public class PartTreeSpecificationBuilder {
+public class QueryParametersHolderBuilder {
 
-	private static Logger logger = LoggerFactory.getLogger(PartTreeSpecificationBuilder.class);
+	private static Logger logger = LoggerFactory.getLogger(QueryParametersHolderBuilder.class);
 	private static final String EXPRESSION_BOUND_SIGN = "#";
 	private static final String EXPRESSION_PATTERN = EXPRESSION_BOUND_SIGN + ".*" + EXPRESSION_BOUND_SIGN;
 	private static final Map<String, Type> PART_TYPES_MAP;
@@ -83,7 +83,6 @@ public class PartTreeSpecificationBuilder {
 
 	private final PersistentEntity<?, ?> domainPersistentEntity;
 	private final ObjectMapper objectMapper;
-	private final CriteriaBuilder criteriaBuilder;
 	private final StaticFilterFactory staticFilterFactory;
 
 	private ParameterProcessor parameterProcessor;
@@ -92,7 +91,6 @@ public class PartTreeSpecificationBuilder {
 	private Boolean countProjection;
 	private Boolean distinct;
 	private List<PropertyPath> expandPropertyPaths;
-	private List<PropertyPath> selectionPaths;
 
 	private List<JpaParameter> jpaParameters = new ArrayList<JpaParameter>();
 	private List<Object> parametersValues = new ArrayList<Object>();
@@ -133,7 +131,7 @@ public class PartTreeSpecificationBuilder {
 		propertyQuery = true;
 	}
 
-	public OpenRestQueryParameterHolder build() {
+	public QueryParameterHolder build() {
 		partTreeRoot = new AndBranch();
 		partTreeRoot.addPart(getTreePart(root));
 		if (propertyQuery) {
@@ -160,7 +158,7 @@ public class PartTreeSpecificationBuilder {
 		JpaParameters jpaParameters = new JpaParameters(getJpaParameters(), sortIndex, pageableIndex);
 		Object values[] = parametersValues.toArray();
 		OpenRestPartTree partTree = new OpenRestPartTree(partTreeRoot, null, distinct, countProjection, expandPropertyPaths, propertyName);
-		return new OpenRestQueryParameterHolder(partTree, values, jpaParameters);
+		return new QueryParameterHolder(partTree, values, jpaParameters);
 	}
 
 	public void setCountProjection() {
@@ -181,15 +179,13 @@ public class PartTreeSpecificationBuilder {
 		return persistentEntity.getIdProperty().getName();
 	}
 
-	public PartTreeSpecificationBuilder(PersistentEntity<?, ?> persistentEntity, ObjectMapper objectMapper, CriteriaBuilder criteriaBuilder,
+	public QueryParametersHolderBuilder(PersistentEntity<?, ?> persistentEntity, ObjectMapper objectMapper,
 			StaticFilterFactory staticFilterFactory) {
 		Assert.notNull(persistentEntity);
 		Assert.notNull(objectMapper);
-		Assert.notNull(criteriaBuilder);
 		Assert.notNull(staticFilterFactory);
 		this.domainPersistentEntity = persistentEntity;
 		this.objectMapper = objectMapper;
-		this.criteriaBuilder = criteriaBuilder;
 		this.staticFilterFactory = staticFilterFactory;
 	}
 
@@ -292,7 +288,7 @@ public class PartTreeSpecificationBuilder {
 			if (Pattern.matches(EXPRESSION_PATTERN, param)) {
 				if (parameterProcessor != null) {
 					param = param.replaceAll(EXPRESSION_BOUND_SIGN, "");
-					param = parameterProcessor.processFParam(param);
+					param = parameterProcessor.processParam(param);
 				} else
 					throw new RequestParsingException("Not parameterProcessor specified. Could not process " + param);
 			}

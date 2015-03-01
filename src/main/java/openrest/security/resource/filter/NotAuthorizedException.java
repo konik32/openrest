@@ -1,4 +1,4 @@
-package openrest.security.validator;
+package openrest.security.resource.filter;
 
 public class NotAuthorizedException extends RuntimeException {
 

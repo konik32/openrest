@@ -4,12 +4,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 
-import openrest.domain.OpenRestQueryParameterHolder;
-import openrest.domain.ParameterProcessor;
-import openrest.domain.PartTreeSpecificationBuilder;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.Parsers.PathWrapper;
-import openrest.query.StaticFilterFactory;
+import openrest.query.filter.StaticFilterFactory;
+import openrest.query.parameter.ParameterProcessor;
+import openrest.query.parameter.QueryParameterHolder;
+import openrest.query.parameter.QueryParametersHolderBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +44,7 @@ public class ParsedRequestFactory {
 
 	/**
 	 * Method uses {@link Parsers} to parse parameters and
-	 * {@link PartTreeSpecificationBuilder} to build
+	 * {@link QueryParametersHolderBuilder} to build
 	 * {@link PartTreeSpecificationImpl} and wrap it into {@link ParsedRequest}.
 	 * For parameters format see {@link Parsers}
 	 * 
@@ -64,39 +64,39 @@ public class ParsedRequestFactory {
 	 *
 	 * @return {@link ParsedRequest}
 	 **/
-	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String dtos,
-			Class<?> domainClass, Pageable pageable) {
+	public ParsedRequest getParsedRequest(String filter, String expand, String distinct, String count, String path, String dtos, Class<?> domainClass,
+			Pageable pageable) {
 		Assert.notNull(domainClass);
 
 		PathWrapper pathWrapper = Parsers.parsePath(path);
 
-		PartTreeSpecificationBuilder partTreeSpecificationBuilder;
+		QueryParametersHolderBuilder partTreeSpecificationBuilder;
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		if (pathWrapper.getProperty() != null) {
 			Class<?> propertyType = PropertyPath.from(pathWrapper.getProperty(), domainClass).getType();
-			partTreeSpecificationBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper, builder,
+			partTreeSpecificationBuilder = new QueryParametersHolderBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper,
 					staticaStaticFilterFactory);
 			partTreeSpecificationBuilder.append(persistentEntities.getPersistentEntity(domainClass), pathWrapper.getProperty(), pathWrapper.getId());
 		} else {
-			partTreeSpecificationBuilder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper, builder,
+			partTreeSpecificationBuilder = new QueryParametersHolderBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper,
 					staticaStaticFilterFactory);
 			if (pathWrapper.getId() != null)
 				partTreeSpecificationBuilder.append(pathWrapper.getId());
 		}
 
 		if (filter != null)
-			partTreeSpecificationBuilder.append(Parsers.parseFilter(filter));
+			partTreeSpecificationBuilder.append(Parsers.parseFilter(filter, false));
 		if (distinct != null)
 			partTreeSpecificationBuilder.setDistinct();
 		if (count != null)
 			partTreeSpecificationBuilder.setCountProjection();
-//		partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
+		// partTreeSpecificationBuilder.appendStaticFilters(Parsers.parseSFilter(sFilter));
 		partTreeSpecificationBuilder.setExpandPropertyPaths(Parsers.parseExpand(expand, partTreeSpecificationBuilder.getDomainClass(),
 				pathWrapper.getProperty()));
 		partTreeSpecificationBuilder.append(pageable);
 
 		partTreeSpecificationBuilder.setParameterProcessor(parameterProcessor);
-		OpenRestQueryParameterHolder partTreeSpecification = partTreeSpecificationBuilder.build();
+		QueryParameterHolder partTreeSpecification = partTreeSpecificationBuilder.build();
 		String[] dtosArr = Parsers.parseDtos(dtos);
 		if (pathWrapper.getProperty() == null) {
 			return new ParsedRequest(partTreeSpecificationBuilder.getDomainClass(), partTreeSpecification, dtosArr);

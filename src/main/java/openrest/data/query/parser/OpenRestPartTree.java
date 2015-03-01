@@ -1,4 +1,4 @@
-package open.rest.data.query.parser;
+package openrest.data.query.parser;
 
 import java.util.List;
 

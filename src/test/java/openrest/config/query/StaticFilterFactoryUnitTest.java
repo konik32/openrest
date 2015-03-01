@@ -3,8 +3,8 @@ package openrest.config.query;
 import java.util.Iterator;
 
 import lombok.Data;
-import openrest.query.StaticFilter;
-import openrest.query.StaticFilterFactory;
+import openrest.query.filter.StaticFilter;
+import openrest.query.filter.StaticFilterFactory;
 
 import org.junit.Assert;
 import org.junit.Before;

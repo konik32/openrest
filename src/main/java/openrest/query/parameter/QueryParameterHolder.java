@@ -1,18 +1,18 @@
-package openrest.domain;
+package openrest.query.parameter;
 
 
-import open.rest.data.query.parser.OpenRestPartTree;
 
 
+import openrest.data.query.parser.OpenRestPartTree;
 import data.query.JpaParameters;
 
-public class OpenRestQueryParameterHolder {
+public class QueryParameterHolder {
 	
 	private final OpenRestPartTree tree;
 	private final JpaParameters jpaParameters;
 	private final Object[] values;
 
-	public OpenRestQueryParameterHolder(OpenRestPartTree tree, Object values[], JpaParameters jpaParameters) {
+	public QueryParameterHolder(OpenRestPartTree tree, Object values[], JpaParameters jpaParameters) {
 		this.values = values;
 		this.tree = tree;
 		this.jpaParameters = jpaParameters;

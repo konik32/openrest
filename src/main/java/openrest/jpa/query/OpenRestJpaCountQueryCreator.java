@@ -12,7 +12,7 @@ import javax.persistence.criteria.Selection;
 
 import org.springframework.data.domain.Sort;
 
-import open.rest.data.query.parser.OpenRestPartTree;
+import openrest.data.query.parser.OpenRestPartTree;
 import data.jpa.query.JpaCountQueryCreator;
 import data.jpa.query.OrderAndJoinQueryUtils;
 import data.jpa.query.ParameterMetadataProvider;

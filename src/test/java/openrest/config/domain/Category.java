@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
-import openrest.query.StaticFilter;
+import openrest.query.filter.StaticFilter;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 

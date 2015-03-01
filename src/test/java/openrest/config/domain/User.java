@@ -8,7 +8,7 @@ import javax.persistence.OneToMany;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import openrest.query.StaticFilter;
+import openrest.query.filter.StaticFilter;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 

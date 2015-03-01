@@ -7,8 +7,9 @@ import openrest.dto.DtoPopulatorEvent;
 import openrest.dto.DtoPopulatorInvoker;
 import openrest.dto.EmbeddedWrapperFactory;
 import openrest.event.AnnotatedEventHandlerBeanPostProcessor;
-import openrest.jpa.repository.PartTreeSpecificationRepositoryImpl;
-import openrest.query.StaticFilterFactory;
+import openrest.jpa.repository.OpenRestRepositoryImpl;
+import openrest.query.filter.StaticFilterFactory;
+import openrest.security.resource.filter.ResourceFilterRegister;
 import openrest.webmvc.ParsedRequestFactory;
 import openrest.webmvc.ParsedRequestHandlerMethodArgumentResolver;
 import openrest.webmvc.PersistentEntityWithAssociationsResourceAssemblerArgumentResolver;
@@ -48,12 +49,6 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	@Autowired
 	private ApplicationEventPublisher publisher;
 
-	@Autowired(required = false)
-	private FilterProvider filterProvider;
-
-	@Autowired(required = false)
-	private JacksonAnnotationIntrospector introspector;
-
 	@Bean
 	public ParsedRequestHandlerMethodArgumentResolver partTreeSpecificationHandlerMethodArgumentResolver() {
 		return new ParsedRequestHandlerMethodArgumentResolver(partTreeSpecificationFactory(), resourceMetadataHandlerMethodArgumentResolver(),
@@ -91,11 +86,15 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 				partTreeSpecificationHandlerMethodArgumentResolver());
 	}
 
-	// @Bean
-	// public static AnnotatedEventHandlerBeanPostProcessor
-	// annotatedEventHandlerBeanPostProcessor() {
-	// return new AnnotatedEventHandlerBeanPostProcessor();
-	// }
+	@Bean
+	public static AnnotatedEventHandlerBeanPostProcessor annotatedEventHandlerBeanPostProcessor() {
+		return new AnnotatedEventHandlerBeanPostProcessor();
+	}
+	
+	@Bean
+	public static ResourceFilterRegister ResourceFilterRegister() {
+		return new ResourceFilterRegister();
+	}
 
 	@Override
 	@Bean
@@ -121,8 +120,8 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	// }
 
 	@Bean
-	public PartTreeSpecificationRepositoryImpl boostJpaRepository() {
-		return new PartTreeSpecificationRepositoryImpl();
+	public OpenRestRepositoryImpl boostJpaRepository() {
+		return new OpenRestRepositoryImpl();
 	}
 
 	@Bean
@@ -131,22 +130,15 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
 	}
 
 	@Override
+	@Bean
 	public ObjectMapper objectMapper() {
 		ObjectMapper mapper = super.objectMapper();
-		if (filterProvider != null && introspector != null) {
-			mapper.setFilters(filterProvider);
-			mapper.setAnnotationIntrospector(introspector);
-		}
 		return mapper;
 	}
 
 	@Bean
 	public ObjectMapper halObjectMapper() {
 		ObjectMapper mapper = super.halObjectMapper();
-		if (filterProvider != null && introspector != null) {
-			mapper.setFilters(filterProvider);
-			mapper.setAnnotationIntrospector(introspector);
-		}
 		return mapper;
 	}
 

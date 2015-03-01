@@ -26,6 +26,7 @@ parameter
 :
 	NUMBER # parameterNumberValue
 	| TEXT # parameterTextValue
+	| EXPRESSION # parameterExpressionValue
 ;
 
 logicalExpression
@@ -68,17 +69,38 @@ FUNCTION_NAME
 		| 'le'
 		| 'before'
 		| 'after'
-		| 'notLike' (IGNORE_CASE)?
-		| 'like' (IGNORE_CASE)?
-		| 'startingWith' (IGNORE_CASE)?
-		| 'endingWith' (IGNORE_CASE)?
-		| 'containing' (IGNORE_CASE)?
+		| 'notLike'
+		(
+			IGNORE_CASE
+		)?
+		| 'like'
+		(
+			IGNORE_CASE
+		)?
+		| 'startingWith'
+		(
+			IGNORE_CASE
+		)?
+		| 'endingWith'
+		(
+			IGNORE_CASE
+		)?
+		| 'containing'
+		(
+			IGNORE_CASE
+		)?
 		| 'notIn'
 		| 'in'
 		| 'true'
 		| 'false'
-		| 'eq' (IGNORE_CASE)?
-		| 'notEq' (IGNORE_CASE)?
+		| 'eq'
+		(
+			IGNORE_CASE
+		)?
+		| 'notEq'
+		(
+			IGNORE_CASE
+		)?
 	)
 ;
 
@@ -134,6 +156,11 @@ NUMBER
 		INT
 		| FLOAT
 	)
+;
+
+EXPRESSION
+:
+	'#' ~( '#' )* '#'
 ;
 
 FLOAT

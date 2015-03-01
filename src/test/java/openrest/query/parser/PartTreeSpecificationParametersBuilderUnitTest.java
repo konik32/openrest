@@ -8,7 +8,7 @@ public class PartTreeSpecificationParametersBuilderUnitTest {
 
 //	@Test
 //	public void testAppendLeafTempPart() {
-//		PartTreeSpecificationBuilder builder = createAppendAndReturn("between", "id", 2, new String[]{"1", "2"});
+//		QueryParametersHolderBuilder builder = createAppendAndReturn("between", "id", 2, new String[]{"1", "2"});
 ////		assertEquals(builder.getJpaParameters().size(), 2);
 ////		assertEquals(builder.getParametersValues().size(), 2);
 //	}
@@ -33,8 +33,8 @@ public class PartTreeSpecificationParametersBuilderUnitTest {
 //		createAppendAndReturn("between", "id", 2, new String[]{"1"});
 //	}
 //	
-//	private PartTreeSpecificationBuilder createAppendAndReturn(String functionName, String propertyName,int paramsCount, String[] parameters){
-//		PartTreeSpecificationBuilder builder = new PartTreeSpecificationBuilder(Product.class, objectMapper);
+//	private QueryParametersHolderBuilder createAppendAndReturn(String functionName, String propertyName,int paramsCount, String[] parameters){
+//		QueryParametersHolderBuilder builder = new QueryParametersHolderBuilder(Product.class, objectMapper);
 //		TempPart tempPart = new TempPart(functionName, propertyName, paramsCount);
 //		List<String[]> params = new ArrayList<String[]>();
 //		params.add(parameters);

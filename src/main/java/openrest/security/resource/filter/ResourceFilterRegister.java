@@ -1,4 +1,4 @@
-package openrest.security.validator;
+package openrest.security.resource.filter;
 
 import java.util.List;
 

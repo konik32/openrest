@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import openrest.dto.DtoPopulatorEvent;
-import openrest.security.validator.ResourceFilterInvoker;
+import openrest.security.resource.filter.ResourceFilterInvoker;
 
 import org.hibernate.collection.internal.PersistentBag;
 import org.springframework.context.ApplicationEventPublisher;

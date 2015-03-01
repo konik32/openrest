@@ -10,11 +10,8 @@ import lombok.Getter;
 import openrest.antlr.ORLLexer;
 import openrest.antlr.ORLParser;
 import openrest.antlr.ORLParserListener;
-import openrest.antlr.ORLWithObjectParamLexer;
-import openrest.antlr.ORLWithObjectParamParser;
-import openrest.antlr.ORLWithObjectParamParserListener;
 import openrest.antlr.SyntaxErrorListener;
-import openrest.domain.PartTreeSpecificationBuilder;
+import openrest.query.parameter.QueryParametersHolderBuilder;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -47,15 +44,15 @@ public class Parsers {
 	 *            resource_property_values ...)</b> <br/>
 	 *            delimited by logical operators: <br/>
 	 *            <b> ;and; ;or;</b> <br/>
-	 *            For function names see {@link PartTreeSpecificationBuilder} <br/>
+	 *            For function names see {@link QueryParametersHolderBuilder} <br/>
 	 *            <b>examples:</b> <br/>
 	 *            <b> eq(id,1) ;and; between(product.price,1.50,2.00) ;or;
 	 *            like(name,'GSM')</b>
-	 * 
+	 * @param innerFilter true if filter may contain expressions like #principal.userId#
 	 * @return {@link TempPart}
 	 */
 
-	public static TempPart parseFilter(String filterStr) {
+	public static TempPart parseFilter(String filterStr, boolean innerFilter) {
 		Assert.notNull(filterStr);
 		ANTLRInputStream input = new ANTLRInputStream(filterStr);
 		ORLLexer lexer = new ORLLexer(input);
@@ -63,23 +60,23 @@ public class Parsers {
 		ORLParser parser = new ORLParser(tokens);
 		parser.addErrorListener(new SyntaxErrorListener());
 		ParseTreeWalker walker = new ParseTreeWalker();
-		ORLParserListener parserListener = new ORLParserListener();
+		ORLParserListener parserListener = new ORLParserListener(innerFilter);
 		walker.walk(parserListener, parser.logicalExpression());
 		return parserListener.getRoot();
 	}
 	
-	public static TempPart parseStaticFilter(String filterStr) {
-		Assert.notNull(filterStr);
-		ANTLRInputStream input = new ANTLRInputStream(filterStr);
-		ORLWithObjectParamLexer lexer = new ORLWithObjectParamLexer(input);
-		TokenStream tokens = new CommonTokenStream(lexer);
-		ORLWithObjectParamParser parser = new ORLWithObjectParamParser(tokens);
-		parser.addErrorListener(new SyntaxErrorListener());
-		ParseTreeWalker walker = new ParseTreeWalker();
-		ORLWithObjectParamParserListener parserListener = new ORLWithObjectParamParserListener();
-		walker.walk(parserListener, parser.logicalExpression());
-		return parserListener.getRoot();
-	}
+//	public static TempPart parseStaticFilter(String filterStr) {
+//		Assert.notNull(filterStr);
+//		ANTLRInputStream input = new ANTLRInputStream(filterStr);
+//		ORLWithObjectParamLexer lexer = new ORLWithObjectParamLexer(input);
+//		TokenStream tokens = new CommonTokenStream(lexer);
+//		ORLWithObjectParamParser parser = new ORLWithObjectParamParser(tokens);
+//		parser.addErrorListener(new SyntaxErrorListener());
+//		ParseTreeWalker walker = new ParseTreeWalker();
+//		ORLWithObjectParamParserListener parserListener = new ORLWithObjectParamParserListener();
+//		walker.walk(parserListener, parser.logicalExpression());
+//		return parserListener.getRoot();
+//	}
 
 	/**
 	 * Parses <b>expand</b> string into {@link List} of {@link PropertyPath}s
@@ -128,17 +125,17 @@ public class Parsers {
 		return new PathWrapper().parse(StringUtils.trimAllWhitespace(path));
 	}
 
-	/**
-	 * 
-	 * @param sFilter
-	 *            format: <b>static_filter_name_to_ignore,
-	 *            static_filter_name_to_ignore</b>
-	 * 
-	 */
-	public static String[] parseSFilter(String sFilter) {
-		sFilter = StringUtils.trimAllWhitespace(sFilter);
-		return sFilter == null ? null : sFilter.split(",");
-	}
+//	/**
+//	 * 
+//	 * @param sFilter
+//	 *            format: <b>static_filter_name_to_ignore,
+//	 *            static_filter_name_to_ignore</b>
+//	 * 
+//	 */
+//	public static String[] parseSFilter(String sFilter) {
+//		sFilter = StringUtils.trimAllWhitespace(sFilter);
+//		return sFilter == null ? null : sFilter.split(",");
+//	}
 
 	public static String[] parseDtos(String dtos) {
 		dtos = StringUtils.trimAllWhitespace(dtos);
@@ -182,60 +179,60 @@ public class Parsers {
 		}
 	}
 
-	private static class FilterParser {
-
-		public static TempPart parse(String filterStr) {
-			if (filterStr == null || filterStr.isEmpty())
-				return null;
-			TempPart tempRoot = new TempPart(TempPart.Type.AND, 1);
-			tempRoot.addPart(parseOrBranch(filterStr));
-			return tempRoot;
-		}
-
-		private static TempPart parseOrBranch(String sOrBranch) {
-			String sOrParts[] = sOrBranch.split(OR_SPLITTER);
-			if (sOrBranch.endsWith(OR_SPLITTER))
-				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
-			TempPart orBranch = new TempPart(TempPart.Type.OR, sOrParts.length);
-			for (String sOrPart : sOrParts) {
-				if (sOrPart.isEmpty())
-					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
-				orBranch.addPart(parseAnd(sOrPart.trim()));
-			}
-			return orBranch;
-		}
-
-		private static TempPart parseAnd(String sAndBranch) {
-			String sAndParts[] = sAndBranch.split(AND_SPLITTER);
-			if (sAndBranch.endsWith(AND_SPLITTER))
-				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
-			TempPart andBranch = new TempPart(TempPart.Type.AND, sAndParts.length);
-			for (String sAndPart : sAndParts) {
-				if (sAndPart.isEmpty())
-					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
-				andBranch.addPart(parsePartString(sAndPart.trim()));
-			}
-			return andBranch;
-		}
-
-		private static TempPart parsePartString(String partStr) {
-
-			Matcher matcher = FUNCTION_PARAMETER_MATCHER.matcher(partStr);
-
-			if (!matcher.find() || matcher.groupCount() != 2) {
-				throw new RequestParsingException("Exception in parsing function " + partStr
-						+ " .Correct function format: function_name(propertyName, parameters...) ");
-			}
-			String functionName = matcher.group(1).trim();
-			String functionParams[] = matcher.group(2).split(PARAMETER_SPLITTER);
-
-			if (functionParams.length < 1 || functionParams[0].isEmpty())
-				throw new RequestParsingException("Exception in parsing function " + partStr
-						+ " .Correct function format: function_name(propertyName, parameters...) ");
-
-			TempPart part = new TempPart(functionName, functionParams[0], Arrays.copyOfRange(functionParams, 1, functionParams.length));
-			return part;
-		}
-
-	}
+//	private static class FilterParser {
+//
+//		public static TempPart parse(String filterStr) {
+//			if (filterStr == null || filterStr.isEmpty())
+//				return null;
+//			TempPart tempRoot = new TempPart(TempPart.Type.AND, 1);
+//			tempRoot.addPart(parseOrBranch(filterStr));
+//			return tempRoot;
+//		}
+//
+//		private static TempPart parseOrBranch(String sOrBranch) {
+//			String sOrParts[] = sOrBranch.split(OR_SPLITTER);
+//			if (sOrBranch.endsWith(OR_SPLITTER))
+//				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
+//			TempPart orBranch = new TempPart(TempPart.Type.OR, sOrParts.length);
+//			for (String sOrPart : sOrParts) {
+//				if (sOrPart.isEmpty())
+//					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sOrBranch);
+//				orBranch.addPart(parseAnd(sOrPart.trim()));
+//			}
+//			return orBranch;
+//		}
+//
+//		private static TempPart parseAnd(String sAndBranch) {
+//			String sAndParts[] = sAndBranch.split(AND_SPLITTER);
+//			if (sAndBranch.endsWith(AND_SPLITTER))
+//				throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
+//			TempPart andBranch = new TempPart(TempPart.Type.AND, sAndParts.length);
+//			for (String sAndPart : sAndParts) {
+//				if (sAndPart.isEmpty())
+//					throw new RequestParsingException("Exception in parsing filter parameter fragment " + sAndBranch);
+//				andBranch.addPart(parsePartString(sAndPart.trim()));
+//			}
+//			return andBranch;
+//		}
+//
+//		private static TempPart parsePartString(String partStr) {
+//
+//			Matcher matcher = FUNCTION_PARAMETER_MATCHER.matcher(partStr);
+//
+//			if (!matcher.find() || matcher.groupCount() != 2) {
+//				throw new RequestParsingException("Exception in parsing function " + partStr
+//						+ " .Correct function format: function_name(propertyName, parameters...) ");
+//			}
+//			String functionName = matcher.group(1).trim();
+//			String functionParams[] = matcher.group(2).split(PARAMETER_SPLITTER);
+//
+//			if (functionParams.length < 1 || functionParams[0].isEmpty())
+//				throw new RequestParsingException("Exception in parsing function " + partStr
+//						+ " .Correct function format: function_name(propertyName, parameters...) ");
+//
+//			TempPart part = new TempPart(functionName, functionParams[0], Arrays.copyOfRange(functionParams, 1, functionParams.length));
+//			return part;
+//		}
+//
+//	}
 }

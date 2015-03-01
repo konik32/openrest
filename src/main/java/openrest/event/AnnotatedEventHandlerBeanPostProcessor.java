@@ -45,7 +45,6 @@ public class AnnotatedEventHandlerBeanPostProcessor extends AbstractAnnotatedMet
 		for (HandlerMethod handlerMethod : handlerMethods.get(eventType)) {
 			try {
 				Object src = event.getSource();
-
 				if (!ClassUtils.isAssignable(handlerMethod.targetType, ((ResourceSupportEvent) event).getResourceType())) {
 					continue;
 				}

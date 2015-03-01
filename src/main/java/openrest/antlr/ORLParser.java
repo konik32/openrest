@@ -16,10 +16,12 @@ public class ORLParser extends Parser {
 		new PredictionContextCache();
 	public static final int
 		T__0=1, OR=2, AND=3, LPAREN=4, RPAREN=5, FUNCTION_NAME=6, IGNORE_CASE=7, 
-		PROPERTY=8, WHITESPACE=9, TEXT=10, NUMBER=11, FLOAT=12, INT=13;
+		PROPERTY=8, WHITESPACE=9, TEXT=10, NUMBER=11, EXPRESSION=12, FLOAT=13, 
+		INT=14;
 	public static final String[] tokenNames = {
 		"<INVALID>", "','", "';or;'", "';and;'", "'('", "')'", "FUNCTION_NAME", 
-		"'IgnoreCase'", "PROPERTY", "WHITESPACE", "TEXT", "NUMBER", "FLOAT", "INT"
+		"'IgnoreCase'", "PROPERTY", "WHITESPACE", "TEXT", "NUMBER", "EXPRESSION", 
+		"FLOAT", "INT"
 	};
 	public static final int
 		RULE_functionName = 0, RULE_function = 1, RULE_propertyName = 2, RULE_parameter = 3, 
@@ -224,12 +226,24 @@ public class ORLParser extends Parser {
 			if ( listener instanceof ORLListener ) ((ORLListener)listener).exitParameterNumberValue(this);
 		}
 	}
+	public static class ParameterExpressionValueContext extends ParameterContext {
+		public TerminalNode EXPRESSION() { return getToken(ORLParser.EXPRESSION, 0); }
+		public ParameterExpressionValueContext(ParameterContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ORLListener ) ((ORLListener)listener).enterParameterExpressionValue(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ORLListener ) ((ORLListener)listener).exitParameterExpressionValue(this);
+		}
+	}
 
 	public final ParameterContext parameter() throws RecognitionException {
 		ParameterContext _localctx = new ParameterContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_parameter);
 		try {
-			setState(28);
+			setState(29);
 			switch (_input.LA(1)) {
 			case NUMBER:
 				_localctx = new ParameterNumberValueContext(_localctx);
@@ -243,6 +257,13 @@ public class ORLParser extends Parser {
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(27); match(TEXT);
+				}
+				break;
+			case EXPRESSION:
+				_localctx = new ParameterExpressionValueContext(_localctx);
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(28); match(EXPRESSION);
 				}
 				break;
 			default:
@@ -353,7 +374,7 @@ public class ORLParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
+			setState(37);
 			switch (_input.LA(1)) {
 			case LPAREN:
 				{
@@ -361,9 +382,9 @@ public class ORLParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(31); match(LPAREN);
-				setState(32); logicalExpression(0);
-				setState(33); match(RPAREN);
+				setState(32); match(LPAREN);
+				setState(33); logicalExpression(0);
+				setState(34); match(RPAREN);
 				}
 				break;
 			case FUNCTION_NAME:
@@ -371,14 +392,14 @@ public class ORLParser extends Parser {
 				_localctx = new LogicalExpressionAtomContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(35); function();
+				setState(36); function();
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(46);
+			setState(47);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,4,_ctx);
 			while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
@@ -386,16 +407,16 @@ public class ORLParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(44);
+					setState(45);
 					switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
 					case 1:
 						{
 						_localctx = new LogicalExpressionAndContext(new LogicalExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_logicalExpression);
-						setState(38);
+						setState(39);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
-						setState(39); match(AND);
-						setState(40); logicalExpression(5);
+						setState(40); match(AND);
+						setState(41); logicalExpression(5);
 						}
 						break;
 
@@ -403,16 +424,16 @@ public class ORLParser extends Parser {
 						{
 						_localctx = new LogicalExpressionOrContext(new LogicalExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_logicalExpression);
-						setState(41);
+						setState(42);
 						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
-						setState(42); match(OR);
-						setState(43); logicalExpression(4);
+						setState(43); match(OR);
+						setState(44); logicalExpression(4);
 						}
 						break;
 					}
 					} 
 				}
-				setState(48);
+				setState(49);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,4,_ctx);
 			}
@@ -445,20 +466,20 @@ public class ORLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\17\64\4\2\t\2\4\3"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\20\65\4\2\t\2\4\3"+
 		"\t\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\3\2\3\3\3\3\3\3\3\3\3\3\7\3\24\n\3\f"+
-		"\3\16\3\27\13\3\3\3\3\3\3\4\3\4\3\5\3\5\5\5\37\n\5\3\6\3\6\3\6\3\6\3\6"+
-		"\3\6\5\6\'\n\6\3\6\3\6\3\6\3\6\3\6\3\6\7\6/\n\6\f\6\16\6\62\13\6\3\6\2"+
-		"\3\n\7\2\4\6\b\n\2\2\63\2\f\3\2\2\2\4\16\3\2\2\2\6\32\3\2\2\2\b\36\3\2"+
-		"\2\2\n&\3\2\2\2\f\r\7\b\2\2\r\3\3\2\2\2\16\17\5\2\2\2\17\20\7\6\2\2\20"+
-		"\25\5\6\4\2\21\22\7\3\2\2\22\24\5\b\5\2\23\21\3\2\2\2\24\27\3\2\2\2\25"+
-		"\23\3\2\2\2\25\26\3\2\2\2\26\30\3\2\2\2\27\25\3\2\2\2\30\31\7\7\2\2\31"+
-		"\5\3\2\2\2\32\33\7\n\2\2\33\7\3\2\2\2\34\37\7\r\2\2\35\37\7\f\2\2\36\34"+
-		"\3\2\2\2\36\35\3\2\2\2\37\t\3\2\2\2 !\b\6\1\2!\"\7\6\2\2\"#\5\n\6\2#$"+
-		"\7\7\2\2$\'\3\2\2\2%\'\5\4\3\2& \3\2\2\2&%\3\2\2\2\'\60\3\2\2\2()\f\6"+
-		"\2\2)*\7\5\2\2*/\5\n\6\7+,\f\5\2\2,-\7\4\2\2-/\5\n\6\6.(\3\2\2\2.+\3\2"+
-		"\2\2/\62\3\2\2\2\60.\3\2\2\2\60\61\3\2\2\2\61\13\3\2\2\2\62\60\3\2\2\2"+
-		"\7\25\36&.\60";
+		"\3\16\3\27\13\3\3\3\3\3\3\4\3\4\3\5\3\5\3\5\5\5 \n\5\3\6\3\6\3\6\3\6\3"+
+		"\6\3\6\5\6(\n\6\3\6\3\6\3\6\3\6\3\6\3\6\7\6\60\n\6\f\6\16\6\63\13\6\3"+
+		"\6\2\3\n\7\2\4\6\b\n\2\2\65\2\f\3\2\2\2\4\16\3\2\2\2\6\32\3\2\2\2\b\37"+
+		"\3\2\2\2\n\'\3\2\2\2\f\r\7\b\2\2\r\3\3\2\2\2\16\17\5\2\2\2\17\20\7\6\2"+
+		"\2\20\25\5\6\4\2\21\22\7\3\2\2\22\24\5\b\5\2\23\21\3\2\2\2\24\27\3\2\2"+
+		"\2\25\23\3\2\2\2\25\26\3\2\2\2\26\30\3\2\2\2\27\25\3\2\2\2\30\31\7\7\2"+
+		"\2\31\5\3\2\2\2\32\33\7\n\2\2\33\7\3\2\2\2\34 \7\r\2\2\35 \7\f\2\2\36"+
+		" \7\16\2\2\37\34\3\2\2\2\37\35\3\2\2\2\37\36\3\2\2\2 \t\3\2\2\2!\"\b\6"+
+		"\1\2\"#\7\6\2\2#$\5\n\6\2$%\7\7\2\2%(\3\2\2\2&(\5\4\3\2\'!\3\2\2\2\'&"+
+		"\3\2\2\2(\61\3\2\2\2)*\f\6\2\2*+\7\5\2\2+\60\5\n\6\7,-\f\5\2\2-.\7\4\2"+
+		"\2.\60\5\n\6\6/)\3\2\2\2/,\3\2\2\2\60\63\3\2\2\2\61/\3\2\2\2\61\62\3\2"+
+		"\2\2\62\13\3\2\2\2\63\61\3\2\2\2\7\25\37\'/\61";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

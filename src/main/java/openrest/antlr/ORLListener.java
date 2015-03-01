@@ -97,6 +97,17 @@ public interface ORLListener extends ParseTreeListener {
 	void exitLogicalExpressionAnd(@NotNull ORLParser.LogicalExpressionAndContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ORLParser#parameterExpressionValue}.
+	 * @param ctx the parse tree
+	 */
+	void enterParameterExpressionValue(@NotNull ORLParser.ParameterExpressionValueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ORLParser#parameterExpressionValue}.
+	 * @param ctx the parse tree
+	 */
+	void exitParameterExpressionValue(@NotNull ORLParser.ParameterExpressionValueContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ORLParser#logicalExpressionNested}.
 	 * @param ctx the parse tree
 	 */

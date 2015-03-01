@@ -18,9 +18,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
-import open.rest.data.query.parser.OpenRestPartTree;
-import openrest.domain.OpenRestQueryParameterHolder;
+import openrest.data.query.parser.OpenRestPartTree;
 import openrest.jpa.query.OpenRestPartTreeJpaQuery;
+import openrest.query.parameter.QueryParameterHolder;
 
 import org.h2.index.PageDelegateIndex;
 import org.springframework.data.domain.Page;
@@ -41,18 +41,18 @@ import data.query.JpaParameters;
 import data.query.parser.PartTree;
 
 @Repository
-public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificationRepository {
+public class OpenRestRepositoryImpl implements OpenRestRepository {
 
 	@PersistenceContext
 	private EntityManager em;
 
 	@Override
-	public Iterable<Object> findAll(OpenRestQueryParameterHolder spec, Class<Object> domainClass) {
+	public Iterable<Object> findAll(QueryParameterHolder spec, Class<Object> domainClass) {
 		return (Iterable<Object>) new OpenRestPartTreeJpaQuery(em, domainClass, spec.getPartTree(), spec.getJpaParameters()).execute(spec.getValues(), new PagedExecution(spec.getJpaParameters()));
 	}
 
 	@Override
-	public Object findOne(OpenRestQueryParameterHolder spec, Class<Object> domainClass) {
+	public Object findOne(QueryParameterHolder spec, Class<Object> domainClass) {
 		return new OpenRestPartTreeJpaQuery(em, domainClass, spec.getPartTree(), spec.getJpaParameters()).execute(spec.getValues(), new SingleEntityExecution());
 	}
 
@@ -60,7 +60,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	
 //
 //	@Transactional
-//	public Iterable<Object> findAll(OpenRestQueryParameterHolder spec, Class<Object> domainClass, Pageable pageable, Sort sort) {
+//	public Iterable<Object> findAll(QueryParameterHolder spec, Class<Object> domainClass, Pageable pageable, Sort sort) {
 //		if (pageable == null)
 //			return getQuery(spec, sort, domainClass).getResultList();
 //		else
@@ -68,26 +68,26 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	}
 //
 //	@Transactional
-//	private Page<Object> findAll(OpenRestQueryParameterHolder spec, Pageable pageable, Class<Object> domainClass) {
+//	private Page<Object> findAll(QueryParameterHolder spec, Pageable pageable, Class<Object> domainClass) {
 //		TypedQuery<Object> query = getQuery(spec, pageable, domainClass);
 //		return pageable == null ? new PageImpl<Object>(query.getResultList()) : readPage(query, pageable, spec, domainClass);
 //	}
 //
 //	@Transactional
-//	private List<Object> findAll(OpenRestQueryParameterHolder spec, Sort sort, Class<Object> domainClass) {
+//	private List<Object> findAll(QueryParameterHolder spec, Sort sort, Class<Object> domainClass) {
 //
 //		return getQuery(spec, sort, domainClass).getResultList();
 //	}
 //
 //	@Override
 //	@Transactional
-//	public Long getCount(OpenRestQueryParameterHolder spec, Class<Object> domainClass) {
+//	public Long getCount(QueryParameterHolder spec, Class<Object> domainClass) {
 //		return QueryUtils.executeCountQuery(getCountQuery(spec, domainClass));
 //	}
 //
 //	/**
 //	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given
-//	 * {@link Pageable} and {@link OpenRestQueryParameterHolder}.
+//	 * {@link Pageable} and {@link QueryParameterHolder}.
 //	 * 
 //	 * @param query
 //	 *            must not be {@literal null}.
@@ -98,7 +98,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	 * @return
 //	 */
 //
-//	protected Page<Object> readPage(TypedQuery<Object> query, Pageable pageable, OpenRestQueryParameterHolder spec, Class<Object> domainClass) {
+//	protected Page<Object> readPage(TypedQuery<Object> query, Pageable pageable, QueryParameterHolder spec, Class<Object> domainClass) {
 //		query.setFirstResult(pageable.getOffset());
 //		query.setMaxResults(pageable.getPageSize());
 //
@@ -110,7 +110,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //
 //	/**
 //	 * Creates a new {@link TypedQuery} from the given
-//	 * {@link OpenRestQueryParameterHolder}.
+//	 * {@link QueryParameterHolder}.
 //	 * 
 //	 * @param spec
 //	 *            can be {@literal null}.
@@ -118,14 +118,14 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	 *            can be {@literal null}.
 //	 * @return
 //	 */
-//	protected TypedQuery<Object> getQuery(OpenRestQueryParameterHolder spec, Pageable pageable, Class<Object> domainClass) {
+//	protected TypedQuery<Object> getQuery(QueryParameterHolder spec, Pageable pageable, Class<Object> domainClass) {
 //
 //		Sort sort = pageable == null ? null : pageable.getSort();
 //		return getQuery(spec, sort, domainClass);
 //	}
 //
 //	/**
-//	 * Creates a {@link TypedQuery} for the given {@link OpenRestQueryParameterHolder}
+//	 * Creates a {@link TypedQuery} for the given {@link QueryParameterHolder}
 //	 * and {@link Sort}.
 //	 * 
 //	 * @param spec
@@ -134,7 +134,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	 *            can be {@literal null}.
 //	 * @return
 //	 */
-//	protected TypedQuery<Object> getQuery(OpenRestQueryParameterHolder spec, Sort sort, Class<Object> domainClass) {
+//	protected TypedQuery<Object> getQuery(QueryParameterHolder spec, Sort sort, Class<Object> domainClass) {
 //
 //		CriteriaBuilder builder = em.getCriteriaBuilder();
 //		CriteriaQuery<Object> query = builder.createQuery(domainClass);
@@ -163,13 +163,13 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	}
 //
 //	/**
-//	 * Creates a new count query for the given {@link OpenRestQueryParameterHolder}.
+//	 * Creates a new count query for the given {@link QueryParameterHolder}.
 //	 * 
 //	 * @param spec
 //	 *            can be {@literal null}.
 //	 * @return
 //	 */
-//	protected TypedQuery<Long> getCountQuery(OpenRestQueryParameterHolder spec, Class<Object> domainClass) {
+//	protected TypedQuery<Long> getCountQuery(QueryParameterHolder spec, Class<Object> domainClass) {
 //
 //		CriteriaBuilder builder = em.getCriteriaBuilder();
 //		CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -206,7 +206,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	}
 //
 //	/**
-//	 * Applies the given {@link OpenRestQueryParameterHolder} to the given
+//	 * Applies the given {@link QueryParameterHolder} to the given
 //	 * {@link CriteriaQuery}.
 //	 * 
 //	 * @param spec
@@ -215,7 +215,7 @@ public class PartTreeSpecificationRepositoryImpl implements PartTreeSpecificatio
 //	 *            must not be {@literal null}.
 //	 * @return
 //	 */
-//	private <S> Root<Object> applyBoostSpecificationToCriteria(OpenRestQueryParameterHolder spec, CriteriaQuery<S> query, Class<Object> domainClass,
+//	private <S> Root<Object> applyBoostSpecificationToCriteria(QueryParameterHolder spec, CriteriaQuery<S> query, Class<Object> domainClass,
 //			boolean isCountQuery) {
 //
 //		Assert.notNull(query);

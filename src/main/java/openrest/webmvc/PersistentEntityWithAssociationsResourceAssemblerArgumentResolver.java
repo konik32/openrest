@@ -3,7 +3,7 @@ package openrest.webmvc;
 import openrest.dto.DtoPopulatorEvent;
 import openrest.dto.DtoPopulatorInvoker;
 import openrest.httpquery.parser.Parsers;
-import openrest.security.validator.ResourceFilterInvoker;
+import openrest.security.resource.filter.ResourceFilterInvoker;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;

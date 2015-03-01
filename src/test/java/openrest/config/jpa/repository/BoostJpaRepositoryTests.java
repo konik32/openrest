@@ -5,12 +5,12 @@ import javax.persistence.PersistenceContext;
 
 import openrest.config.Application;
 import openrest.config.domain.Product;
-import openrest.domain.OpenRestQueryParameterHolder;
-import openrest.domain.PartTreeSpecificationBuilder;
 import openrest.httpquery.parser.Parsers;
 import openrest.httpquery.parser.TempPart;
-import openrest.jpa.repository.PartTreeSpecificationRepository;
-import openrest.query.StaticFilterFactory;
+import openrest.jpa.repository.OpenRestRepository;
+import openrest.query.filter.StaticFilterFactory;
+import openrest.query.parameter.QueryParameterHolder;
+import openrest.query.parameter.QueryParametersHolderBuilder;
 import openrest.webmvc.ParsedRequestFactory;
 
 import org.junit.Before;
@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
 public class BoostJpaRepositoryTests {
 
 	@Autowired
-	private PartTreeSpecificationRepository repository;
+	private OpenRestRepository repository;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -50,15 +50,14 @@ public class BoostJpaRepositoryTests {
 	@PersistenceContext
 	private EntityManager em;
 
-	OpenRestQueryParameterHolder spec;
+	QueryParameterHolder spec;
 
 	Class<?> domainClass = Product.class;
 
 	@Before
 	public void setUp() {
-		TempPart tempPart = Parsers.parseFilter("eq(user.id,1) ;and; between(price,1.00,2.00) ;or; eq(id,1) ;and; like(name,'asdf')");
-		PartTreeSpecificationBuilder builder = new PartTreeSpecificationBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper,
-				em.getCriteriaBuilder(), staticFilterFactory);
+		TempPart tempPart = Parsers.parseFilter("eq(user.id,1) ;and; between(price,1.00,2.00) ;or; eq(id,1) ;and; like(name,'asdf')", false);
+		QueryParametersHolderBuilder builder = new QueryParametersHolderBuilder(persistentEntities.getPersistentEntity(domainClass), objectMapper, staticFilterFactory);
 		builder.append(tempPart);
 		spec = builder.build();
 	}

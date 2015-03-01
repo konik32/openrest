@@ -1,4 +1,4 @@
-package openrest.query;
+package openrest.query.filter;
 
 import openrest.httpquery.parser.TempPart;
 import lombok.Data;
