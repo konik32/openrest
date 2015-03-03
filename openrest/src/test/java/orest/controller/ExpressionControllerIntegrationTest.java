@@ -3,22 +3,13 @@ package orest.controller;
 import orest.Application;
 import static com.jayway.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
-import orest.model.Product;
-import orest.model.User;
-import orest.repository.ProductRepository;
-import orest.repository.UserRepository;
-
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;

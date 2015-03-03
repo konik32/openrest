@@ -10,7 +10,6 @@ import orest.repository.QueryDslPredicateInvoker;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;

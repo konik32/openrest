@@ -9,4 +9,5 @@ public class DtoInformation {
 	private final String name;
 	private final Class<?> dtoType;
 	private final Class<?> entityCreatorType;
+	private final Class<?> entityMergerType;
 }

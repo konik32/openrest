@@ -11,6 +11,6 @@ public @interface Dto {
 	Class<?> entityType();
 	String name() default "";
 	Class<?> entityCreatorType() default void.class;
-	
+	Class<?> entityMergerType() default void.class;
 	
 }

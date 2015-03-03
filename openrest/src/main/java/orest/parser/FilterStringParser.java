@@ -1,25 +1,12 @@
 package orest.parser;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 import org.apache.commons.lang3.text.WordUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.hateoas.core.MethodParameters;
-
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
 import orest.expression.registry.ExpressionMethodInformation.MethodType;
 import orest.parser.FilterPart.FilterPartType;
-import orest.repository.ExpressionUtils;
-import orest.repository.PredicateContext;
-import orest.security.ExpressionEvaluator;
-import orest.security.SecurityExpressionContextHolderImpl;
 
 @RequiredArgsConstructor
 public class FilterStringParser {

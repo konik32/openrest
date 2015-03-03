@@ -26,6 +26,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
+import orest.dto.DefaultEntityFromDtoCreator;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
 import orest.dto.EntityFromDtoCreator;
@@ -72,14 +73,14 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 	private final DomainObjectReader reader;
 	private final List<HttpMessageConverter<?>> messageConverters;
 	private final DtoDomainRegistry dtoDomainRegistry;
-	private final EntityFromDtoCreator entityFromDtoCreator;
+	private final DefaultEntityFromDtoCreator entityFromDtoCreator;
 	private SpelEvaluatorBean spelEvaluator;
 	private Validator validator;
 	private boolean validate = true;
 
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverters,
 			RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver, BackendIdHandlerMethodArgumentResolver idResolver,
-			DomainObjectReader reader, DtoDomainRegistry dtoDomainRegistry, EntityFromDtoCreator entityFromDtoCreator) {
+			DomainObjectReader reader, DtoDomainRegistry dtoDomainRegistry, DefaultEntityFromDtoCreator entityFromDtoCreator) {
 		super(messageConverters, resourceInformationResolver, idResolver, reader);
 		this.messageConverters = messageConverters;
 		this.resourceInformationResolver = resourceInformationResolver;
@@ -130,15 +131,15 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 
 		Class<?> dtoType = null;
 		DtoInformation dtoInfo = null;
-		if (!incoming.isPatchRequest()) {
-			String dtoParam = webRequest.getParameter(DTO_PARAM_NAME);
-			if (StringUtils.hasText(dtoParam)) {
-				dtoInfo = dtoDomainRegistry.get(dtoParam);
-				if (dtoInfo != null) {
-					dtoType = dtoInfo.getDtoType();
-				}
+		// if (!incoming.isPatchRequest()) {
+		String dtoParam = webRequest.getParameter(DTO_PARAM_NAME);
+		if (StringUtils.hasText(dtoParam)) {
+			dtoInfo = dtoDomainRegistry.get(dtoParam);
+			if (dtoInfo != null) {
+				dtoType = dtoInfo.getDtoType();
 			}
 		}
+		// }
 		for (HttpMessageConverter converter : messageConverters) {
 
 			if (!converter.canRead(PersistentEntityResource.class, contentType)) {
@@ -150,7 +151,19 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 
 			if (dtoInfo != null) {
 				evaluateSpelExpressions(obj);
-				obj = validateAndGet(obj, dtoInfo);
+				validate(obj);
+				if (incoming.isPatchRequest()) {
+					RepositoryInvoker invoker = resourceInformation.getInvoker();
+					Object existingObject = invoker.invokeFindOne(id);
+
+					if (existingObject == null) {
+						throw new ResourceNotFoundException();
+					}
+					entityFromDtoCreator.merge(obj, existingObject, dtoInfo);
+					obj = existingObject;
+				} else {
+					obj = get(obj, dtoInfo);
+				}
 			}
 			if (obj == null) {
 				throw new HttpMessageNotReadableException(String.format(ERROR_MESSAGE, domainType));
@@ -176,7 +189,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 	 */
 	private Object read(RootResourceInformation information, IncomingRequest request, HttpMessageConverter<Object> converter, Serializable id, Class<?> type) {
 
-		if (request.isPatchRequest() && converter instanceof MappingJackson2HttpMessageConverter) {
+		if (type == null && request.isPatchRequest() && converter instanceof MappingJackson2HttpMessageConverter) {
 
 			if (id == null) {
 				new ResourceNotFoundException();
@@ -220,13 +233,12 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 		}
 	}
 
-	private void evaluateSpelExpressions(Object object){
-		if(spelEvaluator != null)
+	private void evaluateSpelExpressions(Object object) {
+		if (spelEvaluator != null)
 			spelEvaluator.evaluate(object);
 	}
-	
-	private Object validateAndGet(Object obj, DtoInformation dtoInfo) {
-		validate(obj);
+
+	private Object get(Object obj, DtoInformation dtoInfo) {
 		return entityFromDtoCreator.create(obj, dtoInfo);
 	}
 

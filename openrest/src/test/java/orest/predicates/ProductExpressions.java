@@ -3,12 +3,9 @@ package orest.predicates;
 import orest.expression.registry.ExpressionMethod;
 import orest.expression.registry.ExpressionRepository;
 import orest.expression.registry.Join;
-import orest.expression.registry.StaticFilter;
 import orest.model.Product;
 import orest.model.QProduct;
 import orest.model.QTag;
-import orest.model.QUser;
-
 import com.mysema.query.types.expr.BooleanExpression;
 
 @ExpressionRepository(value = Product.class)

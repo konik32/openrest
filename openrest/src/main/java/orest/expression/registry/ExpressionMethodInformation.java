@@ -1,7 +1,6 @@
 package orest.expression.registry;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
@@ -10,9 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.hateoas.core.AnnotationAttribute;
 import org.springframework.hateoas.core.MethodParameters;
 
-import com.mysema.commons.lang.Assert;
 import com.mysema.query.types.Path;
-import com.mysema.query.types.path.PathBuilder;
 
 @Data
 public class ExpressionMethodInformation {

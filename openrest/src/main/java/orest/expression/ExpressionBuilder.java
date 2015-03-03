@@ -17,7 +17,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.rest.webmvc.support.Projector;
 import org.springframework.hateoas.core.MethodParameters;
 import org.springframework.util.ReflectionUtils;
 

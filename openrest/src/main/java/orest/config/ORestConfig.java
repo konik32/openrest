@@ -7,7 +7,9 @@ import java.util.Set;
 import javax.validation.Validator;
 
 import orest.dto.DefaultEntityFromDtoCreator;
+import orest.dto.Dto;
 import orest.dto.DtoDomainRegistry;
+import orest.dto.DtoInformation;
 import orest.expression.ExpressionBuilder;
 import orest.expression.SpelEvaluatorBean;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
@@ -150,7 +152,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public DefaultEntityFromDtoCreator entityFromDtoCreator() {
-		return new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory);
+		return new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory, persistentEntities());
 	}
 
 	@Bean
@@ -184,5 +186,24 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 			}
 		}
 		return expandsRegistry;
+	}
+
+	@Bean
+	public DtoDomainRegistry dtoDomainRegistry() throws ClassNotFoundException {
+		Set<String> packagesToScan = new HashSet<String>();
+
+		for (Class<?> domainType : repositories()) {
+			packagesToScan.add(domainType.getPackage().getName());
+		}
+		DtoDomainRegistry registry = new DtoDomainRegistry();
+		Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes(packagesToScan);
+		for (Class<?> dtoClass : candidates) {
+			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
+			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass, dtoAnn.entityCreatorType(), dtoAnn.entityMergerType());
+			registry.put(dtoClass, dtoInfo);
+			if (!dtoInfo.getName().isEmpty())
+				registry.put(dtoInfo.getName(), dtoInfo);
+		}
+		return registry;
 	}
 }

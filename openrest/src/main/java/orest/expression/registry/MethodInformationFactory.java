@@ -8,13 +8,11 @@ import orest.expression.registry.ExpressionMethodInformation.MethodType;
 import orest.repository.ExpressionUtils;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.Param;
 import org.springframework.hateoas.core.AnnotationAttribute;
 import org.springframework.hateoas.core.MethodParameters;
 import org.springframework.util.Assert;
 
-import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 
 public class MethodInformationFactory {

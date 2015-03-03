@@ -1,8 +1,6 @@
 package orest.expression;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.expression.BeanFactoryResolver;

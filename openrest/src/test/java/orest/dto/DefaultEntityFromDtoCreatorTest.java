@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.util.Assert;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultEntityFromDtoCreatorTest {
@@ -35,12 +36,12 @@ public class DefaultEntityFromDtoCreatorTest {
 	@Before
 	public void setUp(){
 		when(dtoDomainRegistry.get(any(Class.class))).thenReturn(null);
-		when(dtoDomainRegistry.get(orest.model.dto.UserDto.class)).thenReturn(new DtoInformation(User.class, "userDto", UserDto.class, void.class));
+		when(dtoDomainRegistry.get(orest.model.dto.UserDto.class)).thenReturn(new DtoInformation(User.class, "userDto", UserDto.class, void.class, void.class));
 		
 		EntityFromDtoCreator<Object, Object> entityFromDtoCreator = mock(EntityFromDtoCreator.class);
 		when(entityFromDtoCreator.create(any(Object.class), any(DtoInformation.class))).thenReturn(mock(TestEntity.class));
 		when(beanFactory.getBean(EntityFromDtoCreator.class)).thenReturn(entityFromDtoCreator);
-		dtoEntityCreator = new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory);
+		dtoEntityCreator = new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory, mock(PersistentEntities.class));
 		
 		productDto.setDescription("Lorem Impsum");
 		productDto.setName("agd");
@@ -50,7 +51,7 @@ public class DefaultEntityFromDtoCreatorTest {
 	
 	@Test
 	public void testIfCreateCorrectEntity(){
-		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto", ProductDto.class, void.class));
+		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto", ProductDto.class, void.class, void.class));
 		assertEquals("Lorem Impsum", productDto.getDescription());
 		productDto.setDescription("Lorem Impsum");
 		assertEquals("agd", product.getName());
@@ -58,12 +59,12 @@ public class DefaultEntityFromDtoCreatorTest {
 	
 	@Test(expected=IllegalStateException.class)
 	public void testIfThrowsExceptionOnNoDefaultEntityConstructor(){
-		dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class, void.class));
+		dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class, void.class, void.class));
 	}
 	
 	@Test
 	public void testIfInvokesSpecifiedEntityFromDtoCreator(){
-		TestEntity testEntity = (TestEntity) dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class,EntityFromDtoCreator.class));
+		TestEntity testEntity = (TestEntity) dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class,EntityFromDtoCreator.class, void.class));
 		Assert.notNull(testEntity);
 	}
 	
@@ -72,7 +73,7 @@ public class DefaultEntityFromDtoCreatorTest {
 		TagDto tagDto = new TagDto();
 		tagDto.setName("name");
 		productDto.setTags(Arrays.asList(tagDto));
-		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto", ProductDto.class, void.class));
+		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto", ProductDto.class, void.class, void.class));
 		assertNotNull(product.getTags());
 		assertEquals(1, product.getTags().size());
 	}
