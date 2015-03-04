@@ -94,7 +94,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 					}
 					while (it.hasNext()) {
 						Object object = it.next();
-						if(object == null) continue;
+						if (object == null)
+							continue;
 						DtoInformation subDtoInfo = registry.get(object.getClass());
 						Object value = subDtoInfo != null ? create(object, subDtoInfo) : object;
 						entityFieldCollection.add(value);
@@ -102,7 +103,9 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 					entityField.set(entity, entityFieldCollection);
 				} else {
 					DtoInformation subDtoInfo = registry.get(field.getType());
-					Object value = subDtoInfo != null ? create(field.get(from), subDtoInfo) : field.get(from);
+					Object value = field.get(from);
+					if(value != null && subDtoInfo != null)
+						value = create(value,subDtoInfo);
 					entityField.set(entity, value);
 				}
 			}
@@ -128,19 +131,32 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 					return;
 				ReflectionUtils.makeAccessible(entityField);
 				ReflectionUtils.makeAccessible(field);
+				Object value = field.get(from);
 				if (persistentEntities.getPersistentEntity(entityField.getType()) == null) {
+					if (value == null) {
+						Nullable nullable = field.getAnnotation(Nullable.class);
+						if (nullable == null)
+							return;
+						Field isSetField = ReflectionUtils.findField(from.getClass(), nullable.value());
+						if (isSetField == null)
+							throw new IllegalStateException("There is no field " + nullable.value() + " in " + from.getClass());
+						ReflectionUtils.makeAccessible(isSetField);
+						if (!isSetField.getBoolean(from))
+							return;
+					}
 					try {
-						Method setter = ReflectionUtils.findMethod(entity.getClass(), "set" + WordUtils.capitalize(entityField.getName()), entityField.getType());
+						Method setter = ReflectionUtils.findMethod(entity.getClass(), "set" + WordUtils.capitalize(entityField.getName()),
+								entityField.getType());
 						if (setter == null)
 							throw new IllegalStateException("There is no setter for field " + entityField.getName() + " in " + entity);
-						setter.invoke(entity, field.get(from));
+						setter.invoke(entity, value);
 					} catch (InvocationTargetException e) {
 						throw new IllegalStateException(e);
 					}
 				} else {
 					DtoInformation subDtoInfo = registry.get(field.getType());
-					Object value = field.get(from);
-					if(value == null) return;
+					if (value == null)
+						return;
 					if (subDtoInfo == null)
 						mergeByFields(value, entity);
 					else
