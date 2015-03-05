@@ -39,6 +39,8 @@ public class FilterStringParserTest {
 	public void setUp(){
 		when(expEntityInfo.getMethodInformation(anyString())).thenReturn(mock(ExpressionMethodInformation.class));
 		when(expEntityInfo.getMethodInformation("notFound")).thenReturn(null);
+		when(expEntityInfo.getMethodInformation(startsWith(" "))).thenReturn(null);
+		when(expEntityInfo.getMethodInformation(endsWith(" "))).thenReturn(null);
 		when(expEntityInfo.getMethodInformation(startsWith("findBy"))).thenReturn(null);
 		when(defaultConversionService.convert(anyObject(),any(TypeDescriptor.class),any(TypeDescriptor.class))).thenReturn(new Object());
 		when(expressionEvaluator.processParameter(anyString(), any(Class.class))).thenReturn(new Object());
@@ -61,12 +63,12 @@ public class FilterStringParserTest {
 		}
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=FilterParserException.class)
 	public void testIfThrowExceptionOnMethodNotFound(){
 		parser.getFilterPart("notFound", expEntityInfo);
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=FilterParserException.class)
 	public void testIfThrowExceptionOnMethodWrongFormat(){
 		parser.getFilterPart("yearBetween(2;3", expEntityInfo);
 	}
@@ -81,10 +83,27 @@ public class FilterStringParserTest {
 		assertNull(parser.getFilterPart(null, expEntityInfo));
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=FilterParserException.class)
 	public void testIfRemovesFindByPrefix(){
 		assertNotNull(parser.getSearchFilterPart("findByName", expEntityInfo));
 	}
+	
+	@Test
+	public void testIfTrimWhiteSpacesNearMethodNames(){
+		FilterPart tree = parser.getFilterPart("yearBetween (2;3) ;and;  rankBetween(2;3)", expEntityInfo);
+		assertNotNull(tree.getParts().get(0).getParts().get(0).getMethodInfo());
+		assertNotNull(tree.getParts().get(0).getParts().get(1).getMethodInfo());
+	}
+	
+	@Test
+	public void testIfDoNotTrimWhiteSpacesInParameters(){
+		FilterPart tree = parser.getFilterPart("like(John doe; John doe)", expEntityInfo);
+		String arr[] = tree.getParts().get(0).getParts().get(0).getParameters();
+		assertEquals("John doe", arr[0]);
+		assertEquals(" John doe", arr[1]);
+	}
+	
+	
 	
 
 }

@@ -1,10 +1,12 @@
 package orest.parser;
 
 import java.util.ArrayList;
+
 import java.util.List;
 
 import orest.expression.registry.ExpressionMethodInformation;
 import lombok.Data;
+
 
 @Data
 public class FilterPart {

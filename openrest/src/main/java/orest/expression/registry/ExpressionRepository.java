@@ -8,11 +8,19 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Annotation to mark class that declares {@link ExpressionMethod}s for entity
+ * specified in value.
+ * 
+ * @author szymon
+ *
+ */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
 @Component
 public @interface ExpressionRepository {
-	
+
 	Class<?> value();
 }

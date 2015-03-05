@@ -109,7 +109,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 			if (join.isCollection())
 				query = query.leftJoin((CollectionPath) join.getPath(),pathBuilderFactory.create(join.getType()));
 			else
-				query = query.join((EntityPath) join.getPath());
+				query = query.leftJoin((EntityPath) join.getPath());
 			if (join.isFetch())
 				query = query.fetch();
 		}

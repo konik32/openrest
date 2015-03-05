@@ -103,7 +103,6 @@ public class ExpressionController extends AbstractRepositoryRestController {
 		finalPredicate = finalPredicate == null ? idPredicate : finalPredicate.and(idPredicate);
 		finalPredicate = finalPredicate == null ? staticFiltersPredicate : finalPredicate.and(staticFiltersPredicate);
 		finalPredicate = finalPredicate == null ? filtersPredicate : finalPredicate.and(filtersPredicate);
-
 		Iterable<Object> result;
 		if (searchMethodPart == null)
 			result = getResult(expEntityInfo.getPredicateInvoker(), finalPredicate, predicateContext, pageable, sort);
@@ -131,6 +130,5 @@ public class ExpressionController extends AbstractRepositoryRestController {
 			result = invoker.invokeFindAll(finalExpression, predicateContext, pageable.getPageable());
 		return result;
 	}
-	
 
 }

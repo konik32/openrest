@@ -17,6 +17,7 @@ import orest.expression.registry.Expand;
 import orest.expression.registry.ProjectionExpandsRegistry;
 import orest.json.DtoAwareDeserializerModifier;
 import orest.parser.FilterStringParser;
+import orest.repository.ExpressionJpaFactoryBean;
 import orest.security.ExpressionEvaluator;
 import orest.security.SecurityExpressionContextHolder;
 import orest.security.SecurityExpressionContextHolderImpl;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.config.Projection;
@@ -52,6 +54,15 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
+/**
+ * 
+ * Main application configuration for OPEN REST. Import it to your application's main configuration class and add
+ * {@link @EnableJpaRepositories(repositoryFactoryBeanClass =
+ * ExpressionJpaFactoryBean.class)}.
+ * 
+ * @author Szymon Konicki
+ *
+ */
 @Configuration
 public class ORestConfig extends RepositoryRestMvcConfiguration {
 	@Autowired
@@ -110,7 +121,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public ExpressionBuilder expressionBuilder() {
-		return new ExpressionBuilder(defaultConversionService, expressionEvaluator());
+		return new ExpressionBuilder(defaultConversionService, expressionEvaluator(), entityExpressionMethodsRegistry());
 	}
 
 	@Override

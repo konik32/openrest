@@ -24,6 +24,14 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
 
+/**
+ * Default implementation of interfaces {@link EntityFromDtoCreator} and
+ * {@link EntityFromDtoMerger}. This class creates and merges entities from dto
+ * by mapping fields.
+ * 
+ * @author Szymon Konicki
+ *
+ */
 public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object, Object>, EntityFromDtoMerger<Object, Object> {
 
 	private final DtoDomainRegistry registry;
@@ -58,7 +66,7 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 
 	@Override
 	public Object create(Object from, DtoInformation dtoInfo) {
-		if (!dtoInfo.getEntityCreatorType().equals(void.class)) {
+		if (!dtoInfo.getEntityCreatorType().equals(DefaultEntityFromDtoCreator.class)) {
 			EntityFromDtoCreator<Object, Object> creator = (EntityFromDtoCreator<Object, Object>) beanFactory.getBean(dtoInfo.getEntityCreatorType());
 			return creator.create(from, dtoInfo);
 		}
@@ -104,8 +112,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				} else {
 					DtoInformation subDtoInfo = registry.get(field.getType());
 					Object value = field.get(from);
-					if(value != null && subDtoInfo != null)
-						value = create(value,subDtoInfo);
+					if (value != null && subDtoInfo != null)
+						value = create(value, subDtoInfo);
 					entityField.set(entity, value);
 				}
 			}
@@ -115,7 +123,7 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 
 	@Override
 	public void merge(Object from, Object entity, DtoInformation dtoInfo) {
-		if (!dtoInfo.getEntityMergerType().equals(void.class)) {
+		if (!dtoInfo.getEntityMergerType().equals(DefaultEntityFromDtoCreator.class)) {
 			EntityFromDtoMerger<Object, Object> creator = (EntityFromDtoMerger<Object, Object>) beanFactory.getBean(dtoInfo.getEntityMergerType());
 			creator.merge(from, entity, dtoInfo);
 		}
