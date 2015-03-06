@@ -7,20 +7,12 @@ import org.springframework.data.mapping.PersistentEntity;
 
 @Data
 public class ExpressionEntityInformation {
-	private Class<?> entityType;
-	private PersistentEntity<?,?> persistentEntity;
-	private ExpressionMethodRegistry methodRegistry;
-	private QueryDslPredicateInvoker predicateInvoker;
-	private Object expressionRepository;
-
-	public ExpressionEntityInformation(Class<?> entityType,
-			ExpressionMethodRegistry mappings, Object expressionRepository, QueryDslPredicateInvoker predicateInvoker,PersistentEntity<?,?> persistentEntity) {
-		this.entityType = entityType;
-		this.methodRegistry = mappings;
-		this.predicateInvoker = predicateInvoker;
-		this.expressionRepository = expressionRepository;
-		this.persistentEntity = persistentEntity;
-	}
+	private final Class<?> entityType;
+	private final PersistentEntity<?,?> persistentEntity;
+	private final ExpressionMethodRegistry methodRegistry;
+	private final QueryDslPredicateInvoker predicateInvoker;
+	private final Object expressionRepository;
+	private final boolean defaultedPageable;
 	
 	public ExpressionMethodInformation getMethodInformation(String name){
 		return methodRegistry.get(name);

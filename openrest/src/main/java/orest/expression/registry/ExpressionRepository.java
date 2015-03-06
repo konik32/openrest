@@ -23,4 +23,5 @@ import org.springframework.stereotype.Component;
 public @interface ExpressionRepository {
 
 	Class<?> value();
+	boolean defaultedPageable() default true;
 }

@@ -1,8 +1,10 @@
 package orest.controller;
 
-import orest.Application;
-import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import orest.Application;
+
+import org.hamcrest.collection.IsArrayWithSize;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;
@@ -27,14 +29,13 @@ public class ExpressionControllerIntegrationTest {
 	public void doesControllerReturnNotFoundOnUserResourceFilteredByStaticFilter() {
 		given().param("orest").when().get("/users/2").then().assertThat().statusCode(404);
 	}
-	
 
 	@Test
 	public void doesExpandProductOnSingleResource() {
 		given().param("orest").param("expand", "user").when().get("/products/1").then().assertThat()
 				.body("_embedded.user", notNullValue());
 	}
-	
+
 	@Test
 	public void doesExpandProductOnCollection() {
 		given().param("orest").param("expand", "user").when().get("/products").then().assertThat()
@@ -43,16 +44,22 @@ public class ExpressionControllerIntegrationTest {
 
 	@Test
 	public void doesControllerAddDynamicFilter() {
-		given().param("orest").param("filters", "productionYearBetween(3;5)").when().get("/products").then().assertThat()
-				.body("page.totalElements", equalTo(3));
+		given().param("orest").param("filters", "productionYearBetween(3;5)").when().get("/products").then()
+				.assertThat().body("page.totalElements", equalTo(3));
 	}
 
 	@Test
 	public void doesControllerResponseToSearchMethodWithFilters() {
-		given().param("orest").param("filters", "productionYearBetween(;5);and;tagIdEq(1)").when().get("/products/search/userIdEq(1)").then().assertThat()
-				.body("page.totalElements", equalTo(4));
-		given().param("orest").param("filters", "productionYearBetween(5;)").when().get("/products/search/userIdEq(0)").then().assertThat()
-				.body("page.totalElements", equalTo(0));
+		given().param("orest").param("filters", "productionYearBetween(;5);and;tagIdEq(1)").when()
+				.get("/products/search/userIdEq(1)").then().assertThat().body("page.totalElements", equalTo(4));
+		given().param("orest").param("filters", "productionYearBetween(5;)").when().get("/products/search/userIdEq(0)")
+				.then().assertThat().body("page.totalElements", equalTo(0));
+	}
+
+	@Test
+	public void doesControllerReturnNonPagedCollection() {
+		given().param("orest").when().get("/products/search/nameLike(AGD)").then().assertThat()
+				.body("page", nullValue()).and().body("_embedded.products", hasSize(22));
 	}
 
 }

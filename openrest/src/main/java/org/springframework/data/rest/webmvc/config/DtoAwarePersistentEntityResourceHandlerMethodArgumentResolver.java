@@ -61,6 +61,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Jon Brisbin
  * @author Oliver Gierke
+ * @author Szymon Konicki
  */
 public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver extends PersistentEntityResourceHandlerMethodArgumentResolver {
 

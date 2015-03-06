@@ -4,6 +4,7 @@ import java.util.List;
 
 import lombok.Data;
 import orest.dto.Dto;
+import orest.dto.Nullable;
 import orest.model.Product;
 import orest.model.User;
 
@@ -21,9 +22,18 @@ public class ProductDto {
 
 	private String description;
 
+	@Nullable("userSet")
 	private User user;
 	
 	private String tempName;
 	
 	private List<TagDto> tags;
+	
+	private boolean userSet = false;
+	
+	
+	public void setUser(User user){
+		this.user = user;
+		this.userSet = true;
+	}
 }

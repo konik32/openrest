@@ -21,6 +21,11 @@ public class ProductExpressions {
 		return QProduct.product.user.id.eq(userId);
 	}
 	
+	@ExpressionMethod(searchMethod=true, defaultedPageable=false)
+	public BooleanExpression nameLike(String name){
+		return QProduct.product.name.like("%"+name+"%");
+	}
+	
 	@ExpressionMethod(joins=@Join(value="tags"))
 	public BooleanExpression tagIdEq(Long tagId){
 		return QTag.tag.id.eq(tagId);

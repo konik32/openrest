@@ -47,6 +47,7 @@ public class EntityExpressionMethodsRegistryTest {
 	@Test
 	public void testIfCreatesRegistry() {
 		registry = new EntityExpressionMethodsRegistry(beanFactory, repositories, persistentEntities);
+		registry.afterPropertiesSet();
 		ExpressionEntityInformation entityInformation = registry.getEntityInformation(User.class);
 		Assert.assertNotNull(entityInformation);
 		Assert.assertNotNull(entityInformation.getPredicateInvoker());
@@ -63,5 +64,6 @@ public class EntityExpressionMethodsRegistryTest {
 	public void testIfThrowsExceptionOnMissingPredicateContextQueryDslRepository(){
 		when(repositories.getRepositoryFor(User.class)).thenReturn(mock(CrudRepository.class));
 		registry = new EntityExpressionMethodsRegistry(beanFactory, repositories, persistentEntities);
+		registry.afterPropertiesSet();
 	}
 }

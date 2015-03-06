@@ -32,7 +32,8 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
  * @author Szymon Konicki
  *
  */
-public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object, Object>, EntityFromDtoMerger<Object, Object> {
+public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object, Object>,
+		EntityFromDtoMerger<Object, Object> {
 
 	private final DtoDomainRegistry registry;
 	private final BeanFactory beanFactory;
@@ -55,7 +56,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
 	}
 
-	public DefaultEntityFromDtoCreator(DtoDomainRegistry registry, BeanFactory beanFactory, PersistentEntities persistentEntities) {
+	public DefaultEntityFromDtoCreator(DtoDomainRegistry registry, BeanFactory beanFactory,
+			PersistentEntities persistentEntities) {
 		Assert.notNull(registry);
 		Assert.notNull(beanFactory);
 		Assert.notNull(persistentEntities);
@@ -64,17 +66,20 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		this.persistentEntities = persistentEntities;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object create(Object from, DtoInformation dtoInfo) {
 		if (!dtoInfo.getEntityCreatorType().equals(DefaultEntityFromDtoCreator.class)) {
-			EntityFromDtoCreator<Object, Object> creator = (EntityFromDtoCreator<Object, Object>) beanFactory.getBean(dtoInfo.getEntityCreatorType());
+			EntityFromDtoCreator<Object, Object> creator = (EntityFromDtoCreator<Object, Object>) beanFactory
+					.getBean(dtoInfo.getEntityCreatorType());
 			return creator.create(from, dtoInfo);
 		}
 		return createByFields(from, dtoInfo);
 	}
 
 	private Object createByFields(final Object from, final DtoInformation dtoInfo) {
-		final Object entity = org.springframework.data.util.ReflectionUtils.createInstanceIfPresent(dtoInfo.getEntityType().getName(), null);
+		final Object entity = org.springframework.data.util.ReflectionUtils.createInstanceIfPresent(dtoInfo
+				.getEntityType().getName(), null);
 		if (entity == null)
 			throw new IllegalStateException(dtoInfo.getEntityType() + " does not have default constructor");
 		ReflectionUtils.doWithFields(from.getClass(), new FieldCallback() {
@@ -86,45 +91,67 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				ReflectionUtils.makeAccessible(entityField);
 				ReflectionUtils.makeAccessible(field);
 				if (Collection.class.isAssignableFrom(field.getType())) {
-					Object fieldCollection = field.get(from);
-					if (fieldCollection == null)
-						return;
-					Iterator<Object> it = ((Collection<Object>) field.get(from)).iterator();
-					Collection<Object> entityFieldCollection = null;
-					try {
-						Class<Collection<Object>> colClass = (Class<Collection<Object>>) collectionFallbacks.get(entityField.getType().getName());
-						if (colClass == null)
-							throw new IllegalStateException("Cannot set property " + entityField.getName() + " . Collection of type " + entityField.getType()
-									+ " is not managed");
-						entityFieldCollection = colClass.newInstance();
-					} catch (InstantiationException e) {
-						throw new IllegalStateException("Cannot set property " + entityField.getName(), e);
-					}
-					while (it.hasNext()) {
-						Object object = it.next();
-						if (object == null)
-							continue;
-						DtoInformation subDtoInfo = registry.get(object.getClass());
-						Object value = subDtoInfo != null ? create(object, subDtoInfo) : object;
-						entityFieldCollection.add(value);
-					}
-					entityField.set(entity, entityFieldCollection);
+					doWithCollectionField(from, field, entityField, entity);
 				} else {
-					DtoInformation subDtoInfo = registry.get(field.getType());
-					Object value = field.get(from);
-					if (value != null && subDtoInfo != null)
-						value = create(value, subDtoInfo);
-					entityField.set(entity, value);
+					doWithField(from, field, entityField, entity);
 				}
 			}
 		});
 		return entity;
 	}
 
+	private void doWithField(final Object from, final Field field, final Field entityField, final Object entity)
+			throws IllegalArgumentException, IllegalAccessException {
+		DtoInformation subDtoInfo = registry.get(field.getType());
+		Object value = field.get(from);
+		if (value != null && subDtoInfo != null)
+			value = create(value, subDtoInfo);
+		entityField.set(entity, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void doWithCollectionField(final Object from, final Field field, final Field entityField,
+			final Object entity) throws IllegalArgumentException, IllegalAccessException {
+		Collection<Object> fieldCollection = ((Collection<Object>) field.get(from));
+		if (fieldCollection == null)
+			return;
+		Collection<Object> entityFieldCollection = createCollection(entityField);
+		populateEntityFieldCollection(fieldCollection, entityField, entityFieldCollection);
+		entityField.set(entity, entityFieldCollection);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Collection<Object> createCollection(Field entityField) throws IllegalAccessException {
+		Class<Collection<Object>> colClass = (Class<Collection<Object>>) collectionFallbacks.get(entityField.getType()
+				.getName());
+		if (colClass == null)
+			throw new IllegalStateException("Cannot set property " + entityField.getName() + " . Collection of type "
+					+ entityField.getType() + " is not managed");
+		try {
+			return colClass.newInstance();
+		} catch (InstantiationException e) {
+			throw new IllegalStateException("Cannot create collection of type" + colClass);
+		}
+	}
+
+	private void populateEntityFieldCollection(Collection<Object> from, Field field,
+			Collection<Object> entityFieldCollection) throws IllegalArgumentException, IllegalAccessException {
+		Iterator<Object> it = from.iterator();
+		while (it.hasNext()) {
+			Object object = it.next();
+			if (object == null)
+				continue;
+			DtoInformation subDtoInfo = registry.get(object.getClass());
+			Object value = subDtoInfo != null ? create(object, subDtoInfo) : object;
+			entityFieldCollection.add(value);
+		}
+	}
+
 	@Override
 	public void merge(Object from, Object entity, DtoInformation dtoInfo) {
 		if (!dtoInfo.getEntityMergerType().equals(DefaultEntityFromDtoCreator.class)) {
-			EntityFromDtoMerger<Object, Object> creator = (EntityFromDtoMerger<Object, Object>) beanFactory.getBean(dtoInfo.getEntityMergerType());
+			EntityFromDtoMerger<Object, Object> creator = (EntityFromDtoMerger<Object, Object>) beanFactory
+					.getBean(dtoInfo.getEntityMergerType());
 			creator.merge(from, entity, dtoInfo);
 		}
 		mergeByFields(from, entity);
@@ -140,35 +167,12 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				ReflectionUtils.makeAccessible(entityField);
 				ReflectionUtils.makeAccessible(field);
 				Object value = field.get(from);
-				if (persistentEntities.getPersistentEntity(entityField.getType()) == null) {
-					if (value == null) {
-						Nullable nullable = field.getAnnotation(Nullable.class);
-						if (nullable == null)
-							return;
-						Field isSetField = ReflectionUtils.findField(from.getClass(), nullable.value());
-						if (isSetField == null)
-							throw new IllegalStateException("There is no field " + nullable.value() + " in " + from.getClass());
-						ReflectionUtils.makeAccessible(isSetField);
-						if (!isSetField.getBoolean(from))
-							return;
-					}
-					try {
-						Method setter = ReflectionUtils.findMethod(entity.getClass(), "set" + WordUtils.capitalize(entityField.getName()),
-								entityField.getType());
-						if (setter == null)
-							throw new IllegalStateException("There is no setter for field " + entityField.getName() + " in " + entity);
-						setter.invoke(entity, value);
-					} catch (InvocationTargetException e) {
-						throw new IllegalStateException(e);
-					}
+				if (!setNull(value, field, from))
+					return;
+				if (Collection.class.isAssignableFrom(field.getType())) {
+					doWithCollectionField(from, field, entityField, entity);
 				} else {
-					DtoInformation subDtoInfo = registry.get(field.getType());
-					if (value == null)
-						return;
-					if (subDtoInfo == null)
-						mergeByFields(value, entity);
-					else
-						merge(value, entityField.get(entity), subDtoInfo);
+					mergeSingleField(entityField, entityField, entity, value);
 				}
 			}
 		}, new FieldFilter() {
@@ -178,6 +182,49 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				return !(Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers));
 			}
 		});
+	}
+
+	private void mergeSingleField(Field entityField, Field field, Object entity, Object value) throws IllegalArgumentException, IllegalAccessException{
+		if (persistentEntities.getPersistentEntity(entityField.getType()) == null) {
+			setEntityField(entity, entityField, value);
+		} else {
+			DtoInformation subDtoInfo = registry.get(field.getType());
+			if (value == null)
+				return;
+			if (subDtoInfo == null)
+				mergeByFields(value, entity);
+			else
+				merge(value, entityField.get(entity), subDtoInfo);
+		}
+	}
+	private void setEntityField(Object entity, Field entityField, Object value) throws IllegalAccessException,
+			IllegalArgumentException {
+		try {
+			Method setter = ReflectionUtils.findMethod(entity.getClass(),
+					"set" + WordUtils.capitalize(entityField.getName()), entityField.getType());
+			if (setter == null)
+				throw new IllegalStateException("There is no setter for field " + entityField.getName() + " in "
+						+ entity);
+			setter.invoke(entity, value);
+		} catch (InvocationTargetException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private boolean setNull(Object value, Field field, Object from) throws IllegalArgumentException,
+			IllegalAccessException {
+		if (value == null) {
+			Nullable nullable = field.getAnnotation(Nullable.class);
+			if (nullable == null)
+				return false;
+			Field isSetField = ReflectionUtils.findField(from.getClass(), nullable.value());
+			if (isSetField == null)
+				throw new IllegalStateException("There is no field " + nullable.value() + " in " + from.getClass());
+			ReflectionUtils.makeAccessible(isSetField);
+			if (!isSetField.getBoolean(from))
+				return false;
+		}
+		return true;
 	}
 
 }
