@@ -3,6 +3,4 @@
 .classpath
 target
 .settings
-WebContent
-resources
 .springBeans

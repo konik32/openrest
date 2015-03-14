@@ -1,14 +1,12 @@
 package orest.expression;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
-import orest.expression.registry.ExpressionMethodInformation.Join;
 import orest.parser.FilterPart;
 import orest.parser.FilterPart.FilterPartType;
 import orest.repository.ExpressionUtils;

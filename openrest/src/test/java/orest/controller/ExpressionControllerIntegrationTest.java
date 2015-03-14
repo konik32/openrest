@@ -4,7 +4,6 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import orest.Application;
 
-import org.hamcrest.collection.IsArrayWithSize;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;

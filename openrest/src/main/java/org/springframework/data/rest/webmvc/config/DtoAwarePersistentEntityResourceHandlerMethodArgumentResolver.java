@@ -29,7 +29,6 @@ import javax.validation.Validator;
 import orest.dto.DefaultEntityFromDtoCreator;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
-import orest.dto.EntityFromDtoCreator;
 import orest.expression.SpelEvaluatorBean;
 
 import org.springframework.core.MethodParameter;

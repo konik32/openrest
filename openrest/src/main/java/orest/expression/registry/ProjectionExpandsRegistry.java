@@ -12,7 +12,7 @@ import com.mysema.query.types.path.PathBuilder;
 
 public class ProjectionExpandsRegistry {
 
-	private Map<String, List<Join>> expands = new HashMap<String, List<Join>>();
+	private Map<String, Map<Class<?>, List<Join>>> expands = new HashMap<String, Map<Class<?>, List<Join>>>();
 
 	public void addExpand(String projectionName, String expandString, Class<?> entityType, PathBuilder builder) {
 		String expands[] = expandString.split(",");
@@ -20,10 +20,17 @@ public class ProjectionExpandsRegistry {
 		for (String expand : expands) {
 			joins.addAll(ExpressionUtils.getJoins(expand, builder, entityType, true));
 		}
-		this.expands.put(projectionName, joins);
+		Map<Class<?>, List<Join>> entityProjectionExpands = this.expands.get(projectionName);
+		if (entityProjectionExpands == null)
+			entityProjectionExpands = new HashMap<Class<?>, List<Join>>();
+		entityProjectionExpands.put(entityType, joins);
+		this.expands.put(projectionName, entityProjectionExpands);
 	}
 
-	public List<Join> getExpands(String projectionName) {
-		return expands.get(projectionName);
+	public List<Join> getExpands(String projectionName, Class<?> entityType) {
+		Map<Class<?>, List<Join>> entityProjectionExpands = expands.get(projectionName);
+		if (entityProjectionExpands == null)
+			return null;
+		return entityProjectionExpands.get(entityType);
 	}
 }

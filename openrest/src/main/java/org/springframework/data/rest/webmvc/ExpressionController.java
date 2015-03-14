@@ -111,7 +111,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 		BooleanExpression idPredicate = expressionBuilder.createIdEqualsExpression(id, expEntityInfo);
 
 		expressionBuilder.addExpandJoins(predicateContext, expand, expEntityInfo.getEntityType());
-		predicateContext.addJoins(projectionExpandsRegistry.getExpands(projection));
+		predicateContext.addJoins(projectionExpandsRegistry.getExpands(projection, expEntityInfo.getEntityType()));
 		BooleanExpression finalPredicate = searchMethodPredicate == null ? null : searchMethodPredicate;
 
 		finalPredicate = finalPredicate == null ? idPredicate : finalPredicate.and(idPredicate);
