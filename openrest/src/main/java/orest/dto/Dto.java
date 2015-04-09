@@ -40,5 +40,12 @@ public @interface Dto {
 	 * 
 	 */
 	Class<? extends EntityFromDtoMerger> entityMergerType() default DefaultEntityFromDtoCreator.class;
+	
+	
+	DtoType type();
+	
+	public enum DtoType{
+		CREATE, MERGE, BOTH
+	}
 
 }

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import orest.dto.Dto.DtoType;
 import orest.model.dto.ProductDto;
 import orest.model.dto.UserDto;
 
@@ -24,7 +25,7 @@ public class DtoDomainRegistryTest {
 		Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes(packagesToScan);
 		for (Class<?> dtoClass : candidates) {
 			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
-			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass, dtoAnn.entityCreatorType(), dtoAnn.entityMergerType());
+			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass, dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), DtoType.BOTH,null);
 			registry.put(dtoClass, dtoInfo);
 			if (!dtoInfo.getName().isEmpty())
 				registry.put(dtoInfo.getName(), dtoInfo);

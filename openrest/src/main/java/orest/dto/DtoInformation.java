@@ -1,6 +1,7 @@
 package orest.dto;
 
 import lombok.Data;
+import orest.dto.Dto.DtoType;
 
 @Data
 public class DtoInformation {
@@ -10,4 +11,6 @@ public class DtoInformation {
 	private final Class<?> dtoType;
 	private final Class<?> entityCreatorType;
 	private final Class<?> entityMergerType;
+	private final DtoType type;
+	private final String authorizationCondition;
 }

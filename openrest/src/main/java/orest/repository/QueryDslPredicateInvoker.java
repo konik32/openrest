@@ -21,7 +21,7 @@ public class QueryDslPredicateInvoker {
 
 	public Iterable<Object> invokeFindAll(Predicate predicate,PredicateContext predicateContext, Pageable pageable) {
 		return pageable == null ? invokeFindAll(predicate,predicateContext) : repository
-				.findAll(predicate, pageable,predicateContext);
+				.findAll(predicate,predicateContext, pageable);
 	}
 
 	public Iterable<Object> invokeFindAll(Predicate predicate,PredicateContext predicateContext, Sort sort) {

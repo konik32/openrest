@@ -26,11 +26,15 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
+import lombok.Setter;
 import orest.dto.DefaultEntityFromDtoCreator;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
 import orest.expression.SpelEvaluatorBean;
+import orest.security.ExpressionEvaluator;
+import orest.validation.UpdateValidationContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.rest.core.invoke.RepositoryInvoker;
 import org.springframework.data.rest.webmvc.IncomingRequest;
@@ -45,6 +49,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -76,6 +81,11 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 	private final DefaultEntityFromDtoCreator entityFromDtoCreator;
 	private SpelEvaluatorBean spelEvaluator;
 	private Validator validator;
+	@Autowired
+	private UpdateValidationContext updateValidationContext;
+	@Autowired
+	private @Setter ExpressionEvaluator expressionEvaluator;
+	
 	private boolean validate = true;
 
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverters,
@@ -136,6 +146,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 		if (StringUtils.hasText(dtoParam)) {
 			dtoInfo = dtoDomainRegistry.get(dtoParam);
 			if (dtoInfo != null) {
+				authorizeDto(dtoInfo);
 				dtoType = dtoInfo.getDtoType();
 			}
 		}
@@ -151,18 +162,21 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 
 			if (dtoInfo != null) {
 				evaluateSpelExpressions(obj);
-				validate(obj);
+//				validate(obj);
 				if (incoming.isPatchRequest()) {
 					RepositoryInvoker invoker = resourceInformation.getInvoker();
 					Object existingObject = invoker.invokeFindOne(id);
-
+					validate(obj, existingObject);
 					if (existingObject == null) {
 						throw new ResourceNotFoundException();
 					}
+					
 					entityFromDtoCreator.merge(obj, existingObject, dtoInfo);
 					obj = existingObject;
 				} else {
+					validate(obj);
 					obj = get(obj, dtoInfo);
+					
 				}
 			}
 			if (obj == null) {
@@ -252,6 +266,18 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 		}
 
 	}
+	
+	private void validate(Object dto, Object entity){
+		updateValidationContext.setDto(dto);
+		updateValidationContext.setEntity(entity);
+		validate(dto);
+	}
+	
+	private void authorizeDto(DtoInformation dtoInfo) {
+		if (dtoInfo.getAuthorizationCondition() != null && expressionEvaluator != null)
+			if (!expressionEvaluator.checkCondition(dtoInfo.getAuthorizationCondition()))
+				throw new AccessDeniedException("You are not authorized to use this dto: " + dtoInfo.getName());
+	}
 
 	public void setValidator(Validator validator) {
 		this.validator = validator;
@@ -264,4 +290,5 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver exten
 	public void setSpelEvaluatorBean(SpelEvaluatorBean spelEvaluatorBean) {
 		this.spelEvaluator = spelEvaluatorBean;
 	}
+
 }

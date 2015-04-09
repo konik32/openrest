@@ -1,6 +1,5 @@
 package orest.dto;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -9,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 
 import lombok.Data;
+import orest.dto.Dto.DtoType;
 import orest.expression.SpelEvaluationBeanTest.UserDto;
 import orest.model.Product;
 import orest.model.Tag;
@@ -42,10 +42,10 @@ public class DefaultEntityFromDtoCreatorTest {
 		when(dtoDomainRegistry.get(any(Class.class))).thenReturn(null);
 		when(dtoDomainRegistry.get(orest.model.dto.UserDto.class)).thenReturn(
 				new DtoInformation(User.class, "userDto", UserDto.class, DefaultEntityFromDtoCreator.class,
-						DefaultEntityFromDtoCreator.class));
+						DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 		when(dtoDomainRegistry.get(orest.model.dto.TagDto.class)).thenReturn(
 				new DtoInformation(Tag.class, "tagDto", TagDto.class, DefaultEntityFromDtoCreator.class,
-						DefaultEntityFromDtoCreator.class)); 
+						DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 
 		EntityFromDtoCreator<Object, Object> entityFromDtoCreator = mock(EntityFromDtoCreator.class);
 		when(entityFromDtoCreator.create(any(Object.class), any(DtoInformation.class))).thenReturn(
@@ -72,7 +72,8 @@ public class DefaultEntityFromDtoCreatorTest {
 	@Test
 	public void testIfCreateCorrectEntity() {
 		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto",
-				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH,
+				null));
 		assertEquals("Lorem Impsum", productDto.getDescription());
 		productDto.setDescription("Lorem Impsum");
 		assertEquals("agd", product.getName());
@@ -81,13 +82,14 @@ public class DefaultEntityFromDtoCreatorTest {
 	@Test(expected = IllegalStateException.class)
 	public void testIfThrowsExceptionOnNoDefaultEntityConstructor() {
 		dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 	}
 
 	@Test
 	public void testIfInvokesSpecifiedEntityFromDtoCreator() {
 		TestEntity testEntity = (TestEntity) dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class,
-				"productDto", ProductDto.class, EntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				"productDto", ProductDto.class, EntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class,
+				DtoType.BOTH, null));
 		Assert.notNull(testEntity);
 	}
 
@@ -97,7 +99,8 @@ public class DefaultEntityFromDtoCreatorTest {
 		tagDto.setName("name");
 		productDto.setTags(Arrays.asList(tagDto));
 		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto",
-				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH,
+				null));
 		assertNotNull(product.getTags());
 		assertEquals(1, product.getTags().size());
 	}
@@ -108,7 +111,7 @@ public class DefaultEntityFromDtoCreatorTest {
 		tagDto.setName("name");
 		productDto.setTags(Arrays.asList(tagDto));
 		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 		assertEquals(productDto.getDescription(), product.getDescription());
 		assertEquals(productDto.getName(), product.getName());
 		assertEquals(new Integer(123), product.getProductionYear());
@@ -117,23 +120,22 @@ public class DefaultEntityFromDtoCreatorTest {
 	}
 
 	@Test
-	public void testIfNullableAnnotatedUserIsSetToNull(){
+	public void testIfNullableAnnotatedUserIsSetToNull() {
 		product.setUser(new User());
 		productDto.setUser(null);
 		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 		assertNull(product.getUser());
 	}
-	
+
 	@Test
-	public void testIfNullableAnnotatedUserIsNotSetToNull(){
+	public void testIfNullableAnnotatedUserIsNotSetToNull() {
 		product.setUser(new User());
 		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class));
+				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
 		assertNotNull(product.getUser());
 	}
-	
-	
+
 	@Data
 	public class TestEntity {
 		private final String name;

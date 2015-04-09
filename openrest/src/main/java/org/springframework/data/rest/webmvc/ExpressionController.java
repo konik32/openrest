@@ -2,15 +2,18 @@ package org.springframework.data.rest.webmvc;
 
 import java.util.Iterator;
 
+import lombok.Setter;
 import orest.expression.ExpressionBuilder;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
-import orest.expression.registry.ProjectionExpandsRegistry;
+import orest.expression.registry.ProjectionInfo;
+import orest.expression.registry.ProjectionInfoRegistry;
 import orest.parser.FilterPart;
 import orest.parser.FilterStringParser;
 import orest.repository.PredicateContext;
 import orest.repository.QueryDslPredicateInvoker;
+import orest.security.ExpressionEvaluator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -18,6 +21,7 @@ import org.springframework.data.rest.webmvc.support.DefaultedPageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,15 +37,18 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
 	private final FilterStringParser filterStringParser;
 	private final ExpressionBuilder expressionBuilder;
-	private final ProjectionExpandsRegistry projectionExpandsRegistry;
+	private final ProjectionInfoRegistry projectionExpandsRegistry;
 
 	private final EntityExpressionMethodsRegistry entityExpressionMethodsRegistry;
+
+	@Autowired
+	private @Setter ExpressionEvaluator expressionEvaluator;
 
 	@Autowired
 	public ExpressionController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
 			FilterStringParser filterStringParser, ExpressionBuilder expressionBuilder,
 			EntityExpressionMethodsRegistry entityExpressionMethodsRegistry,
-			ProjectionExpandsRegistry projectionExpandsRegistry) {
+			ProjectionInfoRegistry projectionExpandsRegistry) {
 		super(pagedResourcesAssembler);
 		this.filterStringParser = filterStringParser;
 		this.expressionBuilder = expressionBuilder;
@@ -94,6 +101,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
 		ExpressionEntityInformation expEntityInfo = entityExpressionMethodsRegistry
 				.getEntityInformation(rootResourceInformation.getDomainType());
+		ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, expEntityInfo.getEntityType());
+		authorizeProjection(projectionInfo);
 		if (expEntityInfo == null)
 			throw new ResourceNotFoundException();
 		FilterPart filtersPartTree = filterStringParser.getFilterPart(filters, expEntityInfo);
@@ -111,7 +120,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
 		BooleanExpression idPredicate = expressionBuilder.createIdEqualsExpression(id, expEntityInfo);
 
 		expressionBuilder.addExpandJoins(predicateContext, expand, expEntityInfo.getEntityType());
-		predicateContext.addJoins(projectionExpandsRegistry.getExpands(projection, expEntityInfo.getEntityType()));
+		if (projectionInfo != null)
+			predicateContext.addJoins(projectionInfo.getExpands());
 		BooleanExpression finalPredicate = searchMethodPredicate == null ? null : searchMethodPredicate;
 
 		finalPredicate = finalPredicate == null ? idPredicate : finalPredicate.and(idPredicate);
@@ -141,6 +151,15 @@ public class ExpressionController extends AbstractRepositoryRestController {
 		if (searchMethodInfo != null)
 			return expEntityInfo.isDefaultedPageable() && searchMethodInfo.isDefaultedPageable();
 		return expEntityInfo.isDefaultedPageable();
+	}
+
+	private void authorizeProjection(ProjectionInfo projectionInfo) {
+		if (projectionInfo == null || projectionInfo.getAuthorizationCondition() == null)
+			return;
+		if (expressionEvaluator != null)
+			if (!expressionEvaluator.checkCondition(projectionInfo.getAuthorizationCondition()))
+				throw new AccessDeniedException("Not authorized");
+
 	}
 
 }

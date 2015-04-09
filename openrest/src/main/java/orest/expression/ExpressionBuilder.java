@@ -28,7 +28,6 @@ public class ExpressionBuilder {
 
 	private final ConversionService defaultConversionService;
 	private final ExpressionEvaluator expressionEvaluator;
-	private final EntityExpressionMethodsRegistry entityExpressionMethodsRegistry;
 
 	public BooleanExpression createIdEqualsExpression(String value, ExpressionEntityInformation expressionEntityInformation) {
 		if (value == null)

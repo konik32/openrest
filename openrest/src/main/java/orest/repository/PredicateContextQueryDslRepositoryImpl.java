@@ -34,9 +34,8 @@ import com.mysema.query.types.path.CollectionPath;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
-public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
-		extends QueryDslJpaRepository<T, ID> implements
-		PredicateContextQueryDslRepository<T> {
+public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> extends QueryDslJpaRepository<T, ID>
+		implements PredicateContextQueryDslRepository<T> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 	private final EntityPath<T> path;
@@ -45,14 +44,12 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 	private final EntityManager em;
 	private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
-	public PredicateContextQueryDslRepositoryImpl(
-			JpaEntityInformation<T, ID> entityInformation,
+	public PredicateContextQueryDslRepositoryImpl(JpaEntityInformation<T, ID> entityInformation,
 			EntityManager entityManager) {
 		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
-	public PredicateContextQueryDslRepositoryImpl(
-			JpaEntityInformation<T, ID> entityInformation,
+	public PredicateContextQueryDslRepositoryImpl(JpaEntityInformation<T, ID> entityInformation,
 			EntityManager entityManager, EntityPathResolver resolver) {
 		super(entityInformation, entityManager);
 		this.em = entityManager;
@@ -72,29 +69,24 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 	}
 
 	@Override
-	public Iterable<T> findAll(Predicate predicate,
-			PredicateContext predicateContext) {
+	public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext) {
 		return createQuery(predicate, predicateContext).list(path);
 	}
 
 	@Override
-	public Iterable<T> findAll(Predicate predicate,
-			PredicateContext predicateContext, OrderSpecifier<?>... orders) {
+	public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, OrderSpecifier<?>... orders) {
 		JPQLQuery query = createQuery(predicate, predicateContext);
 		query = querydsl.applySorting(new QSort(orders), query);
 		return query.list(path);
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable,
-			PredicateContext predicateContext) {
+	public Page<T> findAll(Predicate predicate, PredicateContext predicateContext, Pageable pageable) {
 		JPQLQuery countQuery = createQuery(predicate, predicateContext);
-		JPQLQuery query = querydsl.applyPagination(pageable,
-				createQuery(predicate,predicateContext));
+		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate, predicateContext));
 
 		Long total = countQuery.count();
-		List<T> content = total > pageable.getOffset() ? query.list(path)
-				: Collections.<T> emptyList();
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
 		return new PageImpl<T>(content, pageable, total);
 	}
 
@@ -103,11 +95,10 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 		return createQuery(predicate, predicateContext).count();
 	}
 
-	protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query,
-			PredicateContext context) {
+	protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query, PredicateContext context) {
 		for (Join join : context.getJoins()) {
 			if (join.isCollection())
-				query = query.leftJoin((CollectionPath) join.getPath(),pathBuilderFactory.create(join.getType()));
+				query = query.leftJoin((CollectionPath) join.getPath(), pathBuilderFactory.create(join.getType()));
 			else
 				query = query.leftJoin((EntityPath) join.getPath());
 			if (join.isFetch())
@@ -116,8 +107,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 		return query;
 	}
 
-	protected JPQLQuery createQuery(Predicate predicate,
-			PredicateContext context) {
+	protected JPQLQuery createQuery(Predicate predicate, PredicateContext context) {
 		AbstractJPAQuery<JPAQuery> query = querydsl.createQuery(path);
 		query = addJoins(query, context);
 		query.where(predicate);
@@ -141,8 +131,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable>
 			return query;
 		}
 
-		EntityGraph<?> entityGraph = Jpa21Utils.tryGetFetchGraph(em,
-				jpaEntityGraph);
+		EntityGraph<?> entityGraph = Jpa21Utils.tryGetFetchGraph(em, jpaEntityGraph);
 
 		if (entityGraph == null) {
 			return query;

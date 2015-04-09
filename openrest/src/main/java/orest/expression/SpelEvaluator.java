@@ -17,7 +17,12 @@ public class SpelEvaluator {
 	private final EvaluationContext evaluationContext;
 
 	public SpelEvaluator(Object target, BeanFactory beanFactory) {
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext(new TargetWrapper(target));
+		this(target, beanFactory, true);
+	}
+
+	public SpelEvaluator(Object target, BeanFactory beanFactory, boolean wrap) {
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext(wrap ? new TargetWrapper(target)
+				: target);
 		evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		this.evaluationContext = evaluationContext;
 		this.parser = new SpelExpressionParser();
@@ -28,13 +33,19 @@ public class SpelEvaluator {
 		Value annotation = field.getAnnotation(Value.class);
 		return evaluate(annotation);
 	}
-	
+
 	private Object evaluate(Value annotation) {
 		if (annotation == null) {
 			return null;
 		}
 		Expression expression = parser.parseExpression(annotation.value(), parserContext);
 		return expression.getValue(evaluationContext);
+	}
+
+	public Boolean evaluateAsBoolean(String exp) {
+		Expression expression = parser.parseExpression(exp, parserContext);
+		return org.springframework.security.access.expression.ExpressionUtils.evaluateAsBoolean(expression,
+				evaluationContext);
 	}
 
 	public static class TargetWrapper {

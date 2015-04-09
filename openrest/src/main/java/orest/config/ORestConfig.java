@@ -14,13 +14,18 @@ import orest.expression.ExpressionBuilder;
 import orest.expression.SpelEvaluatorBean;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.Expand;
-import orest.expression.registry.ProjectionExpandsRegistry;
+import orest.expression.registry.ExpressionMethodInformation.Join;
+import orest.expression.registry.ProjectionInfo;
+import orest.expression.registry.ProjectionInfoRegistry;
 import orest.json.DtoAwareDeserializerModifier;
+import orest.mvc.NonOrestRequestsInterceptor;
 import orest.parser.FilterStringParser;
 import orest.security.ExpressionEvaluator;
+import orest.security.Secure;
 import orest.security.SecurityExpressionContextHolder;
 import orest.security.SecurityExpressionContextHolderImpl;
 import orest.security.SimpleSecurityExpressionHandler;
+import orest.validation.UpdateValidationContext;
 import orest.webmvc.support.OpenRestEntityLinks;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -45,6 +50,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.util.Assert;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,8 +60,9 @@ import com.mysema.query.types.path.PathBuilderFactory;
 
 /**
  * 
- * Main application configuration for OPEN REST. Import it to your application's main configuration class and add
- * {@link @EnableJpaRepositories(repositoryFactoryBeanClass =
+ * Main application configuration for OPEN REST. Import it to your application's
+ * main configuration class and add {@link
+ * @EnableJpaRepositories(repositoryFactoryBeanClass =
  * ExpressionJpaFactoryBean.class)}.
  * 
  * @author Szymon Konicki
@@ -91,6 +98,12 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	}
 
 	@Bean
+	@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+	public UpdateValidationContext getUpdateValidationContext() {
+		return new UpdateValidationContext();
+	}
+
+	@Bean
 	public SimpleSecurityExpressionHandler simpleSecurityExpressionHandler() {
 		Assert.notNull(applicationContext);
 		SimpleSecurityExpressionHandler expressionHandler = new SimpleSecurityExpressionHandler();
@@ -114,12 +127,13 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public ExpressionEvaluator expressionEvaluator() {
-		return new ExpressionEvaluator(simpleSecurityExpressionHandler().getExpressionParser(), expressionContextHolder());
+		return new ExpressionEvaluator(simpleSecurityExpressionHandler().getExpressionParser(),
+				expressionContextHolder());
 	}
 
 	@Bean
 	public ExpressionBuilder expressionBuilder() {
-		return new ExpressionBuilder(defaultConversionService, expressionEvaluator(), entityExpressionMethodsRegistry());
+		return new ExpressionBuilder(defaultConversionService, expressionEvaluator());
 	}
 
 	@Override
@@ -128,8 +142,9 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		List<HttpMessageConverter<?>> messageConverters = defaultMessageConverters();
 		configureHttpMessageConverters(messageConverters);
 		DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver resolver = new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
-				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(), new DomainObjectReader(persistentEntities,
-						resourceMappings()), dtoDomainRegistry, entityFromDtoCreator());
+				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(),
+				new DomainObjectReader(persistentEntities, resourceMappings()), dtoDomainRegistry,
+				entityFromDtoCreator());
 		resolver.setValidate(true);
 		resolver.setValidator(validator);
 		resolver.setSpelEvaluatorBean(spelEvaluatorBean());
@@ -137,9 +152,11 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	}
 
 	public SimpleModule dtoAwareDeserializerModifierModule() {
-		SimpleModule simpleModule = new SimpleModule("ModuleWithDtoAwareDeserializerModifier", new Version(1, 0, 0, "SNAPSHOT", "stalkon", "orest"));
+		SimpleModule simpleModule = new SimpleModule("ModuleWithDtoAwareDeserializerModifier", new Version(1, 0, 0,
+				"SNAPSHOT", "stalkon", "orest"));
 		AssociationLinks associationLinks = new AssociationLinks(resourceMappings());
-		simpleModule.setDeserializerModifier(new DtoAwareDeserializerModifier(persistentEntities, uriToEntityConverter(), associationLinks, dtoDomainRegistry));
+		simpleModule.setDeserializerModifier(new DtoAwareDeserializerModifier(persistentEntities,
+				uriToEntityConverter(), associationLinks, dtoDomainRegistry));
 		return simpleModule;
 
 	}
@@ -161,7 +178,9 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public DefaultEntityFromDtoCreator entityFromDtoCreator() {
-		return new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory, persistentEntities());
+		DefaultEntityFromDtoCreator creator = new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory,
+				persistentEntities());
+		return creator;
 	}
 
 	@Bean
@@ -171,27 +190,34 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public OpenRestEntityLinks entityLinks() {
-		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(), backendIdConverterRegistry());
+		return new OpenRestEntityLinks(repositories(), resourceMappings(), config(), pageableResolver(),
+				backendIdConverterRegistry());
 	}
 
 	@Bean
-	public ProjectionExpandsRegistry projectionExpandsRegistry() {
+	public ProjectionInfoRegistry projectionExpandsRegistry() {
 		Set<String> packagesToScan = new HashSet<String>();
 
 		for (Class<?> domainType : repositories()) {
 			packagesToScan.add(domainType.getPackage().getName());
 		}
 
-		Set<Class<?>> expandedProjections = new AnnotatedTypeScanner(Expand.class).findTypes(packagesToScan);
-		ProjectionExpandsRegistry expandsRegistry = new ProjectionExpandsRegistry();
-		for (Class<?> expandedProjection : expandedProjections) {
-			Projection projection = AnnotationUtils.findAnnotation(expandedProjection, Projection.class);
-			Expand expand = AnnotationUtils.findAnnotation(expandedProjection, Expand.class);
-			if (projection == null)
-				continue;
-			for (Class<?> entityType : projection.types()) {
+		Set<Class<?>> projections = new AnnotatedTypeScanner(Projection.class).findTypes(packagesToScan);
+
+		ProjectionInfoRegistry expandsRegistry = new ProjectionInfoRegistry();
+		for (Class<?> projection : projections) {
+			Projection projectionAnn = AnnotationUtils.findAnnotation(projection, Projection.class);
+
+			Expand expand = AnnotationUtils.findAnnotation(projection, Expand.class);
+			Secure secure = AnnotationUtils.findAnnotation(projection, Secure.class);
+			for (Class<?> entityType : projectionAnn.types()) {
 				PathBuilder<?> builder = new PathBuilderFactory().create(entityType);
-				expandsRegistry.addExpand(projection.name(), expand.value(), entityType, builder);
+				List<Join> expands = null;
+				if (expand != null) {
+					expands = ProjectionInfoRegistry.getExpands(expand.value(), entityType, builder);
+				}
+				ProjectionInfo projectionInfo = new ProjectionInfo(expands, secure == null ? null : secure.value());
+				expandsRegistry.put(projectionAnn.name(), entityType, projectionInfo);
 			}
 		}
 		return expandsRegistry;
@@ -208,11 +234,22 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes(packagesToScan);
 		for (Class<?> dtoClass : candidates) {
 			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
-			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass, dtoAnn.entityCreatorType(), dtoAnn.entityMergerType());
+			Secure secure = AnnotationUtils.findAnnotation(dtoClass, Secure.class);
+			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass,
+					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type(), secure == null ? null
+							: secure.value());
 			registry.put(dtoClass, dtoInfo);
 			if (!dtoInfo.getName().isEmpty())
 				registry.put(dtoInfo.getName(), dtoInfo);
 		}
 		return registry;
 	}
+
+	@Override
+	public RequestMappingHandlerMapping repositoryExporterHandlerMapping() {
+		RequestMappingHandlerMapping mapping = super.repositoryExporterHandlerMapping();
+		mapping.setInterceptors(new Object[] { new NonOrestRequestsInterceptor(super.baseUri()) });
+		return mapping;
+	}
+
 }

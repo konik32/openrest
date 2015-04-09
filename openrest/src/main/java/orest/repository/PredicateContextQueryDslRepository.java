@@ -19,7 +19,7 @@ public interface PredicateContextQueryDslRepository<T> extends QueryDslPredicate
 	T findOne(Predicate predicate, PredicateContext predicateContext);
 	Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext);
 	Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, OrderSpecifier<?>... orders);
-	Page<T> findAll(Predicate predicate, Pageable pageable, PredicateContext predicateContext);
+	Page<T> findAll(Predicate predicate, PredicateContext predicateContext,Pageable pageable);
 	long count(Predicate predicate, PredicateContext predicateContext);
 	
 }

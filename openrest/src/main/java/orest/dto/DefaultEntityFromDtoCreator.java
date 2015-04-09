@@ -16,9 +16,14 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import lombok.Setter;
+import orest.dto.Dto.DtoType;
+import orest.security.ExpressionEvaluator;
+
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.context.PersistentEntities;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
@@ -38,6 +43,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 	private final DtoDomainRegistry registry;
 	private final BeanFactory beanFactory;
 	private final PersistentEntities persistentEntities;
+
+
 
 	final static HashMap<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
 	static {
@@ -69,6 +76,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object create(Object from, DtoInformation dtoInfo) {
+		if (dtoInfo.getType() == DtoType.MERGE)
+			throw new IllegalStateException("Cannot use merge dto to create entity");
 		if (!dtoInfo.getEntityCreatorType().equals(DefaultEntityFromDtoCreator.class)) {
 			EntityFromDtoCreator<Object, Object> creator = (EntityFromDtoCreator<Object, Object>) beanFactory
 					.getBean(dtoInfo.getEntityCreatorType());
@@ -149,6 +158,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 
 	@Override
 	public void merge(Object from, Object entity, DtoInformation dtoInfo) {
+		if (dtoInfo.getType() == DtoType.CREATE)
+			throw new IllegalStateException("Cannot use create dto to merge with entity");
 		if (!dtoInfo.getEntityMergerType().equals(DefaultEntityFromDtoCreator.class)) {
 			EntityFromDtoMerger<Object, Object> creator = (EntityFromDtoMerger<Object, Object>) beanFactory
 					.getBean(dtoInfo.getEntityMergerType());
@@ -172,7 +183,7 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				if (Collection.class.isAssignableFrom(field.getType())) {
 					doWithCollectionField(from, field, entityField, entity);
 				} else {
-					mergeSingleField(entityField, entityField, entity, value);
+					mergeSingleField(entityField, field, entity, value);
 				}
 			}
 		}, new FieldFilter() {
@@ -184,7 +195,8 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		});
 	}
 
-	private void mergeSingleField(Field entityField, Field field, Object entity, Object value) throws IllegalArgumentException, IllegalAccessException{
+	private void mergeSingleField(Field entityField, Field field, Object entity, Object value)
+			throws IllegalArgumentException, IllegalAccessException {
 		if (persistentEntities.getPersistentEntity(entityField.getType()) == null) {
 			setEntityField(entity, entityField, value);
 		} else {
@@ -193,10 +205,22 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				return;
 			if (subDtoInfo == null)
 				mergeByFields(value, entity);
-			else
-				merge(value, entityField.get(entity), subDtoInfo);
+			else {
+				Object entityFieldValue = entityField.get(entity);
+				if (entityFieldValue == null) {
+					if (subDtoInfo.getType() == DtoType.MERGE)
+						throw new IllegalStateException("Entity of type " + entityField.getType()
+								+ " is null. Cannot merge with null object");
+					else
+						setEntityField(entity, entityField, create(value, subDtoInfo));
+				} else {
+					merge(value, entityFieldValue, subDtoInfo);
+				}
+			}
+
 		}
 	}
+
 	private void setEntityField(Object entity, Field entityField, Object value) throws IllegalAccessException,
 			IllegalArgumentException {
 		try {
@@ -226,5 +250,7 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		}
 		return true;
 	}
+
+
 
 }
