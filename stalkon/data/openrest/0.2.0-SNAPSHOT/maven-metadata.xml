@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>stalkon.data</groupId>
+  <artifactId>openrest</artifactId>
+  <version>0.2.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20150423.143128</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20150423143128</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>0.2.0-20150423.143128-1</value>
+        <updated>20150423143128</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>0.2.0-20150423.143128-1</value>
+        <updated>20150423143128</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
