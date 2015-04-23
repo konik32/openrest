@@ -21,6 +21,7 @@ import orest.json.DtoAwareDeserializerModifier;
 import orest.mvc.NonOrestRequestsInterceptor;
 import orest.parser.FilterStringParser;
 import orest.security.ExpressionEvaluator;
+import orest.security.RequestScopedExpressionEvaluator;
 import orest.security.Secure;
 import orest.security.SecurityExpressionContextHolder;
 import orest.security.SecurityExpressionContextHolderImpl;
@@ -39,6 +40,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
+import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.PersistentEntityResourceHandlerMethodArgumentResolver;
@@ -127,8 +129,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public ExpressionEvaluator expressionEvaluator() {
-		return new ExpressionEvaluator(simpleSecurityExpressionHandler().getExpressionParser(),
-				expressionContextHolder());
+		return new RequestScopedExpressionEvaluator();
 	}
 
 	@Bean
@@ -156,7 +157,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 				"SNAPSHOT", "stalkon", "orest"));
 		AssociationLinks associationLinks = new AssociationLinks(resourceMappings());
 		simpleModule.setDeserializerModifier(new DtoAwareDeserializerModifier(persistentEntities,
-				uriToEntityConverter(), associationLinks, dtoDomainRegistry));
+				new UriToEntityConverter(persistentEntities(), defaultConversionService()), associationLinks,
+				dtoDomainRegistry));
 		return simpleModule;
 
 	}

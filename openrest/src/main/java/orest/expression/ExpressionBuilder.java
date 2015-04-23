@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
 import orest.parser.FilterPart;
@@ -143,4 +142,6 @@ public class ExpressionBuilder {
 		ReflectionUtils.makeAccessible(method);
 		return (BooleanExpression) ReflectionUtils.invokeMethod(method, repository, params);
 	}
+	
+	
 }

@@ -9,7 +9,6 @@ import orest.validation.UpdateValidationContext;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 
 public class ExpressionValidValidator implements ConstraintValidator<ExpressionValid, Object> {
 

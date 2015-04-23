@@ -1,6 +1,5 @@
 package orest.mvc;
 
-import java.net.URI;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +20,7 @@ public class NonOrestRequestsInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		String lookupPath = baseUri.getRepositoryLookupPath(request.getRequestURI());
-		if (StringUtils.isEmpty(lookupPath))
+		if (StringUtils.isEmpty(lookupPath) || lookupPath.matches(".+\\/search.*"))
 			return true;
 		String method = request.getMethod();
 		if (method.equals("GET")) {

@@ -16,14 +16,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import lombok.Setter;
 import orest.dto.Dto.DtoType;
-import orest.security.ExpressionEvaluator;
-
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;

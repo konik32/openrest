@@ -1,8 +1,5 @@
 package orest.validation;
 
-
-import lombok.Data;
-
 public class UpdateValidationContext {
 
 	private Object dto;
