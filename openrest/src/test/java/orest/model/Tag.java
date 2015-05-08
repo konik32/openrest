@@ -11,8 +11,6 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Setter
 @Entity
 public class Tag extends AbstractPersistable<Long>{
-
-	
 	
 	/**
 	 * 

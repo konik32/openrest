@@ -74,9 +74,9 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
 	}
 
 	@Override
-	public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, OrderSpecifier<?>... orders) {
+	public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, QSort sort) {
 		JPQLQuery query = createQuery(predicate, predicateContext);
-		query = querydsl.applySorting(new QSort(orders), query);
+		query = querydsl.applySorting(sort, query);
 		return query.list(path);
 	}
 

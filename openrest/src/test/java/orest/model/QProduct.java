@@ -9,6 +9,7 @@ import com.mysema.query.types.PathMetadata;
 import com.mysema.query.types.path.EntityPathBase;
 import com.mysema.query.types.path.NumberPath;
 import com.mysema.query.types.path.PathInits;
+import com.mysema.query.types.path.SetPath;
 import com.mysema.query.types.path.StringPath;
 
 /**
@@ -34,6 +35,8 @@ public class QProduct extends EntityPathBase<Product> {
 	public final NumberPath<Integer> productionYear = createNumber("productionYear", Integer.class);
 
 	public final QUser user;
+	
+    public final SetPath<Tag, QTag> tags = this.<Tag, QTag>createSet("tags", Tag.class, QTag.class, PathInits.DIRECT2);
 
 	public QProduct(String variable) {
 		this(Product.class, forVariable(variable), INITS);

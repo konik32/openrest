@@ -13,6 +13,7 @@
 	</distributionManagement>
 	<properties>
 		<github.global.server>github</github.global.server>
+		
 	</properties>
 	<build>
 		<plugins>

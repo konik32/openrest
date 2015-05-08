@@ -16,7 +16,7 @@ import org.springframework.data.repository.support.Repositories;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
-import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.Expression;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
@@ -56,7 +56,7 @@ public class EntityExpressionMethodsRegistry implements InitializingBean {
 		Method methods[] = ReflectionUtils.getAllDeclaredMethods(repository.getClass());
 		ExpressionMethodRegistry methodMappings = new ExpressionMethodRegistry();
 		for (Method m : methods) {
-			if (BooleanExpression.class.isAssignableFrom(m.getReturnType())) {
+			if (Expression.class.isAssignableFrom(m.getReturnType())) {
 				ExpressionMethod ann = AnnotationUtils.findAnnotation(m, ExpressionMethod.class);
 				ExpressionMethodInformation methodInfo = MethodInformationFactory.create(entityType, m, builder);
 				if (ann == null || ann.exported())

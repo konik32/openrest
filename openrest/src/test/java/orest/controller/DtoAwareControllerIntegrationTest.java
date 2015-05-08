@@ -1,6 +1,7 @@
 package orest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
+
 import orest.Application;
 import org.junit.Test;
 import org.junit.runner.RunWith;

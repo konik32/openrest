@@ -1,7 +1,14 @@
 package orest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import orest.Application;
 
 import org.junit.Test;
@@ -23,6 +30,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, DbUnitTestExecutionListener.class })
 @DatabaseSetup("classpath:/products.xml")
 public class ExpressionControllerIntegrationTest {
+
 
 	@Test
 	public void doesControllerReturnNotFoundOnUserResourceFilteredByStaticFilter() {
@@ -60,5 +68,10 @@ public class ExpressionControllerIntegrationTest {
 		given().param("orest").when().get("/products/search/nameLike(AGD)").then().assertThat()
 				.body("page", nullValue()).and().body("_embedded.products", hasSize(22));
 	}
+	
+//	@Test
+//	public void doesControllerSort() {
+//		given().param("orest").param("sort", "tagsSize,asc").when().get("/products").prettyPrint();
+//	}
 
 }

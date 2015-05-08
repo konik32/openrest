@@ -1,5 +1,6 @@
 package orest.config;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,10 @@ import orest.expression.registry.ExpressionMethodInformation.Join;
 import orest.expression.registry.ProjectionInfo;
 import orest.expression.registry.ProjectionInfoRegistry;
 import orest.json.DtoAwareDeserializerModifier;
+import orest.mvc.DefaultedQPageableHandlerMethodArgumentResolver;
+import orest.mvc.HateoasQSortHandlerMethodArgumentResolver;
 import orest.mvc.NonOrestRequestsInterceptor;
+import orest.mvc.QSortMethodArgumentResolver;
 import orest.parser.FilterStringParser;
 import orest.security.ExpressionEvaluator;
 import orest.security.RequestScopedExpressionEvaluator;
@@ -28,6 +32,7 @@ import orest.security.SecurityExpressionContextHolderImpl;
 import orest.security.SimpleSecurityExpressionHandler;
 import orest.validation.UpdateValidationContext;
 import orest.webmvc.support.OpenRestEntityLinks;
+import orest.webmvc.support.PageAndSortUtils;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +50,17 @@ import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.PersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
+import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.data.rest.webmvc.mapping.AssociationLinks;
 import org.springframework.data.util.AnnotatedTypeScanner;
+import org.springframework.data.web.HateoasSortHandlerMethodArgumentResolver;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.util.Assert;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.fasterxml.jackson.core.Version;
@@ -72,6 +81,7 @@ import com.mysema.query.types.path.PathBuilderFactory;
  */
 @Configuration
 public class ORestConfig extends RepositoryRestMvcConfiguration {
+
 	@Autowired
 	private Repositories repositories;
 	@Autowired
@@ -93,6 +103,9 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Autowired(required = false)
 	private Validator validator;
+
+	@Autowired
+	private PageableHandlerMethodArgumentResolver pageableResolver;
 
 	@Bean
 	public EntityExpressionMethodsRegistry entityExpressionMethodsRegistry() {
@@ -247,11 +260,47 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		return registry;
 	}
 
+	@Bean
+	public PageAndSortUtils pageAndSortUtils() {
+		return new PageAndSortUtils(expressionBuilder(), filterStringParser());
+	}
+
+	protected QSortMethodArgumentResolver qSortmethodArgumentResolver() {
+		return new QSortMethodArgumentResolver(sortResolver(), pageAndSortUtils(),
+				resourceMetadataHandlerMethodArgumentResolver(), entityExpressionMethodsRegistry());
+	}
+
+	protected DefaultedQPageableHandlerMethodArgumentResolver defaultedPageableResolver() {
+		return new DefaultedQPageableHandlerMethodArgumentResolver(pageableResolver, pageAndSortUtils(),
+				resourceMetadataHandlerMethodArgumentResolver(), entityExpressionMethodsRegistry());
+	}
+
 	@Override
 	public RequestMappingHandlerMapping repositoryExporterHandlerMapping() {
 		RequestMappingHandlerMapping mapping = super.repositoryExporterHandlerMapping();
 		mapping.setInterceptors(new Object[] { new NonOrestRequestsInterceptor(super.baseUri()) });
 		return mapping;
+	}
+
+	@Override
+	protected List<HandlerMethodArgumentResolver> defaultMethodArgumentResolvers() {
+		// TODO Auto-generated method stub
+		List<HandlerMethodArgumentResolver> resolvers = super.defaultMethodArgumentResolvers();
+		List<HandlerMethodArgumentResolver> newResolvers  = new ArrayList<HandlerMethodArgumentResolver>(resolvers.size() + 1);
+		newResolvers.add(defaultedPageableResolver());
+		for(int i =1 ; i< resolvers.size(); i++){
+			newResolvers.add(resolvers.get(i));
+		}
+		newResolvers.add(qSortmethodArgumentResolver());
+		return newResolvers;
+	}
+	
+	@Bean
+	@Override
+	public HateoasSortHandlerMethodArgumentResolver sortResolver() {
+		HateoasQSortHandlerMethodArgumentResolver resolver = new HateoasQSortHandlerMethodArgumentResolver();
+		resolver.setSortParameter(config().getSortParamName());
+		return resolver;
 	}
 
 }

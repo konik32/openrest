@@ -33,7 +33,10 @@ public class FilterStringParser {
 			FilterPart filterAndPart = new FilterPart(FilterPartType.AND);
 			for (String andPart : orPart.split(AND_SPLITTER)) {
 				MethodParts methodParts = getMethodParts(andPart);
-				ExpressionMethodInformation expressionMethodInformation = getExpressionMethodInformation(methodParts.name, expEntityInfo);
+				ExpressionMethodInformation expressionMethodInformation = getExpressionMethodInformation(
+						methodParts.name, expEntityInfo);
+				if (expressionMethodInformation == null)
+					throw new FilterParserException(methodParts.name + " method not found");
 				filterAndPart.addPart(new FilterPart(expressionMethodInformation, methodParts.getParameters()));
 			}
 			filterOrPart.addPart(filterAndPart);
@@ -56,18 +59,26 @@ public class FilterStringParser {
 		if (name.startsWith(SEARCH_METHOD_PREFIX))
 			name = name.replace(SEARCH_METHOD_PREFIX, "");
 		MethodParts methodParts = getMethodParts(name);
-		ExpressionMethodInformation methodInformation = getExpressionMethodInformation(methodParts.getName(), expEntityInfo);
+		ExpressionMethodInformation methodInformation = getExpressionMethodInformation(methodParts.getName(),
+				expEntityInfo);
+		if (methodInformation == null)
+			throw new FilterParserException(name + " method not found");
 		if (methodInformation.getMethodType() != MethodType.SEARCH)
 			throw new FilterParserException(name + " is not search method");
 		return new FilterPart(methodInformation, methodParts.parameters);
 	}
-	
-	
-	private ExpressionMethodInformation getExpressionMethodInformation(String name, ExpressionEntityInformation expEntityInfo) {
+
+	public FilterPart getMethodFilterPart(String name, ExpressionEntityInformation expEntityInfo) {
+		MethodParts methodParts = getMethodParts(name);
+		ExpressionMethodInformation methodInformation = getExpressionMethodInformation(methodParts.getName(),
+				expEntityInfo);
+		return new FilterPart(methodInformation, methodParts.parameters);
+	}
+
+	private ExpressionMethodInformation getExpressionMethodInformation(String name,
+			ExpressionEntityInformation expEntityInfo) {
 		name = WordUtils.uncapitalize(name);
 		ExpressionMethodInformation methodInfo = expEntityInfo.getMethodInformation(name);
-		if (methodInfo == null)
-			throw new FilterParserException(name + " method not found");
 		return methodInfo;
 	}
 

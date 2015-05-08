@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
+import orest.expression.registry.ExpressionMethodInformation.Join;
 import orest.parser.FilterPart;
 import orest.parser.FilterPart.FilterPartType;
 import orest.repository.ExpressionUtils;
@@ -20,6 +21,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.hateoas.core.MethodParameters;
 import org.springframework.util.ReflectionUtils;
 
+import com.mysema.query.types.Expression;
 import com.mysema.query.types.expr.BooleanExpression;
 
 @RequiredArgsConstructor
@@ -28,46 +30,54 @@ public class ExpressionBuilder {
 	private final ConversionService defaultConversionService;
 	private final ExpressionEvaluator expressionEvaluator;
 
-	public BooleanExpression createIdEqualsExpression(String value, ExpressionEntityInformation expressionEntityInformation) {
+	public BooleanExpression createIdEqualsExpression(String value,
+			ExpressionEntityInformation expressionEntityInformation) {
 		if (value == null)
 			return null;
 		PersistentEntity<?, ?> pe = expressionEntityInformation.getPersistentEntity();
 		PersistentProperty<?> idProperty = pe.getIdProperty();
 		Object idValue = defaultConversionService.convert(value, idProperty.getActualType());
-		return ExpressionUtils.getPathBuilder(expressionEntityInformation.getEntityType()).get(idProperty.getName()).eq(idValue);
+		return ExpressionUtils.getPathBuilder(expressionEntityInformation.getEntityType()).get(idProperty.getName())
+				.eq(idValue);
 	}
 
-	public BooleanExpression createStaticFiltersExpression(PredicateContext predicateContext, ExpressionEntityInformation expressionEntityInformation) {
-		List<ExpressionMethodInformation> staticFitlersMethods = expressionEntityInformation.getMethodRegistry().getStaticFilters();
+	public BooleanExpression createStaticFiltersExpression(PredicateContext predicateContext,
+			ExpressionEntityInformation expressionEntityInformation) {
+		List<ExpressionMethodInformation> staticFitlersMethods = expressionEntityInformation.getMethodRegistry()
+				.getStaticFilters();
 		BooleanExpression exp = null;
 		for (ExpressionMethodInformation mInfo : staticFitlersMethods) {
 			if (expressionEvaluator.checkCondition(mInfo.getStaticFilter().getCondition()))
 				continue;
-			BooleanExpression staticExp = getExpression(mInfo.getMethod(), mInfo.getStaticFilter().getParameters(),
-					expressionEntityInformation.getExpressionRepository(), true);
-			predicateContext.addJoins(mInfo.getJoins());
+			BooleanExpression staticExp = (BooleanExpression) getExpression(mInfo.getMethod(), mInfo.getStaticFilter()
+					.getParameters(), expressionEntityInformation.getExpressionRepository(), true);
+			populatePredicateContext(predicateContext, mInfo.getJoins());
 			exp = exp == null ? staticExp : exp.and(staticExp);
 		}
 		return exp;
 	}
 
-//	public BooleanExpression createJoinsStaticFiltersExpression(PredicateContext predicateContext) {
-//		BooleanExpression exp = null;
-//		List<Join> subJoins = new ArrayList<Join>();
-//		for (Join join : predicateContext.getJoins()) {
-//			ExpressionEntityInformation entityInfo = entityExpressionMethodsRegistry.getEntityInformation(join.getType());
-//			if (entityInfo == null)
-//				continue;
-//			PredicateContext subPredicateContext = new PredicateContext();
-//			BooleanExpression staticExp = createStaticFiltersExpression(subPredicateContext, entityInfo);
-//			exp = exp == null ? staticExp : exp.and(staticExp);
-//			BooleanExpression subJoinsExp = createJoinsStaticFiltersExpression(subPredicateContext);
-//			subJoins.addAll(subPredicateContext.getJoins());
-//			exp = exp == null ? subJoinsExp : exp.and(subJoinsExp);
-//		}
-//		predicateContext.addJoins(subJoins);
-//		return exp;
-//	}
+	// public BooleanExpression
+	// createJoinsStaticFiltersExpression(PredicateContext predicateContext) {
+	// BooleanExpression exp = null;
+	// List<Join> subJoins = new ArrayList<Join>();
+	// for (Join join : predicateContext.getJoins()) {
+	// ExpressionEntityInformation entityInfo =
+	// entityExpressionMethodsRegistry.getEntityInformation(join.getType());
+	// if (entityInfo == null)
+	// continue;
+	// PredicateContext subPredicateContext = new PredicateContext();
+	// BooleanExpression staticExp =
+	// createStaticFiltersExpression(subPredicateContext, entityInfo);
+	// exp = exp == null ? staticExp : exp.and(staticExp);
+	// BooleanExpression subJoinsExp =
+	// createJoinsStaticFiltersExpression(subPredicateContext);
+	// subJoins.addAll(subPredicateContext.getJoins());
+	// exp = exp == null ? subJoinsExp : exp.and(subJoinsExp);
+	// }
+	// predicateContext.addJoins(subJoins);
+	// return exp;
+	// }
 
 	public BooleanExpression create(FilterPart tree, PredicateContext predicateContext, Object expressionRepository) {
 		if (tree == null)
@@ -75,20 +85,33 @@ public class ExpressionBuilder {
 		return processTreeRecursively(tree, predicateContext, expressionRepository);
 	}
 
-	public BooleanExpression create(ExpressionMethodInformation expressionMethodInformation, PredicateContext predicateContext,
-			ExpressionEntityInformation expressionEntityInformation, String[] parameters) {
+	public Expression create(ExpressionMethodInformation expressionMethodInformation,
+			PredicateContext predicateContext, ExpressionEntityInformation expressionEntityInformation,
+			String[] parameters) {
 		if (expressionMethodInformation == null)
 			return null;
-		BooleanExpression exp = getExpression(expressionMethodInformation.getMethod(), parameters, expressionEntityInformation.getExpressionRepository(), false);
-		predicateContext.addJoins(expressionMethodInformation.getJoins());
+		Expression exp = getExpression(expressionMethodInformation.getMethod(), parameters,
+				expressionEntityInformation.getExpressionRepository(), false);
+		populatePredicateContext(predicateContext, expressionMethodInformation.getJoins());
 		return exp;
 	}
 
-	public BooleanExpression processTreeRecursively(FilterPart part, PredicateContext predicateContext, Object expressionRepository) {
+	public BooleanExpression createSearchMethodExpression(ExpressionMethodInformation expressionMethodInformation,
+			PredicateContext predicateContext, ExpressionEntityInformation expressionEntityInformation,
+			String[] parameters) {
+		Expression exp = create(expressionMethodInformation, predicateContext, expressionEntityInformation, parameters);
+		if (exp instanceof BooleanExpression)
+			return (BooleanExpression) exp;
+		throw new IllegalStateException("SearchExpressionMethod must return BooleanExpression");
+	}
+
+	public BooleanExpression processTreeRecursively(FilterPart part, PredicateContext predicateContext,
+			Object expressionRepository) {
 		if (part.getType() == FilterPartType.LEAF) {
 			ExpressionMethodInformation methodInfo = part.getMethodInfo();
-			predicateContext.addJoins(methodInfo.getJoins());
-			return getExpression(methodInfo.getMethod(), part.getParameters(), expressionRepository, false);
+			populatePredicateContext(predicateContext, methodInfo.getJoins());
+			return (BooleanExpression) getExpression(methodInfo.getMethod(), part.getParameters(),
+					expressionRepository, false);
 		} else {
 			BooleanExpression exp = null;
 			for (FilterPart p : part.getParts()) {
@@ -104,11 +127,12 @@ public class ExpressionBuilder {
 			return;
 		String parts[] = expand.split(",");
 		for (String part : parts) {
-			predicateContext.addJoins(ExpressionUtils.getJoins(part, ExpressionUtils.getPathBuilder(entityType), entityType, true));
+			populatePredicateContext(predicateContext,
+					ExpressionUtils.getJoins(part, ExpressionUtils.getPathBuilder(entityType), entityType, true));
 		}
 	}
 
-	private BooleanExpression getExpression(Method method, String[] params, Object expressionRepository, boolean processParams) {
+	private Expression getExpression(Method method, String[] params, Object expressionRepository, boolean processParams) {
 		Object[] parameters = prepareParameters(method, params, processParams);
 		return invokeMethod(method, parameters, expressionRepository);
 	}
@@ -130,7 +154,8 @@ public class ExpressionBuilder {
 			MethodParameter param = parameters.get(i);
 			String parameterValue = rawParameters[i];
 			if (!processParameter)
-				result[i] = defaultConversionService.convert(parameterValue, TypeDescriptor.forObject(parameterValue), new TypeDescriptor(param));
+				result[i] = defaultConversionService.convert(parameterValue, TypeDescriptor.forObject(parameterValue),
+						new TypeDescriptor(param));
 			else
 				result[i] = expressionEvaluator.processParameter(parameterValue, param.getParameterType());
 		}
@@ -138,10 +163,14 @@ public class ExpressionBuilder {
 		return result;
 	}
 
-	private BooleanExpression invokeMethod(Method method, Object[] params, Object repository) {
+	private Expression invokeMethod(Method method, Object[] params, Object repository) {
 		ReflectionUtils.makeAccessible(method);
-		return (BooleanExpression) ReflectionUtils.invokeMethod(method, repository, params);
+		return (Expression) ReflectionUtils.invokeMethod(method, repository, params);
 	}
-	
-	
+
+	private void populatePredicateContext(PredicateContext predicateContext, List<Join> joins) {
+		if (predicateContext != null)
+			predicateContext.addJoins(joins);
+	}
+
 }

@@ -17,6 +17,7 @@ import orest.security.ExpressionEvaluator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.data.rest.webmvc.support.DefaultedPageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
@@ -59,7 +60,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/search/{search}", method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> executeSearchWithFilters(RootResourceInformation rootResourceInformation,
-			DefaultedPageable pageable, Sort sort, PersistentEntityResourceAssembler assembler,
+			DefaultedPageable pageable, QSort sort, PersistentEntityResourceAssembler assembler,
 			@PathVariable String search, @RequestParam(value = "filters", required = false) String filters,
 			@RequestParam(value = "expand", required = false) String expand,
 			@RequestParam(value = "projection", required = false) String projection) {
@@ -71,7 +72,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> getCollectionWithFilters(RootResourceInformation rootResourceInformation,
-			DefaultedPageable pageable, Sort sort, PersistentEntityResourceAssembler assembler,
+			DefaultedPageable pageable, QSort sort, PersistentEntityResourceAssembler assembler,
 			@RequestParam(value = "filters", required = false) String filters,
 			@RequestParam(value = "expand", required = false) String expand,
 			@RequestParam(value = "projection", required = false) String projection) {
@@ -83,7 +84,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	@ResponseBody
 	@RequestMapping(value = BASE_MAPPING + "/{id}", method = RequestMethod.GET, params = "orest")
 	public ResponseEntity<Object> getWithFilters(RootResourceInformation rootResourceInformation,
-			DefaultedPageable pageable, Sort sort, PersistentEntityResourceAssembler assembler,
+			DefaultedPageable pageable, QSort sort, PersistentEntityResourceAssembler assembler,
 			@PathVariable("id") String id, @RequestParam(value = "filters", required = false) String filters,
 			@RequestParam(value = "expand", required = false) String expand,
 			@RequestParam(value = "projection", required = false) String projection) {
@@ -96,23 +97,23 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	}
 
 	private Iterable<Object> getResult(RootResourceInformation rootResourceInformation,
-			PersistentEntityResourceAssembler assembler, DefaultedPageable pageable, Sort sort, String filters,
+			PersistentEntityResourceAssembler assembler, DefaultedPageable pageable, QSort sort, String filters,
 			String expand, String search, String id, String projection) {
 
 		ExpressionEntityInformation expEntityInfo = entityExpressionMethodsRegistry
 				.getEntityInformation(rootResourceInformation.getDomainType());
-		ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, expEntityInfo.getEntityType());
-		authorizeProjection(projectionInfo);
 		if (expEntityInfo == null)
 			throw new ResourceNotFoundException();
+		ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, expEntityInfo.getEntityType());
+		authorizeProjection(projectionInfo);
 		FilterPart filtersPartTree = filterStringParser.getFilterPart(filters, expEntityInfo);
 		FilterPart searchMethodPart = filterStringParser.getSearchFilterPart(search, expEntityInfo);
 
 		PredicateContext predicateContext = new PredicateContext();
 		BooleanExpression searchMethodPredicate = null;
 		if (searchMethodPart != null)
-			searchMethodPredicate = expressionBuilder.create(searchMethodPart.getMethodInfo(), predicateContext,
-					expEntityInfo, searchMethodPart.getParameters());
+			searchMethodPredicate = expressionBuilder.createSearchMethodExpression(searchMethodPart.getMethodInfo(),
+					predicateContext, expEntityInfo, searchMethodPart.getParameters());
 		BooleanExpression filtersPredicate = expressionBuilder.create(filtersPartTree, predicateContext,
 				expEntityInfo.getExpressionRepository());
 		BooleanExpression staticFiltersPredicate = expressionBuilder.createStaticFiltersExpression(predicateContext,
@@ -137,7 +138,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	}
 
 	private Iterable<Object> getResult(QueryDslPredicateInvoker invoker, BooleanExpression finalExpression,
-			PredicateContext predicateContext, DefaultedPageable pageable, Sort sort, boolean defaultedPageable) {
+			PredicateContext predicateContext, DefaultedPageable pageable, QSort sort, boolean defaultedPageable) {
 		Iterable<Object> result;
 		if (pageable.getPageable() == null || (pageable.isDefault() && !defaultedPageable))
 			result = invoker.invokeFindAll(finalExpression, predicateContext, sort);
