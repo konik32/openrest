@@ -1,0 +1,94 @@
+# OpenRest
+
+OpenRest is an extension to Spring Data Rest. It is composed of two main part: filtering resources with `ExpressionMethod`'s and DTO mechanism. In Spring Data Rest you could filter reosources with query methods, but you cannot combine those methods eg. in some cases you need to filter products by it price, in some by price and category and in others by category and shop. For each of those cases you would have to define separate query method. In OpenRest you can define each of those filters separately (priceGt, categoryIn, shopIdEq etc.) and combine them later. 
+
+## @ExpressionRepository
+
+`@ExpressionRepository` is an annotation that marks a class which holds set of `ExpressionMethod`'s. It takes two parameters 
+
+- `value` - entity type
+- `defaultedPageable` - if set to `true` resources will be returned without pagination
+
+```
+@ExpressionRepository(User.class)
+public class UserExpressions {
+
+    @ExpressionMethod
+  	public BooleanExpression usernameEq(String username){
+  		return QUser.user.username.eq(username);
+  	}
+  	@ExpressionMethod
+  	public BooleanExpression emailEq(String email){
+  		return QUser.user.email.eq(email);
+  	}
+  	@ExpressionMethod
+  	public BooleanExpression active(){
+  		return QUser.user.active.eq(true);
+  	}
+}
+```
+
+## ExpressionMethod
+
+`@ExpressionMethod` is an annotation which is used to mark methods that could be referenced in GET requests. There are three types of `ExpressionMethod`'s:
+
+- filter - `ExpressionMethod`'s that return QueryDsl `BooleanExpression`. Those methods could be referenced in `filter` parameter
+- search - `ExpressionMethod` that could be used like query methods (`/resource/search/search_expression_method`). Those methods should also return `BooleanExpression`.
+- sort - `ExpressionMethod`'s that returns QueryDsl `NumberExpression`. Those methods could be referenced in sort parameter
+
+`@ExpressionMethod` parameters:
+- `exported` - flag which indicates whether a method could be referenced in GET request
+- `name`
+- `searchMethod` - flag to mark method as search method
+- `defaultedPageable` - if set to `true` resources will be returned without pagination. This parameter can be used only when search param is set to true
+- `joins` - array of `Join`'s that need to be added to query when `ExpressionMethod` is used.
+
+#### Join
+
+`@Join` parameters:
+
+- `value` - entity association name that will be left joined with entity
+- `fetch` - flag indicating whether associations should be fetched
+
+## StaticFilter
+
+`@StaticFilter` is an annotation to mark expression method as static filter. Returned `BooleanExpression` will be added to every request for entity.
+
+`@StaticFilter` parameters:
+
+- `parameters` - array of SpEl Strings that after evaluation will be passed to expression method as its parameters
+- `offOnCondition` - SpEL String that has to evaluate to boolean. If true static filter won't be added to query. 
+
+## Expand
+
+Associations specified in '@Expand` value parameter will be fetched with projected entity. This annotation could only by added to classes annotated with Spring Data Rest Projection. Resources could also be expanded by adding `expand` parameter to query.
+
+## Secure
+
+`@Secure` annotation could be added to classes marked with `@Projection` and `@Dto`. SpEL expression specified in annotation value is evaluated with Spring Security Context. If expression evaluate to false, Access Denied exception is thrown.
+
+## GET requests
+
+OpenRest GET request has its own syntax:
+
+`GET /resource/search/expression_search_method(param1;param2)?orest&filter=expression_method(param1;);or;expression_method;and;expression_method...`
+
+`GET /resource?orest&filter=expression_method;or;expression_method;and;expression_method...`
+
+- `orest` parameter is non-optional
+- if `ExpressionMethod` has any optional parameter it can be ommited eg. `priceBetween(1;)` `priceBetween(;2)`
+- if `ExpressionMethod` does not have any parameters then brackets should be ommitted
+- available logical operators:
+  - `;or;`
+  - `;and;`
+
+## DTO mechanism
+
+OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. 
+
+
+
+
+
+
+
