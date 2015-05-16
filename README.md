@@ -80,6 +80,7 @@ OpenRest GET request has its own syntax:
 - `orest` parameter is non-optional
 - if `ExpressionMethod` has any optional parameter it can be ommited eg. `priceBetween(1;)` `priceBetween(;2)`
 - if `ExpressionMethod` does not have any parameters then brackets should be ommitted
+- if there is no `ExpressionRepository` for entity OpenRest will return status code 404
 - available logical operators:
   - `;or;`
   - `;and;`
