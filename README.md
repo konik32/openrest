@@ -1,3 +1,5 @@
+# IN PROGRESS 
+
 # OpenRest
 
 OpenRest is an extension to Spring Data Rest. It is composed of two main part: filtering resources with `ExpressionMethod`'s and DTO mechanism. In Spring Data Rest you could filter reosources with query methods, but you cannot combine those methods eg. in some cases you need to filter products by it price, in some by price and category and in others by category and shop. For each of those cases you would have to define separate query method. In OpenRest you can define each of those filters separately (priceGt, categoryIn, shopIdEq etc.) and combine them later. 
