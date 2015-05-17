@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * Annotation to mark class that declares {@link ExpressionMethod}s for entity
  * specified in value.
  * 
- * @author szymon
+ * @author Szymon Konicki
  *
  */
 

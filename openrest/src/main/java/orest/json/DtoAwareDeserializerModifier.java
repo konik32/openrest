@@ -3,6 +3,7 @@ package orest.json;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
+import java.util.Map;
 
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
@@ -13,7 +14,8 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.rest.core.UriToEntityConverter;
-import org.springframework.data.rest.webmvc.mapping.AssociationLinks;
+import org.springframework.data.rest.core.mapping.ResourceMappings;
+import org.springframework.data.rest.core.mapping.ResourceMetadata;
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.util.Assert;
 
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
@@ -32,65 +35,63 @@ import com.fasterxml.jackson.databind.type.CollectionLikeType;
 
 public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 	private static final TypeDescriptor URI_DESCRIPTOR = TypeDescriptor.valueOf(URI.class);
-	private final AssociationLinks associationLinks;
+	private final ResourceMappings resourceMappings;
 	private final UriToEntityConverter converter;
 	private final PersistentEntities repositories;
 	private final DtoDomainRegistry dtoDomainRegistry;
+
 	public DtoAwareDeserializerModifier(PersistentEntities repositories, UriToEntityConverter converter,
-			AssociationLinks associationLinks, DtoDomainRegistry dtoDomainRegistry) {
+			ResourceMappings resourceMappings, DtoDomainRegistry dtoDomainRegistry) {
 
 		Assert.notNull(repositories, "Repositories must not be null!");
 		Assert.notNull(converter, "UriToEntityConverter must not be null!");
-		Assert.notNull(associationLinks, "AssociationLinks must not be null!");
-		Assert.notNull(dtoDomainRegistry,"DtoDomainRegistry must not be null!");
+		Assert.notNull(resourceMappings, "ResourceMappings must not be null!");
+		Assert.notNull(dtoDomainRegistry, "DtoDomainRegistry must not be null!");
 		this.repositories = repositories;
 		this.converter = converter;
-		this.associationLinks = associationLinks;
+		this.resourceMappings = resourceMappings;
 		this.dtoDomainRegistry = dtoDomainRegistry;
 	}
-	
+
 	@Override
 	public BeanDeserializerBuilder updateBuilder(DeserializationConfig config, BeanDescription beanDesc,
 			BeanDeserializerBuilder builder) {
-		
-		
+
 		DtoInformation dtoInfo = dtoDomainRegistry.get(beanDesc.getBeanClass());
 		if (dtoInfo == null) {
 			return builder;
 		}
-		PersistentEntity<?, ?> entity = repositories.getPersistentEntity(dtoInfo.getEntityType());
+//		PersistentEntity<?, ?> entity = repositories.getPersistentEntity(dtoInfo.getEntityType());
 		Iterator<SettableBeanProperty> properties = builder.getProperties();
-		addUriDeserializers(builder, config, properties, entity);
+		addUriDeserializers(builder, config, properties,beanDesc);
 
 		return builder;
 	}
 
 	private BeanDeserializerBuilder addUriDeserializers(BeanDeserializerBuilder builder, DeserializationConfig config,
-			Iterator<SettableBeanProperty> properties, PersistentEntity<?, ?> entity) {
-		if (entity == null) {
-			return builder;
-		}
+			Iterator<SettableBeanProperty> properties,BeanDescription beanDesc) {
 
 		while (properties.hasNext()) {
 
 			SettableBeanProperty property = properties.next();
-			PersistentProperty<?> persistentProperty = entity.getPersistentProperty(property.getName());
+			JavaType propertyJavaType = property.getType();
+			Class<?> actualType = getActualType(propertyJavaType);
 
-			if (!associationLinks.isLinkableAssociation(persistentProperty)) {
+			if (!isLinkableAssociation(actualType)) {
 				continue;
 			}
 
-			UriStringDeserializer uriStringDeserializer = new UriStringDeserializer(persistentProperty, converter);
+			UriStringDeserializer uriStringDeserializer = new UriStringDeserializer(actualType, converter);
 
-			if (persistentProperty.isCollectionLike()) {
+			if (propertyJavaType.isContainerType()) {
 
-				CollectionLikeType collectionType = config.getTypeFactory().constructCollectionLikeType(persistentProperty.getType(),
-						persistentProperty.getActualType());
-				CollectionValueInstantiator instantiator = new CollectionValueInstantiator(persistentProperty);
-				CollectionDeserializer collectionDeserializer = new CollectionDeserializer(collectionType, uriStringDeserializer, null, instantiator);
+				CollectionLikeType collectionType = config.getTypeFactory().constructCollectionLikeType(
+						propertyJavaType.getRawClass(), propertyJavaType.getContentType().getRawClass());
+				CollectionValueInstantiator instantiator = new CollectionValueInstantiator(property);
+				CollectionDeserializer collectionDeserializer = new CollectionDeserializer(collectionType,
+						uriStringDeserializer, null, instantiator);
 
 				builder.addOrReplaceProperty(property.withValueDeserializer(collectionDeserializer), false);
-
 			} else {
 				builder.addOrReplaceProperty(property.withValueDeserializer(uriStringDeserializer), false);
 			}
@@ -99,11 +100,31 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		return builder;
 	}
 
+	/**
+	 * Returns whether the given property is an association that is linkable.
+	 * 
+	 * @param property
+	 *            can be {@literal null}.
+	 * @return
+	 */
+	private boolean isLinkableAssociation(Class<?> type) {
+		ResourceMetadata metadata = resourceMappings.getMappingFor(type);
+		return metadata == null ? false : metadata.isExported();
+	}
+
+	
+	private Class<?> getActualType(JavaType propertyJavaType){
+		if (propertyJavaType.isCollectionLikeType() || propertyJavaType.isArrayType()) {
+			return propertyJavaType.getContentType().getRawClass();
+		}else{
+			return propertyJavaType.getRawClass();
+		}
+	}
 	static class UriStringDeserializer extends StdDeserializer<Object> {
 
 		private static final long serialVersionUID = -2175900204153350125L;
 
-		private final PersistentProperty<?> property;
+		private final Class<?> type;
 		private final UriToEntityConverter converter;
 
 		/**
@@ -116,11 +137,10 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		 * @param converter
 		 *            must not be {@literal null}.
 		 */
-		public UriStringDeserializer(PersistentProperty<?> property, UriToEntityConverter converter) {
+		public UriStringDeserializer(Class<?> type, UriToEntityConverter converter) {
+			super(type);
 
-			super(property.getActualType());
-
-			this.property = property;
+			this.type = type;
 			this.converter = converter;
 		}
 
@@ -133,10 +153,11 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		 * com.fasterxml.jackson.databind.DeserializationContext)
 		 */
 		@Override
-		public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+		public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
+				JsonProcessingException {
 
 			URI uri = new UriTemplate(jp.getValueAsString()).expand();
-			TypeDescriptor typeDescriptor = TypeDescriptor.valueOf(property.getActualType());
+			TypeDescriptor typeDescriptor = TypeDescriptor.valueOf(type);
 
 			return converter.convert(uri, URI_DESCRIPTOR, typeDescriptor);
 		}
@@ -150,7 +171,7 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 	 */
 	private static class CollectionValueInstantiator extends ValueInstantiator {
 
-		private final PersistentProperty<?> property;
+		private final SettableBeanProperty property;
 
 		/**
 		 * Creates a new {@link CollectionValueInstantiator} for the given
@@ -159,10 +180,11 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		 * @param property
 		 *            must not be {@literal null} and must be a collection.
 		 */
-		public CollectionValueInstantiator(PersistentProperty<?> property) {
+		public CollectionValueInstantiator(SettableBeanProperty property) {
 
 			Assert.notNull(property, "Property must not be null!");
-			Assert.isTrue(property.isCollectionLike() || property.isMap(), "Property must be a collection or map property!");
+			Assert.isTrue(property.getType().isContainerType(),
+					"Property must be a collection or map property!");
 
 			this.property = property;
 		}
@@ -176,7 +198,7 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		 */
 		@Override
 		public String getValueTypeDesc() {
-			return property.getType().getName();
+			return property.getType().getRawClass().getName();
 		}
 
 		/*
@@ -189,9 +211,10 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
 		@Override
 		public Object createUsingDefault(DeserializationContext ctxt) throws IOException, JsonProcessingException {
 
-			Class<?> collectionOrMapType = property.getType();
+			Class<?> collectionOrMapType = property.getType().getRawClass();
 
-			return property.isMap() ? CollectionFactory.createMap(collectionOrMapType, 0) : CollectionFactory.createCollection(collectionOrMapType, 0);
+			return property.getType().isMapLikeType() ? CollectionFactory.createMap(collectionOrMapType, 0) : CollectionFactory
+					.createCollection(collectionOrMapType, 0);
 		}
 	}
 }

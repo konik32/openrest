@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
-@Dto(entityType = Product.class, name="productDto", type=DtoType.BOTH)
+@Dto(entityType = Product.class, name = "productDto", type = DtoType.BOTH)
 public class ProductDto {
 
 	@JsonIgnore
@@ -24,16 +24,15 @@ public class ProductDto {
 	private String description;
 
 	@Nullable("userSet")
-	private User user;
-	
+	private UserDto user;
+
 	private String tempName;
-	
+
 	private List<TagDto> tags;
-	
+
 	private boolean userSet = false;
-	
-	
-	public void setUser(User user){
+
+	public void setUser(UserDto user) {
 		this.user = user;
 		this.userSet = true;
 	}

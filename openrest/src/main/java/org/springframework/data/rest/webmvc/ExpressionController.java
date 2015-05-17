@@ -150,7 +150,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 	private boolean isDefaultedPageable(ExpressionEntityInformation expEntityInfo,
 			ExpressionMethodInformation searchMethodInfo) {
 		if (searchMethodInfo != null)
-			return expEntityInfo.isDefaultedPageable() && searchMethodInfo.isDefaultedPageable();
+			return searchMethodInfo.isDefaultedPageable();
 		return expEntityInfo.isDefaultedPageable();
 	}
 

@@ -7,10 +7,11 @@ import java.util.Set;
 
 import javax.validation.Validator;
 
-import orest.dto.DefaultEntityFromDtoCreator;
+import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.Dto;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
+import orest.event.AnnotatedDtoEventHandlerBeanPostProcessor;
 import orest.expression.ExpressionBuilder;
 import orest.expression.SpelEvaluatorBean;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
@@ -48,10 +49,7 @@ import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
-import org.springframework.data.rest.webmvc.config.PersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
-import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
-import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.data.rest.webmvc.mapping.AssociationLinks;
 import org.springframework.data.util.AnnotatedTypeScanner;
 import org.springframework.data.web.HateoasSortHandlerMethodArgumentResolver;
@@ -150,15 +148,13 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		return new ExpressionBuilder(defaultConversionService, expressionEvaluator());
 	}
 
-	@Override
 	@Bean
-	public PersistentEntityResourceHandlerMethodArgumentResolver persistentEntityArgumentResolver() {
+	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver dtoAwarepersistentEntityArgumentResolver() {
 		List<HttpMessageConverter<?>> messageConverters = defaultMessageConverters();
 		configureHttpMessageConverters(messageConverters);
 		DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver resolver = new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(),
-				new DomainObjectReader(persistentEntities, resourceMappings()), dtoDomainRegistry,
-				entityFromDtoCreator());
+				dtoDomainRegistry, entityFromDtoCreator());
 		resolver.setValidate(true);
 		resolver.setValidator(validator);
 		resolver.setSpelEvaluatorBean(spelEvaluatorBean());
@@ -168,9 +164,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	public SimpleModule dtoAwareDeserializerModifierModule() {
 		SimpleModule simpleModule = new SimpleModule("ModuleWithDtoAwareDeserializerModifier", new Version(1, 0, 0,
 				"SNAPSHOT", "stalkon", "orest"));
-		AssociationLinks associationLinks = new AssociationLinks(resourceMappings());
 		simpleModule.setDeserializerModifier(new DtoAwareDeserializerModifier(persistentEntities,
-				new UriToEntityConverter(persistentEntities(), defaultConversionService()), associationLinks,
+				new UriToEntityConverter(persistentEntities(), defaultConversionService()), resourceMappings(),
 				dtoDomainRegistry));
 		return simpleModule;
 
@@ -192,9 +187,9 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	}
 
 	@Bean
-	public DefaultEntityFromDtoCreator entityFromDtoCreator() {
-		DefaultEntityFromDtoCreator creator = new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory,
-				persistentEntities());
+	public DefaultEntityFromDtoCreatorAndMerger entityFromDtoCreator() {
+		DefaultEntityFromDtoCreatorAndMerger creator = new DefaultEntityFromDtoCreatorAndMerger(dtoDomainRegistry,
+				beanFactory, persistentEntities());
 		return creator;
 	}
 
@@ -286,15 +281,17 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	protected List<HandlerMethodArgumentResolver> defaultMethodArgumentResolvers() {
 		// TODO Auto-generated method stub
 		List<HandlerMethodArgumentResolver> resolvers = super.defaultMethodArgumentResolvers();
-		List<HandlerMethodArgumentResolver> newResolvers  = new ArrayList<HandlerMethodArgumentResolver>(resolvers.size() + 1);
+		List<HandlerMethodArgumentResolver> newResolvers = new ArrayList<HandlerMethodArgumentResolver>(
+				resolvers.size() + 1);
 		newResolvers.add(defaultedPageableResolver());
-		for(int i =1 ; i< resolvers.size(); i++){
+		for (int i = 1; i < resolvers.size(); i++) {
 			newResolvers.add(resolvers.get(i));
 		}
 		newResolvers.add(qSortmethodArgumentResolver());
+		newResolvers.add(dtoAwarepersistentEntityArgumentResolver());
 		return newResolvers;
 	}
-	
+
 	@Bean
 	@Override
 	public HateoasSortHandlerMethodArgumentResolver sortResolver() {
@@ -303,4 +300,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		return resolver;
 	}
 
+	@Bean
+	public static AnnotatedDtoEventHandlerBeanPostProcessor annotatedHandlerBeanPostProcessor() {
+		return new AnnotatedDtoEventHandlerBeanPostProcessor();
+	}
 }

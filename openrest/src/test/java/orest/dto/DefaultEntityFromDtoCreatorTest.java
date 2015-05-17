@@ -1,29 +1,30 @@
 package orest.dto;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
-import lombok.Data;
 import orest.dto.Dto.DtoType;
-import orest.expression.SpelEvaluationBeanTest.UserDto;
 import orest.model.Product;
 import orest.model.Tag;
 import orest.model.User;
 import orest.model.dto.ProductDto;
 import orest.model.dto.TagDto;
+import orest.model.dto.UserDto;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Matchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.util.Assert;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultEntityFromDtoCreatorTest {
@@ -33,111 +34,180 @@ public class DefaultEntityFromDtoCreatorTest {
 
 	@Mock
 	private DtoDomainRegistry dtoDomainRegistry;
-	private DefaultEntityFromDtoCreator dtoEntityCreator;
+
+	@Mock
+	private PersistentEntities persistentEntities;
+	@Mock
+	private EntityFromDtoCreator<Object, Object> entityFromDtoCreator;
+	@Mock
+	private DtoInformation productDtoInfo;
+	@Mock
+	private DtoInformation tagDtoInfo;
+	@Mock
+	private DtoInformation userDtoInfo;
+	@InjectMocks
+	private DefaultEntityFromDtoCreatorAndMerger dtoEntityCreator;
+
 	private ProductDto productDto = new ProductDto();
-	private Product product;
+	private Product product = new Product();
+	private TagDto tagDto = new TagDto();
+	private UserDto userDto = new UserDto();
 
 	@Before
 	public void setUp() {
-		when(dtoDomainRegistry.get(any(Class.class))).thenReturn(null);
-		when(dtoDomainRegistry.get(orest.model.dto.UserDto.class)).thenReturn(
-				new DtoInformation(User.class, "userDto", UserDto.class, DefaultEntityFromDtoCreator.class,
-						DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
-		when(dtoDomainRegistry.get(orest.model.dto.TagDto.class)).thenReturn(
-				new DtoInformation(Tag.class, "tagDto", TagDto.class, DefaultEntityFromDtoCreator.class,
-						DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
+		MockitoAnnotations.initMocks(this);
+		when(productDtoInfo.getType()).thenReturn(DtoType.CREATE);
+		Mockito.doReturn(Product.class).when(productDtoInfo).getEntityType();
+		Mockito.doReturn(DefaultEntityFromDtoCreatorAndMerger.class).when(productDtoInfo).getEntityCreatorType();
+		Mockito.doReturn(DefaultEntityFromDtoCreatorAndMerger.class).when(productDtoInfo).getEntityMergerType();
 
-		EntityFromDtoCreator<Object, Object> entityFromDtoCreator = mock(EntityFromDtoCreator.class);
-		when(entityFromDtoCreator.create(any(Object.class), any(DtoInformation.class))).thenReturn(
-				mock(TestEntity.class));
+		when(tagDtoInfo.getType()).thenReturn(DtoType.CREATE);
+		Mockito.doReturn(Tag.class).when(tagDtoInfo).getEntityType();
+		Mockito.doReturn(DefaultEntityFromDtoCreatorAndMerger.class).when(tagDtoInfo).getEntityCreatorType();
+
+		when(userDtoInfo.getType()).thenReturn(DtoType.CREATE);
+		Mockito.doReturn(User.class).when(userDtoInfo).getEntityType();
+		Mockito.doReturn(DefaultEntityFromDtoCreatorAndMerger.class).when(userDtoInfo).getEntityCreatorType();
+
+		when(dtoDomainRegistry.get(ProductDto.class)).thenReturn(productDtoInfo);
+		when(dtoDomainRegistry.get(TagDto.class)).thenReturn(tagDtoInfo);
+		when(dtoDomainRegistry.get(UserDto.class)).thenReturn(userDtoInfo);
+
 		when(beanFactory.getBean(EntityFromDtoCreator.class)).thenReturn(entityFromDtoCreator);
-		dtoEntityCreator = new DefaultEntityFromDtoCreator(dtoDomainRegistry, beanFactory,
-				mock(PersistentEntities.class));
+
+		when(persistentEntities.getPersistentEntity(Tag.class)).thenReturn(Mockito.mock(PersistentEntity.class));
+		when(persistentEntities.getPersistentEntity(User.class)).thenReturn(Mockito.mock(PersistentEntity.class));
+		when(persistentEntities.getPersistentEntity(Product.class)).thenReturn(Mockito.mock(PersistentEntity.class));
+
+		dtoEntityCreator = new DefaultEntityFromDtoCreatorAndMerger(dtoDomainRegistry, beanFactory, persistentEntities);
 
 		productDto.setDescription("Lorem Impsum");
 		productDto.setName("agd");
 		productDto.setTempName("tempName");
 
-		product = new Product();
+		userDto.setName("agd");
+		tagDto.setName("tag");
+
+		productDto.setUser(userDto);
+		productDto.setTags(Arrays.asList(tagDto));
+
 		product.setDescription("Description");
 		product.setName("phone");
 		product.setProductionYear(123);
-
-		Tag tag = new Tag();
-		tag.setName("old");
-
-		product.setTags(Arrays.asList(tag));
 	}
 
 	@Test
-	public void testIfCreateCorrectEntity() {
-		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto",
-				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH,
-				null));
-		assertEquals("Lorem Impsum", productDto.getDescription());
-		productDto.setDescription("Lorem Impsum");
-		assertEquals("agd", product.getName());
+	public void shouldCallCustomEntityCreator() {
+		// given
+		Mockito.doReturn(EntityFromDtoCreator.class).when(productDtoInfo).getEntityCreatorType();
+		// call
+		dtoEntityCreator.create(new Object(), productDtoInfo);
+		// verify
+		Mockito.verify(entityFromDtoCreator, Mockito.times(1))
+				.create(Matchers.anyObject(), Matchers.eq(productDtoInfo));
+
 	}
 
 	@Test(expected = IllegalStateException.class)
-	public void testIfThrowsExceptionOnNoDefaultEntityConstructor() {
-		dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
+	public void shouldThrowIllegalStateExceptionOnDtoTypeMergeWhileCreating() {
+		// call
+		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
+		dtoEntityCreator.create(new Object(), productDtoInfo);
 	}
 
 	@Test
-	public void testIfInvokesSpecifiedEntityFromDtoCreator() {
-		TestEntity testEntity = (TestEntity) dtoEntityCreator.create(productDto, new DtoInformation(TestEntity.class,
-				"productDto", ProductDto.class, EntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class,
-				DtoType.BOTH, null));
-		Assert.notNull(testEntity);
+	public void shouldCreateCollectionOfEntitiesFromCollectionOfDtos() {
+		// given
+
+		productDto.setTags(Arrays.asList(tagDto, tagDto, tagDto));
+		// call
+		Product product = (Product) dtoEntityCreator.create(productDto, productDtoInfo);
+		// verify
+		Assert.assertEquals(Tag.class, product.getTags().get(0).getClass());
+		Assert.assertEquals(3, product.getTags().size());
 	}
 
 	@Test
-	public void testIfMapCollectionTypeFields() {
-		TagDto tagDto = new TagDto();
-		tagDto.setName("name");
-		productDto.setTags(Arrays.asList(tagDto));
-		Product product = (Product) dtoEntityCreator.create(productDto, new DtoInformation(Product.class, "productDto",
-				ProductDto.class, DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH,
-				null));
-		assertNotNull(product.getTags());
-		assertEquals(1, product.getTags().size());
+	public void shouldCreateCorrectEntity() {
+
+		// call
+		Product product = (Product) dtoEntityCreator.create(productDto, productDtoInfo);
+
+		// verify
+		Assert.assertEquals("Lorem Impsum", product.getDescription());
+		Assert.assertEquals("agd", product.getName());
+		Assert.assertEquals("tag", product.getTags().get(0).getName());
 	}
 
 	@Test
-	public void testIfMergeEntity() {
-		TagDto tagDto = new TagDto();
-		tagDto.setName("name");
-		productDto.setTags(Arrays.asList(tagDto));
-		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
-		assertEquals(productDto.getDescription(), product.getDescription());
-		assertEquals(productDto.getName(), product.getName());
-		assertEquals(new Integer(123), product.getProductionYear());
-		assertEquals(1, product.getTags().size());
-		assertEquals(tagDto.getName(), product.getTags().get(0).getName());
+	public void shouldMergeEntity() {
+		// given
+
+		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
+		
+		//call
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
+		
+		//verify
+		Assert.assertEquals(productDto.getDescription(), product.getDescription());
+		Assert.assertEquals(productDto.getName(), product.getName());
+		Assert.assertEquals(new Integer(123), product.getProductionYear());
+		Assert.assertEquals(1, product.getTags().size());
+		Assert.assertEquals(Tag.class, product.getTags().get(0).getClass());
+		Assert.assertEquals(tagDto.getName(), product.getTags().get(0).getName());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowIllegalStateExceptionOnDtoTypeCreateWhileMerging() {
+		// given
+		when(productDtoInfo.getType()).thenReturn(DtoType.CREATE);
+		// call
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
 	}
 
 	@Test
-	public void testIfNullableAnnotatedUserIsSetToNull() {
+	public void shouldNotThrowExceptionOnDtoTypeBoth() {
+		// given
+		when(productDtoInfo.getType()).thenReturn(DtoType.BOTH);
+		// call
+		dtoEntityCreator.create(productDto, productDtoInfo);
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
+	}
+
+	//
+	@Test
+	public void shouldSetNullableAnnotatedFieldToNull() {
+		// given
 		product.setUser(new User());
 		productDto.setUser(null);
-		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
-		assertNull(product.getUser());
+		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
+		// call
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
+
+		// verify
+		Assert.assertNull(product.getUser());
 	}
 
 	@Test
-	public void testIfNullableAnnotatedUserIsNotSetToNull() {
+	public void shouldNotSetNullableAnnotatedFieldIfNotSetToNull() {
+		// given
 		product.setUser(new User());
-		dtoEntityCreator.merge(productDto, product, new DtoInformation(Product.class, "productDto", ProductDto.class,
-				DefaultEntityFromDtoCreator.class, DefaultEntityFromDtoCreator.class, DtoType.BOTH, null));
-		assertNotNull(product.getUser());
+		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
+		// call
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
+		// verify
+		Assert.assertNotNull(product.getUser());
 	}
 
-	@Data
-	public class TestEntity {
-		private final String name;
+	@Test
+	public void shouldCreateEntityWhileMergingToNullEntityFieldWhenSubDtoTypeIsNotMerge() {
+		// given
+		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
+		// call
+		dtoEntityCreator.merge(productDto, product, productDtoInfo);
+		// verify
+		Assert.assertNotNull(product.getUser());
+		Assert.assertEquals(User.class, product.getUser().getClass());
+		Assert.assertEquals(userDto.getName(), product.getUser().getName());
 	}
 }

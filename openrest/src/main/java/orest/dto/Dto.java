@@ -32,14 +32,14 @@ public @interface Dto {
 	 * entity from dto.
 	 * 
 	 */
-	Class<? extends EntityFromDtoCreator> entityCreatorType() default DefaultEntityFromDtoCreator.class;
+	Class<? extends EntityFromDtoCreator> entityCreatorType() default DefaultEntityFromDtoCreatorAndMerger.class;
 
 	/**
 	 * Type of custom {@link EntityFromDtoMerger} that will be used to merge
 	 * entity with dto.
 	 * 
 	 */
-	Class<? extends EntityFromDtoMerger> entityMergerType() default DefaultEntityFromDtoCreator.class;
+	Class<? extends EntityFromDtoMerger> entityMergerType() default DefaultEntityFromDtoCreatorAndMerger.class;
 	
 	
 	DtoType type();

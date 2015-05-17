@@ -17,8 +17,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import orest.dto.Dto.DtoType;
+
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.CollectionFactory;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -33,14 +35,12 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
  * @author Szymon Konicki
  *
  */
-public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object, Object>,
+public class DefaultEntityFromDtoCreatorAndMerger implements EntityFromDtoCreator<Object, Object>,
 		EntityFromDtoMerger<Object, Object> {
 
 	private final DtoDomainRegistry registry;
 	private final BeanFactory beanFactory;
 	private final PersistentEntities persistentEntities;
-
-
 
 	final static HashMap<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
 	static {
@@ -59,7 +59,7 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
 	}
 
-	public DefaultEntityFromDtoCreator(DtoDomainRegistry registry, BeanFactory beanFactory,
+	public DefaultEntityFromDtoCreatorAndMerger(DtoDomainRegistry registry, BeanFactory beanFactory,
 			PersistentEntities persistentEntities) {
 		Assert.notNull(registry);
 		Assert.notNull(beanFactory);
@@ -69,12 +69,23 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		this.persistentEntities = persistentEntities;
 	}
 
+	/**
+	 * Method checks whether passed dto has custom {@link EntityFromDtoCreator}.
+	 * If so it invokes that creator, otherwise entity is created by mapping
+	 * fields.
+	 * 
+	 * @param from
+	 *            - dto object
+	 * @param dtoInfo
+	 *            - information about dto
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object create(Object from, DtoInformation dtoInfo) {
 		if (dtoInfo.getType() == DtoType.MERGE)
 			throw new IllegalStateException("Cannot use merge dto to create entity");
-		if (!dtoInfo.getEntityCreatorType().equals(DefaultEntityFromDtoCreator.class)) {
+
+		if (!dtoInfo.getEntityCreatorType().equals(DefaultEntityFromDtoCreatorAndMerger.class)) {
 			EntityFromDtoCreator<Object, Object> creator = (EntityFromDtoCreator<Object, Object>) beanFactory
 					.getBean(dtoInfo.getEntityCreatorType());
 			return creator.create(from, dtoInfo);
@@ -82,6 +93,15 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		return createByFields(from, dtoInfo);
 	}
 
+	/**
+	 * Method takes each dto field, checks whether entity has with with same
+	 * name and maps it.
+	 * 
+	 * @param from
+	 *            - dto object
+	 * @param dtoInfo
+	 * @return
+	 */
 	private Object createByFields(final Object from, final DtoInformation dtoInfo) {
 		final Object entity = org.springframework.data.util.ReflectionUtils.createInstanceIfPresent(dtoInfo
 				.getEntityType().getName(), null);
@@ -105,6 +125,20 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		return entity;
 	}
 
+	/**
+	 * Method handles fields that are not collections. It checks whether dto's
+	 * field is dto itself. If so it invokes create method, otherwise entity
+	 * field is set to dto's field value.
+	 * 
+	 * @param from
+	 *            - dto
+	 * @param field
+	 *            -dto's field
+	 * @param entityField
+	 * @param entity
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
 	private void doWithField(final Object from, final Field field, final Field entityField, final Object entity)
 			throws IllegalArgumentException, IllegalAccessException {
 		DtoInformation subDtoInfo = registry.get(field.getType());
@@ -114,31 +148,69 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		entityField.set(entity, value);
 	}
 
+	/**
+	 * Method handles collection fields.
+	 * 
+	 * @param from
+	 *            - dto
+	 * @param field
+	 *            - dto's field
+	 * @param entityField
+	 * @param entity
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
 	@SuppressWarnings("unchecked")
 	private void doWithCollectionField(final Object from, final Field field, final Field entityField,
 			final Object entity) throws IllegalArgumentException, IllegalAccessException {
 		Collection<Object> fieldCollection = ((Collection<Object>) field.get(from));
-		if (fieldCollection == null)
-			return;
-		Collection<Object> entityFieldCollection = createCollection(entityField);
+//		if (fieldCollection == null)
+//			return;
+		// Collection<Object> entityFieldCollection =
+		// createCollection(entityField);
+		Collection<Object> entityFieldCollection = CollectionFactory.createCollection(entityField.getType(), 0);
 		populateEntityFieldCollection(fieldCollection, entityField, entityFieldCollection);
 		entityField.set(entity, entityFieldCollection);
 	}
 
-	@SuppressWarnings("unchecked")
-	private Collection<Object> createCollection(Field entityField) throws IllegalAccessException {
-		Class<Collection<Object>> colClass = (Class<Collection<Object>>) collectionFallbacks.get(entityField.getType()
-				.getName());
-		if (colClass == null)
-			throw new IllegalStateException("Cannot set property " + entityField.getName() + " . Collection of type "
-					+ entityField.getType() + " is not managed");
-		try {
-			return colClass.newInstance();
-		} catch (InstantiationException e) {
-			throw new IllegalStateException("Cannot create collection of type" + colClass);
-		}
-	}
+	// /**
+	// * Create collection object for entity field type
+	// *
+	// * @param entityField
+	// * @return
+	// * @throws IllegalAccessException
+	// */
+	// @SuppressWarnings("unchecked")
+	// private Collection<Object> createCollection(Field entityField) throws
+	// IllegalAccessException {
+	// Class<Collection<Object>> colClass = (Class<Collection<Object>>)
+	// collectionFallbacks.get(entityField.getType()
+	// .getName());
+	// if (colClass == null)
+	// throw new IllegalStateException("Cannot set property " +
+	// entityField.getName() + " . Collection of type "
+	// + entityField.getType() + " is not managed");
+	// try {
+	// return colClass.newInstance();
+	// } catch (InstantiationException e) {
+	// throw new IllegalStateException("Cannot create collection of type" +
+	// colClass);
+	// }
+	// }
 
+	/**
+	 * Method populates entity field collection with dto's field collection
+	 * objects. If any of dto's field collection objects is dto itselt method
+	 * invokes create method.
+	 * 
+	 * @param from
+	 *            - dto
+	 * @param field
+	 *            - dto's field
+	 * @param entityFieldCollection
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
 	private void populateEntityFieldCollection(Collection<Object> from, Field field,
 			Collection<Object> entityFieldCollection) throws IllegalArgumentException, IllegalAccessException {
 		Iterator<Object> it = from.iterator();
@@ -152,11 +224,22 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		}
 	}
 
+	/**
+	 * Method checks whether passed dto has custom {@link EntityFromDtoMerger}.
+	 * If so it invokes that creator, otherwise entity is merged with dto by
+	 * invoking setter methods. For null dto's fields, method checks whether it
+	 * is supposed to set entity with null value or not ({@link Nullable}).
+	 * Collections are not merged, always new collection is set for entity
+	 * field.
+	 * 
+	 * @param from
+	 *            - dto
+	 */
 	@Override
 	public void merge(Object from, Object entity, DtoInformation dtoInfo) {
 		if (dtoInfo.getType() == DtoType.CREATE)
 			throw new IllegalStateException("Cannot use create dto to merge with entity");
-		if (!dtoInfo.getEntityMergerType().equals(DefaultEntityFromDtoCreator.class)) {
+		if (!dtoInfo.getEntityMergerType().equals(DefaultEntityFromDtoCreatorAndMerger.class)) {
 			EntityFromDtoMerger<Object, Object> creator = (EntityFromDtoMerger<Object, Object>) beanFactory
 					.getBean(dtoInfo.getEntityMergerType());
 			creator.merge(from, entity, dtoInfo);
@@ -174,7 +257,9 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				ReflectionUtils.makeAccessible(entityField);
 				ReflectionUtils.makeAccessible(field);
 				Object value = field.get(from);
-				if (!setNull(value, field, from))
+				if (setNull(value, field, from))
+					setEntityField(entity, entityField, null);
+				else if (value == null)
 					return;
 				if (Collection.class.isAssignableFrom(field.getType())) {
 					doWithCollectionField(from, field, entityField, entity);
@@ -205,8 +290,10 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 				Object entityFieldValue = entityField.get(entity);
 				if (entityFieldValue == null) {
 					if (subDtoInfo.getType() == DtoType.MERGE)
-						throw new IllegalStateException("Entity of type " + entityField.getType()
-								+ " is null. Cannot merge with null object");
+						throw new IllegalStateException(
+								"Entity of type "
+										+ entityField.getType()
+										+ " is null. Cannot merge with null object. If you want to create new entity use dto of type CREATE or BOTH.");
 					else
 						setEntityField(entity, entityField, create(value, subDtoInfo));
 				} else {
@@ -246,7 +333,5 @@ public class DefaultEntityFromDtoCreator implements EntityFromDtoCreator<Object,
 		}
 		return true;
 	}
-
-
 
 }

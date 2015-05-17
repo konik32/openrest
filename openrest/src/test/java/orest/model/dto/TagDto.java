@@ -7,8 +7,8 @@ import orest.model.Tag;
 
 @Dto(entityType=Tag.class, entityCreatorType=TagCreator.class, type=DtoType.BOTH)
 @Data
-public class TagDto {
 
+public class TagDto {
 	
 	private String name;
 }

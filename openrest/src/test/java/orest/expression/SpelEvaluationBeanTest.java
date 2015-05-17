@@ -28,7 +28,7 @@ public class SpelEvaluationBeanTest {
 	}
 
 	@Test
-	public void testIfValuesAreSet() {
+	public void shouldSetValues() {
 		UserDto userDto = new UserDto();
 		spelEvaluatorBean.evaluate(userDto);
 		assertEquals("staszek", userDto.getName());
@@ -38,9 +38,9 @@ public class SpelEvaluationBeanTest {
 	
 	
 	
-	public static class TestBean{
-		
-		public Boolean isAuthenticated(){
+	public static class TestBean {
+
+		public Boolean isAuthenticated() {
 			return true;
 		}
 	}

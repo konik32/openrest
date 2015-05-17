@@ -8,7 +8,7 @@ import orest.model.User;
 
 import com.mysema.query.types.expr.BooleanExpression;
 
-@ExpressionRepository(value=User.class)
+@ExpressionRepository(User.class)
 public class UserExpressions {
 
 	@ExpressionMethod(exported=true, searchMethod=true)
