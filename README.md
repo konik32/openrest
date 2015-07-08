@@ -87,7 +87,7 @@ OpenRest GET request has its own syntax:
 
 ## DTO mechanism
 
-OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST, PUT requests or by getters/setters in PATCH requests. Uknown fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints. 
+OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST, PUT requests or by getters/setters in PATCH requests. Uknown fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints.
 
 ## @Dto
 
@@ -98,8 +98,45 @@ OpenRest provides DTO mechanism that is very similar to Projection mechanism in 
 - `entityType` - entity type which will be created from or merged with this dto
 - `name` - name of this dto which should be passed in POST, PUT, PATCH query parameter named `dto`. When name is not specified dto won't be exported, and could be used only as nested object in other dto.
 - `entityCreatorType`, `entityMergerType` - by default entities are created or merged with dto by mapping all matching fields or getters/setters. To have more controll over the process one should create custom bean and pass it by type
+- `type` - the type of dto, whether it will be used for entity creation, merging or both.
 
+## @Nullable
 
+If a dto is used with PATCH requests, there is no way to tell if its field was deliberately set to null or wasn't initialized (no such field in JSON request). Such field should be mark with `@Nullable`
+
+`@Nullable` parameters:
+
+- `value` - Name of a boolean flag field which holds information whether this field was set to null or not initialized eg.
+```
+@Nullable("nameSet")
+private String name;
+private boolean nameSet = false;
+ 
+public void setName(String name){
+    this.name = name;
+    this.nameSet = true; 
+}
+```
+
+## @ExpressionValid
+
+`@ExpressionValid` is a annotation to mark DTO fields that will be validated with SpEL expression
+
+`@ExpressionValid` parameters:
+
+- `value` - holds SpEL string which will be evaluated with Spring Security Context, DTO object and entity (in PUT, PATCH requests) eg.
+
+```
+@ExpressionValid("#{dto.password != null && entity.password != null? @passwordService.checkIfCorrectPassword(entity.password): true}")
+```
+
+## @Value
+
+`@Value` annotations can be used with DTOs in the same way as in Projections
+
+## POST, PUT, PATCH requests
+
+`POST, PUT, PATCH /resource?dto=dtoName`
 
 
 
