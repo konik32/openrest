@@ -63,7 +63,7 @@ public class UserExpressions {
 
 ## Expand
 
-Associations specified in '@Expand` value parameter will be fetched with projected entity. This annotation could only by added to classes annotated with Spring Data Rest Projection. Resources could also be expanded by adding `expand` parameter to query.
+Associations specified in `@Expand` value parameter will be fetched with projected entity. This annotation could only by added to classes annotated with Spring Data Rest Projection. Resources could also be expanded by adding `expand` parameter to query.
 
 ## Secure
 
@@ -87,7 +87,7 @@ OpenRest GET request has its own syntax:
 
 ## DTO mechanism
 
-OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. 
+OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST, PUT requests or by getters/setters in PATCH requests. 
 
 
 
