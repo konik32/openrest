@@ -134,6 +134,10 @@ public void setName(String name){
 
 `@Value` annotations can be used with DTOs in the same way as in Projections
 
+## Events
+
+To default Spring Data Rest events ORest adds four new: `@HandleAfterCreateWithDto`, `@HandleAfterSaveWithDto`, `@HandleBeforeCreateWithDto`, `@HandleBeforeSaveWithDto`. The concept of the events is the same. Added ones just holds DTO object in context.
+
 ## POST, PUT, PATCH requests
 
 `POST, PUT, PATCH /resource?dto=dtoName`
