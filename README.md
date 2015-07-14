@@ -73,9 +73,9 @@ Associations specified in `@Expand` value parameter will be fetched with project
 
 OpenRest GET request has its own syntax:
 
-`GET /resource/search/expression_search_method(param1;param2)?orest&filter=expression_method(param1;);or;expression_method;and;expression_method...`
+`GET /resource/search/expression_search_method(param1;param2)?orest&filters=expression_method(param1;);or;expression_method;and;expression_method...`
 
-`GET /resource?orest&filter=expression_method;or;expression_method;and;expression_method...`
+`GET /resource?orest&filters=expression_method;or;expression_method;and;expression_method...`
 
 - `orest` parameter is non-optional
 - if `ExpressionMethod` has any optional parameter it can be ommited eg. `priceBetween(1;)` `priceBetween(;2)`
