@@ -142,6 +142,18 @@ To default Spring Data Rest events ORest adds four new: `@HandleAfterCreateWithD
 
 `POST, PUT, PATCH /resource?dto=dtoName`
 
+## Configuration
+
+```
+@SpringBootApplication
+@EnableJpaRepositories(repositoryFactoryBeanClass = ExpressionJpaFactoryBean.class)
+@Import(ORestConfig.class)
+public class Application {
+	public static void main(String[] args) throws Exception {
+		SpringApplication.run(Application.class, args);
+	}
+}
+```
 
 
 
