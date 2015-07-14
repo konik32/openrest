@@ -3,10 +3,10 @@
   <groupId>stalkon.data</groupId>
   <artifactId>openrest</artifactId>
   <versioning>
-    <release>0.0.1.RELEASE</release>
+    <release>0.1.0.RELEASE</release>
     <versions>
-      <version>0.0.1.RELEASE</version>
+      <version>0.1.0.RELEASE</version>
     </versions>
-    <lastUpdated>20150423143443</lastUpdated>
+    <lastUpdated>20150714054222</lastUpdated>
   </versioning>
 </metadata>
