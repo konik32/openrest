@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataset>
-	<User id="1" name="John" surname="Doe" active="true" />
-	<Product id="1" name="AGD" description="lorem" user_id="1" production_year=""/>
-	<Tag id="1" name="#ELECTRONIC"/>
-	<product_tag_maps tag_id="1" product_id="1"/>
-</dataset>
