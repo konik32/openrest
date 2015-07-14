@@ -49,8 +49,8 @@ public class UserExpressions {
 
 `@Join` parameters:
 
-- `value` - entity association name that will be left joined with entity
-- `fetch` - flag indicating whether associations should be fetched
+- `value` - entity's association name that will be left joined with entity
+- `fetch` - flag indicating whether association should be fetched
 
 ## StaticFilter
 
@@ -87,7 +87,7 @@ OpenRest GET request has its own syntax:
 
 ## DTO mechanism
 
-OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST, PUT requests or by getters/setters in PATCH requests. Uknown fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints and create, update entities by using DTO, events and services.
+OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST and PUT requests or by getters/setters in PATCH requests. Uknown fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints and create, update entities by using DTOs, events and services.
 
 ## @Dto
 
@@ -120,7 +120,7 @@ public void setName(String name){
 
 ## @ExpressionValid
 
-`@ExpressionValid` is a annotation to mark DTO fields that will be validated with SpEL expression
+`@ExpressionValid` is an annotation to mark DTO fields that will be validated with SpEL expression
 
 `@ExpressionValid` parameters:
 
