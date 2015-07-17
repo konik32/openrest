@@ -11,6 +11,8 @@ OpenRest is an extension to Spring Data Rest. It is composed of two main parts: 
 - `value` - entity type
 - `defaultedPageable` - if set to `true` resources will be returned without pagination
 
+If `EpressionRepository` is defined for some entity its repository interface hase to extend `PredicateContextQueryDslRepository<T>`.
+
 ```
 @ExpressionRepository(User.class)
 public class UserExpressions {
