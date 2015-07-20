@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>stalkon.data</groupId>
 	<artifactId>openrest</artifactId>
-	<version>0.1.0.RELEASE</version>
+	<version>0.1.1.RELEASE</version>
 	<distributionManagement>
 		<repository>
 			<id>internal.repo</id>
