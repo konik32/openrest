@@ -2,7 +2,7 @@
 
 # OpenRest
 
-OpenRest is an extension to Spring Data Rest. It is composed of two main part: filtering resources with `ExpressionMethod`'s and DTO mechanism. In Spring Data Rest you could filter reosources with query methods, but you cannot combine those methods eg. in some cases you need to filter products by it price, in some by price and category and in others by category and shop. For each of those cases you would have to define separate query method. In OpenRest you can define each of those filters separately (priceGt, categoryIn, shopIdEq etc.) and combine them later. 
+OpenRest is an extension to Spring Data Rest. It is composed of two main parts: filtering resources with `ExpressionMethod`'s and DTO mechanism. In Spring Data Rest you could filter reosources with query methods, but you cannot combine those methods eg. in some cases you need to filter products by it price, in some by price and category and in others by category and shop. For each of those cases you would have to define separate query method. In OpenRest you can define each of those filters separately (priceGt, categoryIn, shopIdEq etc.) and combine them later. 
 
 ## @ExpressionRepository
 
@@ -10,6 +10,8 @@ OpenRest is an extension to Spring Data Rest. It is composed of two main part: f
 
 - `value` - entity type
 - `defaultedPageable` - if set to `true` resources will be returned without pagination
+
+If `EpressionRepository` is defined for some entity its repository interface hase to extend `PredicateContextQueryDslRepository<T>`.
 
 ```
 @ExpressionRepository(User.class)
@@ -73,17 +75,18 @@ Associations specified in `@Expand` value parameter will be fetched with project
 
 OpenRest GET request has its own syntax:
 
-`GET /resource/search/expression_search_method(param1;param2)?orest&filter=expression_method(param1;);or;expression_method;and;expression_method...`
+`GET /resource/search/expression_search_method(param1;param2)?orest&filters=expression_method(param1;);or;expression_method;and;expression_method...`
 
-`GET /resource?orest&filter=expression_method;or;expression_method;and;expression_method...`
+`GET /resource?orest&filters=expression_method;or;expression_method;and;expression_method...`
 
 - `orest` parameter is non-optional
 - if `ExpressionMethod` has any optional parameter it can be ommited eg. `priceBetween(1;)` `priceBetween(;2)`
-- if `ExpressionMethod` does not have any parameters then brackets should be ommitted
+- if `ExpressionMethod` does not have any parameters then parentheses should be ommitted
 - if there is no `ExpressionRepository` for entity OpenRest will return status code 404
 - available logical operators:
   - `;or;`
   - `;and;`
+- logical expressions cannot be enclosed in brackets
 
 ## DTO mechanism
 
@@ -142,6 +145,18 @@ To default Spring Data Rest events ORest adds four new: `@HandleAfterCreateWithD
 
 `POST, PUT, PATCH /resource?dto=dtoName`
 
+## Configuration
+
+```
+@SpringBootApplication
+@EnableJpaRepositories(repositoryFactoryBeanClass = ExpressionJpaFactoryBean.class)
+@Import(ORestConfig.class)
+public class Application {
+	public static void main(String[] args) throws Exception {
+		SpringApplication.run(Application.class, args);
+	}
+}
+```
 
 
 
