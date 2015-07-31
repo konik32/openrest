@@ -13,6 +13,10 @@ import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
 public class ExpressionUtils {
+	
+	private ExpressionUtils(){
+		
+	}
 
 	private static PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 	

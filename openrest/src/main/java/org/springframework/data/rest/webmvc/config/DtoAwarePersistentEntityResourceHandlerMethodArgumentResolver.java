@@ -65,8 +65,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Custom {@link HandlerMethodArgumentResolver} to create
  * {@link PersistentEntityResource} instances.
  * 
- * @author Jon Brisbin
- * @author Oliver Gierke
  * @author Szymon Konicki
  */
 public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
@@ -233,7 +231,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 		if (!validate || validator == null)
 			return;
 		Set<ConstraintViolation<Object>> violations = validator.validate(from);
-		if (violations.size() > 0) {
+		if (!violations.isEmpty()) {
 			ConstraintViolation<Object> violation = violations.iterator().next();
 			throw new ConstraintViolationException(violation.getPropertyPath() + " " + violation.getMessage(),
 					violations);

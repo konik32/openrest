@@ -16,6 +16,9 @@ import org.springframework.util.Assert;
 import com.mysema.query.types.path.PathBuilder;
 
 public class MethodInformationFactory {
+	
+	private MethodInformationFactory() {
+	}
 
 	private static final AnnotationAttribute PARAM_VALUE = new AnnotationAttribute(
 			Param.class);

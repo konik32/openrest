@@ -53,7 +53,7 @@ public class EntityExpressionMethodsRegistryTest {
 		Assert.assertNotNull(entityInformation.getPredicateInvoker());
 		ExpressionMethodRegistry methodRegistry = entityInformation.getMethodRegistry();
 		Assert.assertNotNull(entityInformation);
-		Assert.assertTrue(methodRegistry.getStaticFilters().size()>0);
+		Assert.assertTrue(!methodRegistry.getStaticFilters().isEmpty());
 		Assert.assertEquals(MethodType.SEARCH, methodRegistry.get("nameEq").getMethodType());
 		Assert.assertEquals(true, methodRegistry.get("nameEq").isDefaultedPageable());
 		Assert.assertEquals(1, methodRegistry.get("nameEq").getMethodParameters().getParameters().size());

@@ -23,15 +23,18 @@ public class NonOrestRequestsInterceptor extends HandlerInterceptorAdapter {
 		if (StringUtils.isEmpty(lookupPath) || lookupPath.matches(".+\\/search.*"))
 			return true;
 		String method = request.getMethod();
-		if (method.equals("GET")) {
+		if ("GET".equals(method)) {
 			if (!request.getParameterMap().containsKey("orest"))
 				throw new OrestException(OrestExceptionDictionary.NON_OREST_REQUEST,
 						"Request should cointain orest parameter");
-		} else if (method.equals("POST") || method.equals("PATCH")) {
-			if (!request.getParameterMap().containsKey("dto"))
+		} else if ( isPostOrPatchRequest(method) && !request.getParameterMap().containsKey("dto")){
 				throw new OrestException(OrestExceptionDictionary.NON_OREST_REQUEST,
 						"Request should cointain dto parameter");
 		}
 		return true;
+	}
+	
+	private static boolean isPostOrPatchRequest(String method){
+		return "POST".equals(method) || "PATCH".equals(method);
 	}
 }
