@@ -1,4 +1,4 @@
-package orest.security;
+package orest.dto.authorization.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
