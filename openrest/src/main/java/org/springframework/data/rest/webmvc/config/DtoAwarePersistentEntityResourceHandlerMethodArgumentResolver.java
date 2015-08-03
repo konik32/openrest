@@ -31,9 +31,10 @@ import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
 import orest.dto.authorization.SpringSecurityAuthorizationContext;
+import orest.dto.expression.spel.DtoEvaluationWrapper;
+import orest.dto.expression.spel.SpelEvaluatorBean;
 import orest.exception.OrestException;
 import orest.exception.OrestExceptionDictionary;
-import orest.expression.SpelEvaluatorBean;
 import orest.security.ExpressionEvaluator;
 import orest.validation.UpdateValidationContext;
 
@@ -75,19 +76,16 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	private final DtoDomainRegistry dtoDomainRegistry;
 	private final DefaultEntityFromDtoCreatorAndMerger entityFromDtoCreator;
 
-	
-	
 	@Autowired
 	private UpdateValidationContext updateValidationContext;
-	
+
 	private @Setter Validator validator;
 
 	private @Setter ExpressionEvaluator expressionEvaluator;
-	
-	private @Setter SpelEvaluatorBean spelEvaluator;
-	
-	private @Setter SpringSecurityAuthorizationContext authorizationStrategyContext;
 
+	private @Setter SpelEvaluatorBean spelEvaluator;
+
+	private @Setter SpringSecurityAuthorizationContext authorizationStrategyContext;
 
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 			List<HttpMessageConverter<?>> messageConverters,
@@ -161,12 +159,11 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 			Object dto = read(incoming, converter, dtoType);
 			Object entity = null;
 			// inject @Value's in dto
-			
 
 			if (incoming.isPatchRequest()) {
 				RepositoryInvoker invoker = resourceInformation.getInvoker();
 				Object existingObject = invoker.invokeFindOne(id);
-				evaluateSpelExpressions(dto,entity);
+				evaluateSpelExpressions(dto, entity);
 				authorizeDto(dto, entity);
 				validate(dto, existingObject);
 				if (existingObject == null) {
@@ -177,7 +174,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 				entityFromDtoCreator.merge(dto, existingObject, dtoInfo);
 				entity = existingObject;
 			} else {
-				evaluateSpelExpressions(dto,null);
+				evaluateSpelExpressions(dto, null);
 				authorizeDto(dto, null);
 				validate(dto, null);
 				// create entity from dto
@@ -187,7 +184,8 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 				throw new HttpMessageNotReadableException(String.format(ERROR_MESSAGE, domainType));
 			}
 
-			PersistentEntityResource entityResource =  PersistentEntityResource.build(entity, resourceInformation.getPersistentEntity()).build();
+			PersistentEntityResource entityResource = PersistentEntityResource.build(entity,
+					resourceInformation.getPersistentEntity()).build();
 			return new PersistentEntityResourceWithDtoWrapper(entityResource, dto);
 		}
 
@@ -219,9 +217,9 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	 * 
 	 * @param object
 	 */
-	private void evaluateSpelExpressions(Object object, Object entity) {
+	private void evaluateSpelExpressions(Object dto, Object entity) {
 		if (spelEvaluator != null)
-			spelEvaluator.evaluate(object);
+			spelEvaluator.evaluate(new DtoEvaluationWrapper(dto, entity));
 	}
 
 	/**
@@ -256,7 +254,5 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 		if (authorizationStrategyContext != null)
 			authorizationStrategyContext.invokeStrategy(dto, entity);
 	}
-
-
 
 }

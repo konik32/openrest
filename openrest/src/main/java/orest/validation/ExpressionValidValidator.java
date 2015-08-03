@@ -4,7 +4,8 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 import lombok.Data;
-import orest.expression.SpelEvaluator;
+import orest.dto.expression.spel.DtoEvaluationWrapper;
+import orest.dto.expression.spel.SpelEvaluator;
 import orest.validation.UpdateValidationContext;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -27,14 +28,9 @@ public class ExpressionValidValidator implements ConstraintValidator<ExpressionV
 
 	@Override
 	public boolean isValid(final Object value, final ConstraintValidatorContext context) {
-		final SpelEvaluator spelEvaluator = new SpelEvaluator(new ContextWrapper(validationContext.getDto(),
-				validationContext.getEntity()), beanFactory, false);
+		final SpelEvaluator spelEvaluator = new SpelEvaluator(new DtoEvaluationWrapper(validationContext.getDto(),
+				validationContext.getEntity()), beanFactory);
 		return spelEvaluator.evaluateAsBoolean(expression);
 	}
 
-	@Data
-	private class ContextWrapper {
-		private final Object dto;
-		private final Object entity;
-	}
 }
