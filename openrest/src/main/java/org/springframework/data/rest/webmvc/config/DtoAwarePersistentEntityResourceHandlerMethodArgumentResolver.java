@@ -33,10 +33,10 @@ import orest.dto.DtoInformation;
 import orest.dto.authorization.SpringSecurityAuthorizationContext;
 import orest.dto.expression.spel.DtoEvaluationWrapper;
 import orest.dto.expression.spel.SpelEvaluatorBean;
+import orest.dto.validation.UpdateValidationContext;
 import orest.exception.OrestException;
 import orest.exception.OrestExceptionDictionary;
 import orest.security.ExpressionEvaluator;
-import orest.validation.UpdateValidationContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;

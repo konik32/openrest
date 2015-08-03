@@ -1,4 +1,4 @@
-package orest.validation;
+package orest.dto.validation;
 
 public class UpdateValidationContext {
 

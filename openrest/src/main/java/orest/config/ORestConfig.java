@@ -18,6 +18,7 @@ import orest.dto.authorization.SecureAnnotationAuthorizationStrategy;
 import orest.dto.authorization.SpringSecurityAuthorizationContext;
 import orest.dto.authorization.annotation.Secure;
 import orest.dto.expression.spel.SpelEvaluatorBean;
+import orest.dto.validation.UpdateValidationContext;
 import orest.event.AnnotatedDtoEventHandlerBeanPostProcessor;
 import orest.expression.ExpressionBuilder;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
@@ -36,7 +37,6 @@ import orest.security.RequestScopedExpressionEvaluator;
 import orest.security.SecurityExpressionContextHolder;
 import orest.security.SecurityExpressionContextHolderImpl;
 import orest.security.SimpleSecurityExpressionHandler;
-import orest.validation.UpdateValidationContext;
 import orest.webmvc.support.OpenRestEntityLinks;
 import orest.webmvc.support.PageAndSortUtils;
 
