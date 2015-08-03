@@ -58,7 +58,7 @@ public class SecureAnnotationAuthorizationStrategyTest {
 	}
 
 	@Secure("hasRole('ADMIN')")
-	class TestDto {
+	public static class TestDto {
 
 	}
 
