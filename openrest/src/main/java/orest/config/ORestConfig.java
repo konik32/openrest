@@ -155,9 +155,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver resolver = new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(),
 				dtoDomainRegistry, entityFromDtoCreator());
-		resolver.setValidate(true);
 		resolver.setValidator(validator);
-		resolver.setSpelEvaluatorBean(spelEvaluatorBean());
+		resolver.setSpelEvaluator(spelEvaluatorBean());
 		return resolver;
 	}
 
@@ -246,8 +245,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
 			Secure secure = AnnotationUtils.findAnnotation(dtoClass, Secure.class);
 			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass,
-					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type(), secure == null ? null
-							: secure.value());
+					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type());
 			registry.put(dtoClass, dtoInfo);
 			if (!dtoInfo.getName().isEmpty())
 				registry.put(dtoInfo.getName(), dtoInfo);
