@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class SecureAnnotationAuthorizationStrategy implements AuthorizationStrategy<UserDetails, Object, Object> {
+public class SecureAnnotationAuthorizationStrategy implements AuthorizationStrategy<Object, Object, Object> {
 
 	private final ExpressionEvaluator expressionEvaluator;
 
@@ -18,7 +18,7 @@ public class SecureAnnotationAuthorizationStrategy implements AuthorizationStrat
 	}
 
 	@Override
-	public boolean isAuthorized(UserDetails principal, Object dto, Object entity) {
+	public boolean isAuthorized(Object principal, Object dto, Object entity) {
 		Secure secureAnn = AnnotationUtils.findAnnotation(dto.getClass(), Secure.class);
 		if (secureAnn == null)
 			return true;

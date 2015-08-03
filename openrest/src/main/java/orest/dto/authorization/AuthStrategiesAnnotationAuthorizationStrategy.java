@@ -8,7 +8,7 @@ import orest.exception.OrestExceptionDictionary;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class AuthStrategiesAnnotationAuthorizationStrategy implements AuthorizationStrategy<UserDetails, Object, Object>{
+public class AuthStrategiesAnnotationAuthorizationStrategy implements AuthorizationStrategy<Object, Object, Object>{
 
 	
 	private final AuthorizationStratetyFactory strategyFactory;
@@ -18,7 +18,7 @@ public class AuthStrategiesAnnotationAuthorizationStrategy implements Authorizat
 	}
 
 	@Override
-	public boolean isAuthorized(UserDetails principal, Object dto, Object entity) {
+	public boolean isAuthorized(Object principal, Object dto, Object entity) {
 		AuthStrategies authStrategiesAnn = AnnotationUtils.findAnnotation(dto.getClass(), AuthStrategies.class);
 		if(authStrategiesAnn == null) return true;
 		for(Class<? extends AuthorizationStrategy> strategyType: authStrategiesAnn.value()){
