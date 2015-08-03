@@ -1,4 +1,4 @@
-package orest.expression;
+package orest.dto.expression.spel;
 
 import java.lang.reflect.Field;
 
@@ -17,9 +17,9 @@ public class SpelEvaluatorBean {
 		this.beanFactory = beanFactory;
 	}
 
-	public void evaluate(final Object target) {
-		final SpelEvaluator spelEvaluator = new SpelEvaluator(target, beanFactory);
-		ReflectionUtils.doWithFields(target.getClass(), new FieldCallback() {
+	public void evaluate(final DtoEvaluationWrapper wrapper) {
+		final SpelEvaluator spelEvaluator = new SpelEvaluator(wrapper, beanFactory);
+		ReflectionUtils.doWithFields(wrapper.getDto().getClass(), new FieldCallback() {
 
 			@Override
 			public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
@@ -28,7 +28,7 @@ public class SpelEvaluatorBean {
 					return;
 				Object value = spelEvaluator.evaluate(field);
 				ReflectionUtils.makeAccessible(field);
-				field.set(target, value);
+				field.set(wrapper.getDto(), value);
 			}
 		});
 	}

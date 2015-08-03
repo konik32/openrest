@@ -1,4 +1,4 @@
-package orest.expression;
+package orest.dto.expression.spel;
 
 import java.lang.reflect.Field;
 import org.springframework.beans.factory.BeanFactory;
@@ -16,13 +16,9 @@ public class SpelEvaluator {
 	private final ParserContext parserContext;
 	private final EvaluationContext evaluationContext;
 
-	public SpelEvaluator(Object target, BeanFactory beanFactory) {
-		this(target, beanFactory, true);
-	}
 
-	public SpelEvaluator(Object target, BeanFactory beanFactory, boolean wrap) {
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext(wrap ? new TargetWrapper(target)
-				: target);
+	public SpelEvaluator(DtoEvaluationWrapper wrapper, BeanFactory beanFactory) {
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext(wrapper);
 		evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		this.evaluationContext = evaluationContext;
 		this.parser = new SpelExpressionParser();
@@ -48,20 +44,5 @@ public class SpelEvaluator {
 				evaluationContext);
 	}
 
-	public static class TargetWrapper {
-
-		private final Object target;
-
-		public TargetWrapper(Object target) {
-			this.target = target;
-		}
-
-		/**
-		 * @return the target
-		 */
-		public Object getTarget() {
-			return target;
-		}
-	}
 
 }
