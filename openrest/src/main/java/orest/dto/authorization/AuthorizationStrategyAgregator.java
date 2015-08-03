@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class AuthrizationStrategyAggregator implements AuthorizationStrategy<Object, Object, Object> {
+public class AuthorizationStrategyAgregator implements AuthorizationStrategy<Object, Object, Object> {
 
 	private List<AuthorizationStrategy> authorizationStrategies = new ArrayList<AuthorizationStrategy>();
 	
