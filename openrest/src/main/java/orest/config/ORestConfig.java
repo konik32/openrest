@@ -11,6 +11,11 @@ import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.Dto;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
+import orest.dto.authorization.AuthStrategiesAnnotationAuthorizationStrategy;
+import orest.dto.authorization.AuthorizationStrategyAgregator;
+import orest.dto.authorization.AuthorizationStratetyFactory;
+import orest.dto.authorization.SecureAnnotationAuthorizationStrategy;
+import orest.dto.authorization.SpringSecurityAuthorizationContext;
 import orest.dto.authorization.annotation.Secure;
 import orest.event.AnnotatedDtoEventHandlerBeanPostProcessor;
 import orest.expression.ExpressionBuilder;
@@ -50,7 +55,6 @@ import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
-import org.springframework.data.rest.webmvc.mapping.AssociationLinks;
 import org.springframework.data.util.AnnotatedTypeScanner;
 import org.springframework.data.web.HateoasSortHandlerMethodArgumentResolver;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -104,6 +108,10 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Autowired
 	private PageableHandlerMethodArgumentResolver pageableResolver;
+	
+	
+	@Autowired(required=false)
+	private AuthorizationStratetyFactory strategyFactory;
 
 	@Bean
 	public EntityExpressionMethodsRegistry entityExpressionMethodsRegistry() {
@@ -157,7 +165,24 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 				dtoDomainRegistry, entityFromDtoCreator());
 		resolver.setValidator(validator);
 		resolver.setSpelEvaluator(spelEvaluatorBean());
+		resolver.setAuthorizationStrategyContext(authorizationContext());
 		return resolver;
+	}
+
+	@Autowired
+	@Bean
+	public SpringSecurityAuthorizationContext authorizationContext() {
+		SpringSecurityAuthorizationContext authorizationContext = new SpringSecurityAuthorizationContext(
+				authorizationStrategyAgregator());
+		return authorizationContext;
+	}
+
+	public AuthorizationStrategyAgregator authorizationStrategyAgregator() {
+		AuthorizationStrategyAgregator agregator = new AuthorizationStrategyAgregator();
+		agregator.addStrategy(new SecureAnnotationAuthorizationStrategy(expressionEvaluator()));
+		if(strategyFactory != null)
+			agregator.addStrategy(new AuthStrategiesAnnotationAuthorizationStrategy(strategyFactory));
+		return agregator;
 	}
 
 	public SimpleModule dtoAwareDeserializerModifierModule() {

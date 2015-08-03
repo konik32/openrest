@@ -30,6 +30,7 @@ import lombok.Setter;
 import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
+import orest.dto.authorization.SpringSecurityAuthorizationContext;
 import orest.exception.OrestException;
 import orest.exception.OrestExceptionDictionary;
 import orest.expression.SpelEvaluatorBean;
@@ -43,23 +44,18 @@ import org.springframework.data.rest.webmvc.IncomingRequest;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.rest.webmvc.RootResourceInformation;
-import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Custom {@link HandlerMethodArgumentResolver} to create
@@ -78,14 +74,20 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	private final List<HttpMessageConverter<?>> messageConverters;
 	private final DtoDomainRegistry dtoDomainRegistry;
 	private final DefaultEntityFromDtoCreatorAndMerger entityFromDtoCreator;
-	private SpelEvaluatorBean spelEvaluator;
-	private Validator validator;
+
+	
+	
 	@Autowired
 	private UpdateValidationContext updateValidationContext;
-	@Autowired
-	private @Setter ExpressionEvaluator expressionEvaluator;
+	
+	private @Setter Validator validator;
 
-	private boolean validate = true;
+	private @Setter ExpressionEvaluator expressionEvaluator;
+	
+	private @Setter SpelEvaluatorBean spelEvaluator;
+	
+	private @Setter SpringSecurityAuthorizationContext authorizationStrategyContext;
+
 
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 			List<HttpMessageConverter<?>> messageConverters,
@@ -137,9 +139,6 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 			throw new OrestException(OrestExceptionDictionary.NO_SUCH_DTO, "There is no such dto: " + dtoParam
 					+ " defined");
 
-		// authorize that dto can be used
-		authorizeDto(dtoInfo);
-
 		RootResourceInformation resourceInformation = resourceInformationResolver.resolveArgument(parameter,
 				mavContainer, webRequest, binderFactory);
 
@@ -162,12 +161,13 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 			Object dto = read(incoming, converter, dtoType);
 			Object entity = null;
 			// inject @Value's in dto
-			evaluateSpelExpressions(dto);
+			
 
 			if (incoming.isPatchRequest()) {
 				RepositoryInvoker invoker = resourceInformation.getInvoker();
 				Object existingObject = invoker.invokeFindOne(id);
-
+				evaluateSpelExpressions(dto,entity);
+				authorizeDto(dto, entity);
 				validate(dto, existingObject);
 				if (existingObject == null) {
 					throw new ResourceNotFoundException();
@@ -177,6 +177,8 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 				entityFromDtoCreator.merge(dto, existingObject, dtoInfo);
 				entity = existingObject;
 			} else {
+				evaluateSpelExpressions(dto,null);
+				authorizeDto(dto, null);
 				validate(dto, null);
 				// create entity from dto
 				entity = entityFromDtoCreator.create(dto, dtoInfo);
@@ -217,7 +219,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	 * 
 	 * @param object
 	 */
-	private void evaluateSpelExpressions(Object object) {
+	private void evaluateSpelExpressions(Object object, Object entity) {
 		if (spelEvaluator != null)
 			spelEvaluator.evaluate(object);
 	}
@@ -228,7 +230,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	 * @param from
 	 */
 	private void validate(Object from) {
-		if (!validate || validator == null)
+		if (validator == null)
 			return;
 		Set<ConstraintViolation<Object>> violations = validator.validate(from);
 		if (!violations.isEmpty()) {
@@ -250,22 +252,11 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 		validate(dto);
 	}
 
-	private void authorizeDto(DtoInformation dtoInfo) {
-		if (dtoInfo.getAuthorizationCondition() != null && expressionEvaluator != null)
-			if (!expressionEvaluator.checkCondition(dtoInfo.getAuthorizationCondition()))
-				throw new AccessDeniedException("You are not authorized to use this dto: " + dtoInfo.getName());
+	private void authorizeDto(Object dto, Object entity) {
+		if (authorizationStrategyContext != null)
+			authorizationStrategyContext.invokeStrategy(dto, entity);
 	}
 
-	public void setValidator(Validator validator) {
-		this.validator = validator;
-	}
 
-	public void setValidate(boolean validate) {
-		this.validate = validate;
-	}
-
-	public void setSpelEvaluatorBean(SpelEvaluatorBean spelEvaluatorBean) {
-		this.spelEvaluator = spelEvaluatorBean;
-	}
 
 }

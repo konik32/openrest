@@ -14,11 +14,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class AuthrizationStrategyAggregatorTest {
 
 	
-	private AuthrizationStrategyAggregator aggregator;
+	private AuthorizationStrategyAgregator aggregator;
 	
 	@Before
 	public void setUp(){
-		aggregator = new AuthrizationStrategyAggregator();
+		aggregator = new AuthorizationStrategyAgregator();
 	}
 	
 	@Test
