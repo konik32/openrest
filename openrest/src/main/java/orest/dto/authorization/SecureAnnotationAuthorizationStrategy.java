@@ -1,6 +1,10 @@
 package orest.dto.authorization;
 
+import java.util.List;
+
 import lombok.NonNull;
+import orest.annotation.utils.HierarchicalAnnotationUtils;
+import orest.dto.authorization.annotation.AuthStrategies;
 import orest.dto.authorization.annotation.Secure;
 import orest.security.ExpressionEvaluator;
 
@@ -19,11 +23,14 @@ public class SecureAnnotationAuthorizationStrategy implements AuthorizationStrat
 
 	@Override
 	public boolean isAuthorized(Object principal, Object dto, Object entity) {
-		Secure secureAnn = AnnotationUtils.findAnnotation(dto.getClass(), Secure.class);
-		if (secureAnn == null)
-			return true;
-		String condition = secureAnn.value();
-		return expressionEvaluator.checkCondition(condition);
+		List<Secure> secureAnns = HierarchicalAnnotationUtils.getAllHierarchicalAnnotations(
+				dto.getClass(), Secure.class);
+		for (Secure secureAnn : secureAnns) {
+			String condition = secureAnn.value();
+			if(!expressionEvaluator.checkCondition(condition))
+				return false;
+		}
+		return true;
 	}
 
 }

@@ -1,8 +1,10 @@
 package orest.dto.authorization;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.calls;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import orest.dto.authorization.annotation.AuthStrategies;
 import orest.exception.OrestException;
@@ -68,6 +70,20 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 		assertFalse(authorizationStrategy.isAuthorized(principal, dto, entity));
 	}
 
+	@Test
+	public void shouldCallParentAuthorizationStrategy() throws Exception {
+		// given
+		dto = mock(ChildTestDto.class);
+		AuthorizationStrategy strategy = mock(AuthorizationStrategy.class);
+		when(strategy.isAuthorized(principal, dto, entity)).thenReturn(false);
+		when(strategyFactory.getAuthorizationStrategy(AuthorizationStrategy.class)).thenReturn(strategy);
+		when(strategyFactory.getAuthorizationStrategy(TestStrategy.class)).thenReturn(new TestStrategy());
+		// when
+		authorizationStrategy.isAuthorized(principal, dto, entity);
+		// then
+		verify(strategy, times(1)).isAuthorized(principal, dto, entity);
+	}
+
 	class TestStrategy implements AuthorizationStrategy<UserDetails, Object, Object> {
 
 		@Override
@@ -79,6 +95,16 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 
 	@AuthStrategies({ TestStrategy.class, AuthorizationStrategy.class })
 	class TestDto {
+
+	}
+
+	@AuthStrategies({ TestStrategy.class })
+	class ChildTestDto extends ParentTestStrategy {
+
+	}
+
+	@AuthStrategies({ AuthorizationStrategy.class })
+	class ParentTestStrategy {
 
 	}
 }

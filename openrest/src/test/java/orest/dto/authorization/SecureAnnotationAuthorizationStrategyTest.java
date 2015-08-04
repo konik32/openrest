@@ -3,6 +3,7 @@ package orest.dto.authorization;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import orest.dto.authorization.annotation.Secure;
@@ -56,9 +57,31 @@ public class SecureAnnotationAuthorizationStrategyTest {
 		// then
 		assertTrue(authorizationStrategy.isAuthorized(principal, mock(Object.class), entity));
 	}
+	
+	@Test
+	public void shouldReturnFalseOnParentIsNotAhutorized() throws Exception {
+		// given
+		when(expressionEvaluator.checkCondition(eq("hasRole('USER')"))).thenReturn(false);
+		when(expressionEvaluator.checkCondition(eq("hasRole('ADMIN')"))).thenReturn(true);
+
+		// when
+
+		// then
+		assertFalse(authorizationStrategy.isAuthorized(principal, mock(ChildTestDto.class), entity));
+	}
 
 	@Secure("hasRole('ADMIN')")
 	public static class TestDto {
+
+	}
+	
+	@Secure("hasRole('ADMIN')")
+	class ChildTestDto extends ParentTestStrategy {
+
+	}
+
+	@Secure("hasRole('USER')")
+	class ParentTestStrategy {
 
 	}
 
