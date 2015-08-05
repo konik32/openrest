@@ -1,7 +1,7 @@
 package orest.annotation.utils;
 
 import static org.junit.Assert.*;
-import orest.dto.authorization.annotation.Secure;
+import orest.authorization.annotation.Secure;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

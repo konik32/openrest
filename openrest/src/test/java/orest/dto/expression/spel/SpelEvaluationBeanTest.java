@@ -34,7 +34,7 @@ public class SpelEvaluationBeanTest {
 	@Test
 	public void shouldSetValues() {
 		UserDto userDto = new UserDto();
-		spelEvaluatorBean.evaluate(new DtoEvaluationWrapper(userDto, null));
+		spelEvaluatorBean.handle(userDto, null);
 		assertEquals("staszek", userDto.getName());
 		assertEquals(true, userDto.getAuthenticated());
 		assertSame(100L, userDto.getId());

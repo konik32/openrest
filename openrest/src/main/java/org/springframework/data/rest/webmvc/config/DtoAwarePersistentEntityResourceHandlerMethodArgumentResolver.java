@@ -30,14 +30,17 @@ import lombok.Setter;
 import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
-import orest.dto.authorization.SpringSecurityAuthorizationContext;
+import orest.dto.authorization.SpringSecurityAuthorizationStrategyDtoHandler;
 import orest.dto.expression.spel.DtoEvaluationWrapper;
 import orest.dto.expression.spel.SpelEvaluatorBean;
+import orest.dto.handler.DtoHandlerManager;
 import orest.dto.validation.UpdateValidationContext;
 import orest.exception.OrestException;
 import orest.exception.OrestExceptionDictionary;
 import orest.security.ExpressionEvaluator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.rest.core.invoke.RepositoryInvoker;
@@ -76,16 +79,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 	private final DtoDomainRegistry dtoDomainRegistry;
 	private final DefaultEntityFromDtoCreatorAndMerger entityFromDtoCreator;
 
-	@Autowired
-	private UpdateValidationContext updateValidationContext;
-
-	private @Setter Validator validator;
-
-	private @Setter ExpressionEvaluator expressionEvaluator;
-
-	private @Setter SpelEvaluatorBean spelEvaluator;
-
-	private @Setter SpringSecurityAuthorizationContext authorizationStrategyContext;
+	private @Setter DtoHandlerManager dtoHandlerManager;
 
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 			List<HttpMessageConverter<?>> messageConverters,
@@ -163,20 +157,15 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 			if (incoming.isPatchRequest()) {
 				RepositoryInvoker invoker = resourceInformation.getInvoker();
 				Object existingObject = invoker.invokeFindOne(id);
-				evaluateSpelExpressions(dto, entity);
-				authorizeDto(dto, entity);
-				validate(dto, existingObject);
 				if (existingObject == null) {
 					throw new ResourceNotFoundException();
 				}
-
+				dtoHandlerManager.handle(dto, entity);
 				// merge entity with dto
 				entityFromDtoCreator.merge(dto, existingObject, dtoInfo);
 				entity = existingObject;
 			} else {
-				evaluateSpelExpressions(dto, null);
-				authorizeDto(dto, null);
-				validate(dto, null);
+				dtoHandlerManager.handle(dto, entity);
 				// create entity from dto
 				entity = entityFromDtoCreator.create(dto, dtoInfo);
 			}
@@ -186,6 +175,7 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 
 			PersistentEntityResource entityResource = PersistentEntityResource.build(entity,
 					resourceInformation.getPersistentEntity()).build();
+
 			return new PersistentEntityResourceWithDtoWrapper(entityResource, dto);
 		}
 
@@ -210,49 +200,6 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
 		} catch (IOException e) {
 			throw new HttpMessageNotReadableException(String.format(ERROR_MESSAGE, type));
 		}
-	}
-
-	/**
-	 * Evaluates {@link @Value} expression for each dto field
-	 * 
-	 * @param object
-	 */
-	private void evaluateSpelExpressions(Object dto, Object entity) {
-		if (spelEvaluator != null)
-			spelEvaluator.evaluate(new DtoEvaluationWrapper(dto, entity));
-	}
-
-	/**
-	 * Validates each dto field
-	 * 
-	 * @param from
-	 */
-	private void validate(Object from) {
-		if (validator == null)
-			return;
-		Set<ConstraintViolation<Object>> violations = validator.validate(from);
-		if (!violations.isEmpty()) {
-			ConstraintViolation<Object> violation = violations.iterator().next();
-			throw new ConstraintViolationException(violation.getPropertyPath() + " " + violation.getMessage(),
-					violations);
-		}
-
-	}
-
-	/**
-	 * Validates each dto field
-	 * 
-	 * @param from
-	 */
-	private void validate(Object dto, Object entity) {
-		updateValidationContext.setDto(dto);
-		updateValidationContext.setEntity(entity);
-		validate(dto);
-	}
-
-	private void authorizeDto(Object dto, Object entity) {
-		if (authorizationStrategyContext != null)
-			authorizationStrategyContext.invokeStrategy(dto, entity);
 	}
 
 }

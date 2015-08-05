@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import orest.dto.authorization.annotation.AuthStrategies;
+import orest.dto.authorization.annotation.AuthorizeDto;
 import orest.exception.OrestException;
 
 import org.junit.Before;
@@ -17,12 +17,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AuthStrategiesAnnotationAuthorizationStrategyTest {
+public class AuthorizeDtoAnnotationAuthorizationStrategyTest {
 
-	private AuthStrategiesAnnotationAuthorizationStrategy authorizationStrategy;
+	private AuthorizeDtoAnnotationAuthorizationStrategy authorizationStrategy;
 
 	@Mock
-	private AuthorizationStratetyFactory strategyFactory;
+	private DtoAuthorizationStratetyFactory strategyFactory;
 
 	private UserDetails principal;
 	private Object dto;
@@ -30,11 +30,11 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 
 	@Before
 	public void setUp() {
-		strategyFactory = mock(AuthorizationStratetyFactory.class);
+		strategyFactory = mock(DtoAuthorizationStratetyFactory.class);
 		principal = mock(UserDetails.class);
 		dto = mock(TestDto.class);
 		entity = mock(Object.class);
-		authorizationStrategy = new AuthStrategiesAnnotationAuthorizationStrategy(strategyFactory);
+		authorizationStrategy = new AuthorizeDtoAnnotationAuthorizationStrategy(strategyFactory);
 	}
 
 	@Test
@@ -49,9 +49,9 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 	@Test
 	public void shouldReturnFalseOnNotAuthorizedStrategy() throws Exception {
 		// given
-		AuthorizationStrategy strategy = mock(AuthorizationStrategy.class);
+		DtoAuthorizationStrategy strategy = mock(DtoAuthorizationStrategy.class);
 		when(strategy.isAuthorized(principal, dto, entity)).thenReturn(false);
-		when(strategyFactory.getAuthorizationStrategy(AuthorizationStrategy.class)).thenReturn(strategy);
+		when(strategyFactory.getAuthorizationStrategy(DtoAuthorizationStrategy.class)).thenReturn(strategy);
 		when(strategyFactory.getAuthorizationStrategy(TestStrategy.class)).thenReturn(new TestStrategy());
 		// when
 
@@ -62,7 +62,7 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 	@Test(expected = OrestException.class)
 	public void shouldThrowOrestException() throws Exception {
 		// given
-		AuthorizationStrategy strategy = mock(AuthorizationStrategy.class);
+		DtoAuthorizationStrategy strategy = mock(DtoAuthorizationStrategy.class);
 		when(strategy.isAuthorized(principal, dto, entity)).thenReturn(false);
 		// when
 
@@ -74,9 +74,9 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 	public void shouldCallParentAuthorizationStrategy() throws Exception {
 		// given
 		dto = mock(ChildTestDto.class);
-		AuthorizationStrategy strategy = mock(AuthorizationStrategy.class);
+		DtoAuthorizationStrategy strategy = mock(DtoAuthorizationStrategy.class);
 		when(strategy.isAuthorized(principal, dto, entity)).thenReturn(false);
-		when(strategyFactory.getAuthorizationStrategy(AuthorizationStrategy.class)).thenReturn(strategy);
+		when(strategyFactory.getAuthorizationStrategy(DtoAuthorizationStrategy.class)).thenReturn(strategy);
 		when(strategyFactory.getAuthorizationStrategy(TestStrategy.class)).thenReturn(new TestStrategy());
 		// when
 		authorizationStrategy.isAuthorized(principal, dto, entity);
@@ -84,7 +84,7 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 		verify(strategy, times(1)).isAuthorized(principal, dto, entity);
 	}
 
-	class TestStrategy implements AuthorizationStrategy<UserDetails, Object, Object> {
+	class TestStrategy implements DtoAuthorizationStrategy<UserDetails, Object, Object> {
 
 		@Override
 		public boolean isAuthorized(UserDetails principal, Object dto, Object entity) {
@@ -93,17 +93,17 @@ public class AuthStrategiesAnnotationAuthorizationStrategyTest {
 
 	}
 
-	@AuthStrategies({ TestStrategy.class, AuthorizationStrategy.class })
+	@AuthorizeDto({ TestStrategy.class, DtoAuthorizationStrategy.class })
 	class TestDto {
 
 	}
 
-	@AuthStrategies({ TestStrategy.class })
+	@AuthorizeDto({ TestStrategy.class })
 	class ChildTestDto extends ParentTestStrategy {
 
 	}
 
-	@AuthStrategies({ AuthorizationStrategy.class })
+	@AuthorizeDto({ DtoAuthorizationStrategy.class })
 	class ParentTestStrategy {
 
 	}

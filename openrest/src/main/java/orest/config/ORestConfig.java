@@ -5,20 +5,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.validation.Validator;
-
+import orest.authorization.annotation.Secure;
 import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.Dto;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
-import orest.dto.authorization.AuthStrategiesAnnotationAuthorizationStrategy;
-import orest.dto.authorization.AuthorizationStrategyAgregator;
-import orest.dto.authorization.AuthorizationStratetyFactory;
+import orest.dto.authorization.AuthorizeDtoAnnotationAuthorizationStrategy;
+import orest.dto.authorization.DtoAuthorizationStratetyFactory;
 import orest.dto.authorization.SecureAnnotationAuthorizationStrategy;
-import orest.dto.authorization.SpringSecurityAuthorizationContext;
-import orest.dto.authorization.annotation.Secure;
+import orest.dto.authorization.SpringSecurityAuthorizationStrategyDtoHandler;
 import orest.dto.expression.spel.SpelEvaluatorBean;
+import orest.dto.handler.DtoHandlerManager;
 import orest.dto.validation.UpdateValidationContext;
+import orest.dto.validation.UpdateValidationContextHandler;
+import orest.dto.validation.ValidatorInvoker;
 import orest.event.AnnotatedDtoEventHandlerBeanPostProcessor;
 import orest.expression.ExpressionBuilder;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
@@ -40,6 +40,8 @@ import orest.security.SimpleSecurityExpressionHandler;
 import orest.webmvc.support.OpenRestEntityLinks;
 import orest.webmvc.support.PageAndSortUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -53,6 +55,8 @@ import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.config.Projection;
+import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
+import org.springframework.data.rest.webmvc.ExpressionController;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.data.util.AnnotatedTypeScanner;
@@ -62,6 +66,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.util.Assert;
+import org.springframework.validation.Validator;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -83,6 +88,8 @@ import com.mysema.query.types.path.PathBuilderFactory;
  */
 @Configuration
 public class ORestConfig extends RepositoryRestMvcConfiguration {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ORestConfig.class);
 
 	@Autowired
 	private Repositories repositories;
@@ -108,10 +115,12 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Autowired
 	private PageableHandlerMethodArgumentResolver pageableResolver;
-	
-	
-	@Autowired(required=false)
-	private AuthorizationStratetyFactory strategyFactory;
+
+	@Autowired(required = false)
+	private DtoAuthorizationStratetyFactory strategyFactory;
+
+	@Autowired
+	private RepositoryRestConfiguration config;
 
 	@Bean
 	public EntityExpressionMethodsRegistry entityExpressionMethodsRegistry() {
@@ -128,8 +137,13 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	public SimpleSecurityExpressionHandler simpleSecurityExpressionHandler() {
 		Assert.notNull(applicationContext);
 		SimpleSecurityExpressionHandler expressionHandler = new SimpleSecurityExpressionHandler();
-		if (permissionEvaluators != null && permissionEvaluators.size() == 1)
-			expressionHandler.setPermissionEvaluator(permissionEvaluators.get(0));
+		if (permissionEvaluators != null) {
+			if (permissionEvaluators.size() == 1) {
+				expressionHandler.setPermissionEvaluator(permissionEvaluators.get(0));
+			} else {
+				LOGGER.debug("Not autwiring PermissionEvaluator since size != 1. Got " + permissionEvaluators);
+			}
+		}
 		expressionHandler.setApplicationContext(applicationContext);
 		expressionHandler.setRoleHierarchy(roleHierarchy);
 		return expressionHandler;
@@ -163,26 +177,36 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver resolver = new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
 				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(),
 				dtoDomainRegistry, entityFromDtoCreator());
-		resolver.setValidator(validator);
-		resolver.setSpelEvaluator(spelEvaluatorBean());
-		resolver.setAuthorizationStrategyContext(authorizationContext());
+		resolver.setDtoHandlerManager(dtoHandlerManager());
 		return resolver;
 	}
 
-	@Autowired
-	@Bean
-	public SpringSecurityAuthorizationContext authorizationContext() {
-		SpringSecurityAuthorizationContext authorizationContext = new SpringSecurityAuthorizationContext(
-				authorizationStrategyAgregator());
-		return authorizationContext;
+	public DtoHandlerManager dtoHandlerManager() {
+		DtoHandlerManager manager = new DtoHandlerManager();
+		manager.addHandler(spelEvaluatorBean());
+		manager.addHandler(authorizationStrategyDtoHandler());
+		manager.addHandler(updateValidationContextHandler());
+		manager.addHandler(validatorInvoker());
+		return manager;
 	}
 
-	public AuthorizationStrategyAgregator authorizationStrategyAgregator() {
-		AuthorizationStrategyAgregator agregator = new AuthorizationStrategyAgregator();
-		agregator.addStrategy(new SecureAnnotationAuthorizationStrategy(expressionEvaluator()));
-		if(strategyFactory != null)
-			agregator.addStrategy(new AuthStrategiesAnnotationAuthorizationStrategy(strategyFactory));
-		return agregator;
+	@Bean
+	public UpdateValidationContextHandler updateValidationContextHandler() {
+		return new UpdateValidationContextHandler();
+	}
+
+	public ValidatorInvoker validatorInvoker() {
+		ValidatorInvoker invoker = new ValidatorInvoker();
+		invoker.addValidator(validator);
+		return invoker;
+	}
+
+	public SpringSecurityAuthorizationStrategyDtoHandler authorizationStrategyDtoHandler() {
+		SpringSecurityAuthorizationStrategyDtoHandler handler = new SpringSecurityAuthorizationStrategyDtoHandler();
+		handler.addStrategy(new SecureAnnotationAuthorizationStrategy());
+		if (strategyFactory != null)
+			handler.addStrategy(new AuthorizeDtoAnnotationAuthorizationStrategy(strategyFactory));
+		return handler;
 	}
 
 	public SimpleModule dtoAwareDeserializerModifierModule() {
@@ -250,7 +274,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 				if (expand != null) {
 					expands = ProjectionInfoRegistry.getExpands(expand.value(), entityType, builder);
 				}
-				ProjectionInfo projectionInfo = new ProjectionInfo(expands, secure == null ? null : secure.value());
+				ProjectionInfo projectionInfo = new ProjectionInfo(expands, secure != null ? secure.value() : null);
 				expandsRegistry.put(projectionAnn.name(), entityType, projectionInfo);
 			}
 		}

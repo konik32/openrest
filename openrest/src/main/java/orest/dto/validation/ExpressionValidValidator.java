@@ -3,10 +3,10 @@ package orest.dto.validation;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import lombok.Data;
 import orest.dto.expression.spel.DtoEvaluationWrapper;
 import orest.dto.expression.spel.SpelEvaluator;
 import orest.dto.validation.UpdateValidationContext;
+import orest.dto.validation.annotation.ExpressionValid;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;

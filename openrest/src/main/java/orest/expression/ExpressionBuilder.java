@@ -57,27 +57,6 @@ public class ExpressionBuilder {
 		return exp;
 	}
 
-	// public BooleanExpression
-	// createJoinsStaticFiltersExpression(PredicateContext predicateContext) {
-	// BooleanExpression exp = null;
-	// List<Join> subJoins = new ArrayList<Join>();
-	// for (Join join : predicateContext.getJoins()) {
-	// ExpressionEntityInformation entityInfo =
-	// entityExpressionMethodsRegistry.getEntityInformation(join.getType());
-	// if (entityInfo == null)
-	// continue;
-	// PredicateContext subPredicateContext = new PredicateContext();
-	// BooleanExpression staticExp =
-	// createStaticFiltersExpression(subPredicateContext, entityInfo);
-	// exp = exp == null ? staticExp : exp.and(staticExp);
-	// BooleanExpression subJoinsExp =
-	// createJoinsStaticFiltersExpression(subPredicateContext);
-	// subJoins.addAll(subPredicateContext.getJoins());
-	// exp = exp == null ? subJoinsExp : exp.and(subJoinsExp);
-	// }
-	// predicateContext.addJoins(subJoins);
-	// return exp;
-	// }
 
 	public BooleanExpression create(FilterPart tree, PredicateContext predicateContext, Object expressionRepository) {
 		if (tree == null)

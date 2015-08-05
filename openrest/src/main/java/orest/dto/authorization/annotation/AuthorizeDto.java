@@ -5,10 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import orest.dto.authorization.AuthorizationStrategy;
+import orest.dto.authorization.DtoAuthorizationStrategy;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface AuthStrategies {
-	Class<? extends AuthorizationStrategy>[] value();
+public @interface AuthorizeDto {
+	Class<? extends DtoAuthorizationStrategy>[] value();
 }

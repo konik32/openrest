@@ -2,13 +2,15 @@ package orest.dto.expression.spel;
 
 import java.lang.reflect.Field;
 
+import orest.dto.handler.DtoHandler;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 
-public class SpelEvaluatorBean {
+public class SpelEvaluatorBean implements DtoHandler {
 
 	private final BeanFactory beanFactory;
 
@@ -17,7 +19,7 @@ public class SpelEvaluatorBean {
 		this.beanFactory = beanFactory;
 	}
 
-	public void evaluate(final DtoEvaluationWrapper wrapper) {
+	private void evaluate(final DtoEvaluationWrapper wrapper) {
 		final SpelEvaluator spelEvaluator = new SpelEvaluator(wrapper, beanFactory);
 		ReflectionUtils.doWithFields(wrapper.getDto().getClass(), new FieldCallback() {
 
@@ -31,5 +33,16 @@ public class SpelEvaluatorBean {
 				field.set(wrapper.getDto(), value);
 			}
 		});
+	}
+
+	@Override
+	public void handle(Object dto) {
+		handle(dto, null);
+	}
+
+	@Override
+	public void handle(Object dto, Object entity) {
+		DtoEvaluationWrapper wrapper = new DtoEvaluationWrapper(dto, entity);
+		evaluate(wrapper);
 	}
 }
