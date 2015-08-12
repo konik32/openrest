@@ -121,16 +121,16 @@ public void setName(String name){
 }
 ```
 
-## @ExpressionValid
+## @ValidateExpression
 
-`@ExpressionValid` is an annotation to mark DTO fields that will be validated with SpEL expression
+`@ValidateExpression` is an annotation to mark DTO fields that will be validated with SpEL expression
 
-`@ExpressionValid` parameters:
+`@ValidateExpression` parameters:
 
 - `value` - holds SpEL string which will be evaluated with Spring Security Context, DTO object and entity (in PUT, PATCH requests) eg.
 
 ```
-@ExpressionValid("#{dto.password != null && entity.password != null? @passwordService.checkIfCorrectPassword(entity.password): true}")
+@ValidateExpression("#{dto.password != null && entity.password != null? @passwordService.checkIfCorrectPassword(entity.password): true}")
 ```
 
 ## @Value
