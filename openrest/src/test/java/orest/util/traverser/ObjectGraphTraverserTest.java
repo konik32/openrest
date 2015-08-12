@@ -1,55 +1,83 @@
 package orest.util.traverser;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
-import orest.util.traverser.ObjectGraphTraverser;
-import orest.util.traverser.TraverserCallback;
-import orest.util.traverser.TraverserFieldFilter;
 
-import org.apache.commons.lang3.ClassUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.util.ReflectionUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ObjectGraphTraverserTest {
+	@Mock
+	private TraverserCallback callback;
+	@Mock
+	private TraverserCallback beforeTraverse;
+	@Mock
+	private TraverserCallback afterTraverse;
+	@Mock
+	private TraverserFieldFilter fieldFilter;
+	private ObjectGraphTraverser traverser;
+	private Foo foo;
+
+	@Before
+	public void setUp() {
+		when(fieldFilter.matches(any(Field.class), any(), anyString())).thenReturn(true);
+		Map<String, Boo> boos = Collections.singletonMap("boo", new Boo("Warsaw"));
+		foo = new Foo("foo", "id", boos);
+		traverser = new ObjectGraphTraverser(callback, fieldFilter, fieldFilter);
+	}
 
 	@Test
-	public void should() throws Exception {
+	public void shouldCallCallback() throws Exception {
 		// given
-		Map<String,Boo> boos = Collections.singletonMap("boosa", new Boo("warasza",new Roo("warasza")));
-		Foo foo = new Foo("asdf", "id", boos);
 
-		ObjectGraphTraverser tr = new ObjectGraphTraverser(new TraverserCallback() {
+		traverser.setBeforeTraverse(beforeTraverse);
+		traverser.setAfterTraverse(afterTraverse);
 
-			@Override
-			public void doWith(Field field, Object owner, String path) {
-				System.out.println(path + " " + ReflectionUtils.getField(field, owner));
+		// when
+		traverser.traverse(foo);
+		//
+		verify(callback, times(5)).doWith(any(Field.class), any(), anyString());
 
-			}
-		}, new TraverserFieldFilter() {
+	}
 
-			@Override
-			public boolean matches(Field field, Object owner, String path) {
-				// TODO Auto-generated method stub
-				return true;
-			}
-		}, new TraverserFieldFilter() {
+	@Test
+	public void shouldCallBeforeTraverse() throws Exception {
+		// given
+		traverser.setBeforeTraverse(beforeTraverse);
 
-			@Override
-			public boolean matches(Field field, Object owner, String path) {
-				// TODO Auto-generated method stub
-				return true;
-			}
-		});
-		tr.traverse(foo);
+		// when
+		traverser.traverse(foo);
+		//
+		ArgumentCaptor<Field> argument = ArgumentCaptor.forClass(Field.class);
+		verify(beforeTraverse, times(1)).doWith(argument.capture(), any(), anyString());
+		assertEquals(Map.class, argument.getValue().getType());
+	}
+
+	@Test
+	public void shouldCallAfterTraverse() throws Exception {
+		// given
+		traverser.setAfterTraverse(afterTraverse);
+		// when
+		traverser.traverse(foo);
+		//
+		ArgumentCaptor<Field> argument = ArgumentCaptor.forClass(Field.class);
+		verify(afterTraverse, times(1)).doWith(argument.capture(), any(), anyString());
+		assertEquals(Map.class, argument.getValue().getType());
 	}
 
 	@Data
@@ -63,11 +91,6 @@ public class ObjectGraphTraverserTest {
 	@Data
 	public static class Boo {
 		final String address;
-		final Roo roo;
 	}
-	
-	@Data
-	public static class Roo {
-		final String address;
-	}
+
 }

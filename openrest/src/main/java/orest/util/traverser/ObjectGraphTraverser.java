@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Setter;
+
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
@@ -27,6 +29,9 @@ public class ObjectGraphTraverser {
 	private final TraverserCallback callback;
 	private final TraverserFieldFilter traverseFilter;
 	private final TraverserFieldFilter fieldFilter;
+
+	private @Setter TraverserCallback beforeTraverse;
+	private @Setter TraverserCallback afterTraverse;
 
 	private List<Traverser> traversers = new ArrayList<Traverser>();
 
@@ -60,15 +65,25 @@ public class ObjectGraphTraverser {
 					callback.doWith(field, target, path);
 				if (traverseFilter.matches(field, target, path)) {
 					Object traversableObject = ReflectionUtils.getField(field, target);
-					if(traversableObject == null) return;
+					if (traversableObject == null)
+						return;
 					for (Traverser traverser : traversers) {
 						if (traverser.supports(field.getType())) {
+							if (beforeTraverse != null)
+								beforeTraverse.doWith(field, target, path);
 							traverser.traverse(traversableObject, path, ObjectGraphTraverser.this);
+							if (afterTraverse != null)
+								afterTraverse.doWith(field, target, path);
 							return;
 						}
 					}
-					if (isNonTraversable(field.getType()))
+					if (isNonTraversable(field.getType())) {
+						if (beforeTraverse != null)
+							beforeTraverse.doWith(field, target, path);
 						traverse(traversableObject, path);
+						if (afterTraverse != null)
+							afterTraverse.doWith(field, target, path);
+					}
 				}
 			}
 		});
