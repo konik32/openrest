@@ -121,6 +121,12 @@ public class DefaultEntityFromDtoCreatorAndMerger implements EntityFromDtoCreato
 					doWithField(from, field, entityField, entity);
 				}
 			}
+		}, new FieldFilter() {
+			@Override
+			public boolean matches(Field field) {
+				int modifiers = field.getModifiers();
+				return !(Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers));
+			}
 		});
 		return entity;
 	}
@@ -164,8 +170,8 @@ public class DefaultEntityFromDtoCreatorAndMerger implements EntityFromDtoCreato
 	private void doWithCollectionField(final Object from, final Field field, final Field entityField,
 			final Object entity) throws IllegalArgumentException, IllegalAccessException {
 		Collection<Object> fieldCollection = ((Collection<Object>) field.get(from));
-//		if (fieldCollection == null)
-//			return;
+		// if (fieldCollection == null)
+		// return;
 		// Collection<Object> entityFieldCollection =
 		// createCollection(entityField);
 		Collection<Object> entityFieldCollection = CollectionFactory.createCollection(entityField.getType(), 0);
