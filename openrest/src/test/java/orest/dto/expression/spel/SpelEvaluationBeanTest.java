@@ -47,7 +47,7 @@ public class SpelEvaluationBeanTest {
 	}
 
 	@Test
-	public void shouldNotEvaluatedNonDto() throws Exception {
+	public void shouldNotEvaluatedNonEvaluate() throws Exception {
 		// given
 		UserDto userDto = new UserDto();
 		userDto.setPersonalData(new PersonalData());
@@ -79,6 +79,7 @@ public class SpelEvaluationBeanTest {
 
 		private final Long number = 10L;
 
+		@Evaluate
 		private List<Address> addresses;
 
 		private PersonalData personalData;

@@ -1,22 +1,16 @@
 package orest.dto.expression.spel;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
 
 import orest.dto.Dto;
 import orest.dto.handler.DtoHandler;
-import orest.dto.helper.DtoTraverserFilter;
+import orest.util.traverser.AnnotationFieldFilter;
 import orest.util.traverser.ObjectGraphTraverser;
 import orest.util.traverser.TraverserCallback;
-import orest.util.traverser.TraverserFieldFilter;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * This bean evaluates {@link Dto}'s field annotated with {@link Value}. Nested
@@ -45,7 +39,7 @@ public class SpelEvaluatorBean implements DtoHandler {
 				Object value = spelEvaluator.evaluate(field);
 				field.set(owner, value);
 			}
-		}, new DtoTraverserFilter(), new ValueFieldFilter());
+		}, new AnnotationFieldFilter(Evaluate.class), new AnnotationFieldFilter(Value.class));
 		traverser.traverse(wrapper.getDto());
 	}
 
@@ -58,13 +52,6 @@ public class SpelEvaluatorBean implements DtoHandler {
 	public void handle(Object dto, Object entity) {
 		DtoEvaluationWrapper wrapper = new DtoEvaluationWrapper(dto, entity);
 		evaluate(wrapper);
-	}
-
-	private class ValueFieldFilter implements TraverserFieldFilter {
-		@Override
-		public boolean matches(Field field, Object owner, String path) {
-			return field.isAnnotationPresent(Value.class);
-		}
 	}
 
 }
