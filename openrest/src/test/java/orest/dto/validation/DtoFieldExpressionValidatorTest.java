@@ -14,6 +14,7 @@ import orest.dto.validation.annotation.ValidateExpression;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
@@ -27,6 +28,7 @@ public class DtoFieldExpressionValidatorTest {
 
 	@Mock
 	private BeanFactory beanFactory;
+	@InjectMocks
 	private DtoFieldExpressionValidator validator;
 
 	private ADto dto = new ADto();
@@ -39,7 +41,6 @@ public class DtoFieldExpressionValidatorTest {
 		when(updateValidationContext.getEntity()).thenReturn(entity);
 		when(updateValidationContext.getDto()).thenReturn(dto);
 		errors = new DtoValidationErrors(dto.getClass().getSimpleName(), dto);
-		validator = new DtoFieldExpressionValidator(updateValidationContext, beanFactory);
 	}
 
 	@Test

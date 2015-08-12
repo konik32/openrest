@@ -17,6 +17,7 @@ import orest.dto.authorization.SecureAnnotationAuthorizationStrategy;
 import orest.dto.authorization.SpringSecurityAuthorizationStrategyDtoHandler;
 import orest.dto.expression.spel.SpelEvaluatorBean;
 import orest.dto.handler.DtoHandler;
+import orest.dto.validation.DtoFieldExpressionValidator;
 import orest.dto.validation.UpdateValidationContext;
 import orest.dto.validation.UpdateValidationContextHandler;
 import orest.dto.validation.ValidatorInvoker;
@@ -197,11 +198,21 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	public UpdateValidationContextHandler updateValidationContextHandler() {
 		return new UpdateValidationContextHandler();
 	}
+	
+	@Bean 
+	public DtoFieldExpressionValidator dtoFieldExpressionValidator(){
+		return new DtoFieldExpressionValidator();
+	}
 
 	protected DtoHandler validatorInvoker() {
 		ValidatorInvoker invoker = new ValidatorInvoker();
-		invoker.addValidator(validator);
+		addValidators(invoker);
 		return invoker;
+	}
+	
+	public void addValidators(ValidatorInvoker invoker){
+		invoker.addValidator(validator);
+		invoker.addValidator(dtoFieldExpressionValidator());
 	}
 
 	protected DtoHandler authorizationStrategyDtoHandler() {

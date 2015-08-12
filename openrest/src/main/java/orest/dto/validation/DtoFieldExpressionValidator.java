@@ -28,18 +28,13 @@ public class DtoFieldExpressionValidator implements Validator {
 
 	private final String FIELD_NAME_MESSAGE_FORMAT = "Field: %s validation expression evaluated to false";
 
+	@Autowired
 	private UpdateValidationContext updateValidationContext;
 
+	@Autowired
 	private BeanFactory beanFactory;
 
 	private @Setter Class<? extends Annotation> traversingAnnotation = Valid.class;
-
-	@Autowired
-	public DtoFieldExpressionValidator(@NonNull UpdateValidationContext updateValidationContext,
-			@NonNull BeanFactory beanFactory) {
-		this.updateValidationContext = updateValidationContext;
-		this.beanFactory = beanFactory;
-	}
 
 	@Override
 	public boolean supports(Class<?> clazz) {
