@@ -13,7 +13,7 @@
 	</distributionManagement>
 	<properties>
 		<github.global.server>github</github.global.server>
-		
+
 	</properties>
 	<build>
 		<plugins>
@@ -115,6 +115,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.9.2</version>
 		</dependency>
 
 	</dependencies>

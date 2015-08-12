@@ -1,24 +1,19 @@
 package orest.dto.validation;
 
-import static org.springframework.util.ReflectionUtils.getField;
-import static org.springframework.util.ReflectionUtils.invokeMethod;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
+import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.AbstractErrors;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
-import com.mysema.util.ReflectionUtils;
-
 public class DtoValidationErrors extends AbstractErrors {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DtoValidationErrors.class);
 
 	private static final long serialVersionUID = 8141826537389141361L;
 
@@ -65,15 +60,13 @@ public class DtoValidationErrors extends AbstractErrors {
 
 	@Override
 	public Object getFieldValue(String field) {
-		Method getter = ReflectionUtils.getGetterOrNull(dto.getClass(), field);
-		if (null != getter) {
-			return invokeMethod(getter, dto);
+		PropertyUtilsBean utils = new PropertyUtilsBean();
+		try {
+			return utils.getNestedProperty(dto, field);
+		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			LOGGER.error("Cannot read property " + field + " from " + name, e);
+			return null;
 		}
-		Field fld = ReflectionUtils.getFieldOrNull(dto.getClass(), field);
-		if (null != fld) {
-			return getField(fld, dto);
-		}
-		return null;
 	}
 
 }
