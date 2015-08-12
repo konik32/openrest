@@ -1,8 +1,8 @@
 package orest.exception;
 
-import lombok.Data;
-
-@Data
+import lombok.Getter;
+import lombok.ToString;
+@ToString
 public class OrestException extends RuntimeException {
 
 	/**
@@ -10,7 +10,7 @@ public class OrestException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = -6927683705510761229L;
 
-	private final int code;
+	private @Getter final int code;
 
 	public OrestException(int code, String message) {
 		super(message);

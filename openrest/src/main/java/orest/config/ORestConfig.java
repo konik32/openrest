@@ -10,12 +10,12 @@ import orest.dto.DefaultEntityFromDtoCreatorAndMerger;
 import orest.dto.Dto;
 import orest.dto.DtoDomainRegistry;
 import orest.dto.DtoInformation;
+import orest.dto.DtoToEntityConversionManager;
 import orest.dto.authorization.AuthorizeDtoAnnotationAuthorizationStrategy;
 import orest.dto.authorization.DtoAuthorizationStratetyFactory;
 import orest.dto.authorization.SecureAnnotationAuthorizationStrategy;
 import orest.dto.authorization.SpringSecurityAuthorizationStrategyDtoHandler;
 import orest.dto.expression.spel.SpelEvaluatorBean;
-import orest.dto.handler.DtoHandlerManager;
 import orest.dto.validation.UpdateValidationContext;
 import orest.dto.validation.UpdateValidationContextHandler;
 import orest.dto.validation.ValidatorInvoker;
@@ -56,7 +56,6 @@ import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.config.Projection;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
-import org.springframework.data.rest.webmvc.ExpressionController;
 import org.springframework.data.rest.webmvc.config.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.data.util.AnnotatedTypeScanner;
@@ -172,22 +171,25 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 
 	@Bean
 	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver dtoAwarepersistentEntityArgumentResolver() {
-		List<HttpMessageConverter<?>> messageConverters = defaultMessageConverters();
-		configureHttpMessageConverters(messageConverters);
 		DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver resolver = new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
-				messageConverters, repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(),
-				dtoDomainRegistry, entityFromDtoCreator());
-		resolver.setDtoHandlerManager(dtoHandlerManager());
+				repoRequestArgumentResolver(), backendIdHandlerMethodArgumentResolver(), dtoToEntityConversionManager());
 		return resolver;
 	}
 
-	public DtoHandlerManager dtoHandlerManager() {
-		DtoHandlerManager manager = new DtoHandlerManager();
-		manager.addHandler(spelEvaluatorBean());
-		manager.addHandler(authorizationStrategyDtoHandler());
-		manager.addHandler(updateValidationContextHandler());
-		manager.addHandler(validatorInvoker());
-		return manager;
+	protected DtoToEntityConversionManager dtoToEntityConversionManager() {
+		List<HttpMessageConverter<?>> messageConverters = defaultMessageConverters();
+		configureHttpMessageConverters(messageConverters);
+		DtoToEntityConversionManager conversionManager = new DtoToEntityConversionManager(entityFromDtoCreator(),
+				messageConverters, dtoDomainRegistry);
+		addDtoHandlers(conversionManager);
+		return conversionManager;
+	}
+
+	public void addDtoHandlers(DtoToEntityConversionManager conversionManager) {
+		conversionManager.addHandler(spelEvaluatorBean());
+		conversionManager.addHandler(authorizationStrategyDtoHandler());
+		conversionManager.addHandler(updateValidationContextHandler());
+		conversionManager.addHandler(validatorInvoker());
 	}
 
 	@Bean
@@ -195,13 +197,13 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		return new UpdateValidationContextHandler();
 	}
 
-	public ValidatorInvoker validatorInvoker() {
+	protected ValidatorInvoker validatorInvoker() {
 		ValidatorInvoker invoker = new ValidatorInvoker();
 		invoker.addValidator(validator);
 		return invoker;
 	}
 
-	public SpringSecurityAuthorizationStrategyDtoHandler authorizationStrategyDtoHandler() {
+	protected SpringSecurityAuthorizationStrategyDtoHandler authorizationStrategyDtoHandler() {
 		SpringSecurityAuthorizationStrategyDtoHandler handler = new SpringSecurityAuthorizationStrategyDtoHandler();
 		handler.addStrategy(new SecureAnnotationAuthorizationStrategy());
 		if (strategyFactory != null)
