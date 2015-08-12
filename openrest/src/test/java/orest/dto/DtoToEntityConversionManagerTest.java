@@ -2,6 +2,7 @@ package orest.dto;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,7 +75,7 @@ public class DtoToEntityConversionManagerTest {
 		conversionManager.addHandler(dtoHandler);
 
 		dtoInfo = new DtoInformation(User.class, dtoParam, UserDto.class, EntityFromDtoCreator.class,
-				EntityFromDtoMerger.class, DtoType.BOTH);
+				EntityFromDtoMerger.class, DtoType.BOTH, true);
 
 		when(dtoDomainRegistry.get(dtoParam)).thenReturn(dtoInfo);
 		when(converter.canRead(PersistentEntityResource.class, contentType)).thenReturn(true);
@@ -183,6 +184,15 @@ public class DtoToEntityConversionManagerTest {
 		// when
 		conversionManager.merge(contentType, inputMessage, invoker, id, dtoParam);
 		// then
+	}
+	@Test(expected=OrestException.class)
+	public void shouldThrowOrestExceptionOnDtoNotExported(){
+		// given
+		DtoInformation dtoInfo = mock(DtoInformation.class);
+		when(dtoInfo.isExported()).thenReturn(false);
+		when(dtoDomainRegistry.get(dtoParam)).thenReturn(dtoInfo);
+		//when
+		conversionManager.create(contentType, inputMessage, dtoParam);
 	}
 	
 	

@@ -27,7 +27,7 @@ public class DtoDomainRegistryTest {
 		for (Class<?> dtoClass : candidates) {
 			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
 			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass,
-					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type());
+					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type(), dtoAnn.exported());
 			registry.put(dtoClass, dtoInfo);
 			if (!dtoInfo.getName().isEmpty())
 				registry.put(dtoInfo.getName(), dtoInfo);

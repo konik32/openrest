@@ -295,9 +295,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 		Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes(packagesToScan);
 		for (Class<?> dtoClass : candidates) {
 			Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
-			Secure secure = AnnotationUtils.findAnnotation(dtoClass, Secure.class);
 			DtoInformation dtoInfo = new DtoInformation(dtoAnn.entityType(), dtoAnn.name(), dtoClass,
-					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type());
+					dtoAnn.entityCreatorType(), dtoAnn.entityMergerType(), dtoAnn.type(), dtoAnn.exported());
 			registry.put(dtoClass, dtoInfo);
 			if (!dtoInfo.getName().isEmpty())
 				registry.put(dtoInfo.getName(), dtoInfo);

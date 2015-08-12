@@ -12,4 +12,5 @@ public class DtoInformation {
 	private final Class<?> entityCreatorType;
 	private final Class<?> entityMergerType;
 	private final DtoType type;
+	private final boolean exported;
 }

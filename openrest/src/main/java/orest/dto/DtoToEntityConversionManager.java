@@ -104,6 +104,8 @@ public class DtoToEntityConversionManager {
 		if (dtoInfo == null)
 			throw new OrestException(OrestExceptionDictionary.NO_SUCH_DTO, "There is no such dto: " + dtoParam
 					+ " defined");
+		if (!dtoInfo.isExported())
+			throw new OrestException(OrestExceptionDictionary.DTO_NOT_EXPORTED, dtoParam + " is not exported");
 		return dtoInfo;
 	}
 

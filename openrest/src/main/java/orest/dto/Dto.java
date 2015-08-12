@@ -44,6 +44,8 @@ public @interface Dto {
 	
 	DtoType type();
 	
+	boolean exported() default true;
+	
 	public enum DtoType{
 		CREATE, MERGE, BOTH
 	}
