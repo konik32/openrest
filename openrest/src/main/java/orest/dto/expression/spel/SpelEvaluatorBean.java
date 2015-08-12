@@ -7,6 +7,7 @@ import java.util.Collection;
 
 import orest.dto.Dto;
 import orest.dto.handler.DtoHandler;
+import orest.dto.helper.DtoTraverserFilter;
 import orest.util.traverser.ObjectGraphTraverser;
 import orest.util.traverser.TraverserCallback;
 import orest.util.traverser.TraverserFieldFilter;
@@ -44,32 +45,7 @@ public class SpelEvaluatorBean implements DtoHandler {
 				Object value = spelEvaluator.evaluate(field);
 				field.set(owner, value);
 			}
-		}, new TraverserFieldFilter() {
-
-			@Override
-			public boolean matches(Field field, Object owner, String path) {
-				if (Iterable.class.isAssignableFrom(field.getType())) {
-					Type type = field.getGenericType();
-					if (type instanceof ParameterizedType) {
-						ParameterizedType pType = (ParameterizedType) type;
-						Type[] arr = pType.getActualTypeArguments();
-						return AnnotationUtils.isAnnotationDeclaredLocally(Dto.class, (Class<?>) arr[0]);
-					} else {
-						// Collections must be parameterized;
-						return false;
-					}
-				} else {
-					return AnnotationUtils.isAnnotationDeclaredLocally(Dto.class, field.getType());
-				}
-			}
-		}, new TraverserFieldFilter() {
-
-			@Override
-			public boolean matches(Field field, Object owner, String path) {
-				return field.isAnnotationPresent(Value.class);
-			}
-		});
-
+		}, new DtoTraverserFilter(), new ValueFieldFilter());
 		traverser.traverse(wrapper.getDto());
 	}
 
@@ -82,6 +58,13 @@ public class SpelEvaluatorBean implements DtoHandler {
 	public void handle(Object dto, Object entity) {
 		DtoEvaluationWrapper wrapper = new DtoEvaluationWrapper(dto, entity);
 		evaluate(wrapper);
+	}
+
+	private class ValueFieldFilter implements TraverserFieldFilter {
+		@Override
+		public boolean matches(Field field, Object owner, String path) {
+			return field.isAnnotationPresent(Value.class);
+		}
 	}
 
 }
