@@ -90,7 +90,7 @@ OpenRest GET request has its own syntax:
 
 ## DTO mechanism
 
-OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST and PUT requests or by getters/setters in PATCH requests. Uknown fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints and create, update entities by using DTOs, events and services.
+OpenRest provides DTO mechanism that is very similar to Projection mechanism in Spring Data Rest. Every DTO is an object created from JSON web request and then it is mapped to specified entity field by field in POST and PUT requests or by getters/setters in PATCH requests. Uknown, final and static fields are ignored. The idea behind DTO mechanism was to decrease the number of controllers' endpoints and create, update entities by using DTOs, events and services.
 
 ## @Dto
 
