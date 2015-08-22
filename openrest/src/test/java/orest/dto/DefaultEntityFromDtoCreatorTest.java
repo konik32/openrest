@@ -144,7 +144,6 @@ public class DefaultEntityFromDtoCreatorTest {
 		// given
 
 		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
-		
 		//call
 		dtoEntityCreator.merge(productDto, product, productDtoInfo);
 		
@@ -192,6 +191,8 @@ public class DefaultEntityFromDtoCreatorTest {
 	public void shouldNotSetNullableAnnotatedFieldIfNotSetToNull() {
 		// given
 		product.setUser(new User());
+		productDto.setUser(null);
+		productDto.setUserSet(false);
 		when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
 		// call
 		dtoEntityCreator.merge(productDto, product, productDtoInfo);
