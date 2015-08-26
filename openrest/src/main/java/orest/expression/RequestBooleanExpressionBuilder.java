@@ -23,8 +23,6 @@ public class RequestBooleanExpressionBuilder {
     }
 
     public RequestBooleanExpressionBuilder withSearchMethod(FilterPart searchMethodPart) {
-        if (searchMethodPart == null)
-            return this;
         BooleanExpression expression = expressionBuilder.createSearchMethodExpression(searchMethodPart.getMethodInfo(), predicateContext,
                 expEntityInfo, searchMethodPart.getParameters());
         appendExpression(expression);
@@ -60,6 +58,8 @@ public class RequestBooleanExpressionBuilder {
     }
 
     private void appendExpression(BooleanExpression expression) {
+        if (expression == null)
+            return;
         finalExpression = finalExpression == null ? expression : finalExpression.and(expression);
     }
 

@@ -15,6 +15,7 @@ import orest.event.annotation.HandleBeforeSaveWithDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.rest.core.annotation.HandleAfterCreate;
@@ -50,7 +51,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Szymon Konicki
  *
  */
-public class AnnotatedDtoEventHandlerBeanPostProcessor extends AnnotatedHandlerBeanPostProcessor {
+public class AnnotatedDtoEventHandlerBeanPostProcessor implements ApplicationListener<RepositoryEvent>, BeanPostProcessor  {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AnnotatedDtoEventHandlerBeanPostProcessor.class);
 	private final MultiValueMap<Class<? extends RepositoryEvent>, EventHandlerMethod> handlerMethods = new LinkedMultiValueMap<Class<? extends RepositoryEvent>, EventHandlerMethod>();
