@@ -9,7 +9,7 @@ OpenRest is an extension to Spring Data Rest. It is composed of two main parts: 
 `@ExpressionRepository` is an annotation that marks a class which holds set of `ExpressionMethod`'s. It takes two parameters 
 
 - `value` - entity type
-- `defaultedPageable` - if set to `true` resources will be returned without pagination
+- `defaultedPageable` - if set to `false` resources will be returned without pagination regardless of `defaultedPageable` values in `ExpressionMethod`s
 
 If `EpressionRepository` is defined for some entity its repository interface hase to extend `PredicateContextQueryDslRepository<T>`.
 
@@ -65,19 +65,23 @@ public class UserExpressions {
 
 ## Expand
 
-Associations specified in `@Expand` value parameter will be fetched with projected entity. This annotation could only by added to classes annotated with Spring Data Rest Projection. Resources could also be expanded by adding `expand` parameter to query.
+Associations specified in `@Expand` value parameter will be fetched with projected entity. This annotation could only by added to classes annotated with Spring Data Rest Projection.
 
 ## Secure
 
-`@Secure` annotation could be added to classes marked with `@Projection` and `@Dto`. SpEL expression specified in annotation value is evaluated with Spring Security Context. If expression evaluate to false, Access Denied exception is thrown.
+`@Secure` annotation could be added to classes marked with `@Projection` and `@Dto`. SpEL expression specified in annotation value is evaluated with Spring Security Context. If expression evaluate to false, Access Denied exception is thrown. To use `@Secure` with `@Projection` you need to declare `SecureAnnProjectionAuthorizationStrategy` bean.
 
 ## GET requests
 
 OpenRest GET request has its own syntax:
 
-`GET /resource/search/expression_search_method(param1;param2)?orest&filters=expression_method(param1;);or;expression_method;and;expression_method...`
+`GET /repository/search/expression_search_method(param1;param2)?orest&filters=expression_method(param1;);or;expression_method;and;expression_method...`
 
-`GET /resource?orest&filters=expression_method;or;expression_method;and;expression_method...`
+`GET /repository?orest&filters=expression_method;or;expression_method;and;expression_method...`
+
+`GET /repository?orest&count`
+
+`GET /repository/search/expression_search_method(param)?orest&count`
 
 - `orest` parameter is non-optional
 - if `ExpressionMethod` has any optional parameter it can be ommited eg. `priceBetween(1;)` `priceBetween(;2)`
