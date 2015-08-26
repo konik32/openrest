@@ -1,22 +1,17 @@
 package org.springframework.data.rest.webmvc;
 
-import java.util.Iterator;
-import java.util.List;
-
 import lombok.Setter;
 import orest.expression.ExpressionBuilder;
 import orest.expression.RequestBooleanExpressionBuilder;
 import orest.expression.registry.EntityExpressionMethodsRegistry;
 import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
-import orest.expression.registry.ExpressionMethodInformation.Join;
 import orest.expression.registry.ProjectionInfo;
 import orest.expression.registry.ProjectionInfoRegistry;
 import orest.parser.FilterPart;
 import orest.parser.FilterStringParser;
-import orest.repository.PredicateContext;
+import orest.projection.authorization.ProjectionAuthorizationStrategy;
 import orest.repository.QueryDslPredicateInvoker;
-import orest.security.ExpressionEvaluator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.querydsl.QSort;
@@ -24,14 +19,11 @@ import org.springframework.data.rest.webmvc.support.DefaultedPageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.mysema.query.types.expr.BooleanExpression;
 
 @RepositoryRestController
 public class ExpressionController extends AbstractRepositoryRestController {
@@ -44,8 +36,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
     private final EntityExpressionMethodsRegistry entityExpressionMethodsRegistry;
 
-    @Autowired
-    private @Setter ExpressionEvaluator expressionEvaluator;
+    @Autowired(required=false)
+    private @Setter ProjectionAuthorizationStrategy projectionAuthorizationStrategy;
 
     @Autowired
     public ExpressionController(PagedResourcesAssembler<Object> pagedResourcesAssembler, FilterStringParser filterStringParser,
@@ -81,7 +73,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
     @ResponseBody
     @RequestMapping(value = BASE_MAPPING + "/{id}", method = RequestMethod.GET, params = "orest")
-    public ResponseEntity<Object> getWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, QSort sort,
+    public ResponseEntity<Object> getWithFilters(RootResourceInformation rootResourceInformation,
             PersistentEntityResourceAssembler assembler, @PathVariable("id") String id,
             @RequestParam(value = "filters", required = false) String filters,
             @RequestParam(value = "expand", required = false) String expand,
@@ -96,8 +88,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
             String filters, String expand, String search, String projection) {
         ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
 
-        ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, expEntityInfo.getEntityType());
-        authorizeProjection(projectionInfo);
+        ProjectionInfo projectionInfo = getProjectionInfo(projection, expEntityInfo.getEntityType());
 
         RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
         FilterPart searchMethodPart = filterStringParser.getSearchFilterPart(search, expEntityInfo);
@@ -122,8 +113,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
             String projection) {
         ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
 
-        ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, expEntityInfo.getEntityType());
-        authorizeProjection(projectionInfo);
+        ProjectionInfo projectionInfo = getProjectionInfo(projection, expEntityInfo.getEntityType());
 
         RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
         appendCommons(requestExpBuilder, expEntityInfo, filters, expand, projectionInfo);
@@ -152,18 +142,21 @@ public class ExpressionController extends AbstractRepositoryRestController {
     }
 
     private boolean addPageable(ExpressionEntityInformation expEntityInfo, ExpressionMethodInformation searchMethodInfo) {
+        if (!expEntityInfo.isDefaultedPageable())
+            return false;
         if (searchMethodInfo != null)
             return searchMethodInfo.isDefaultedPageable();
-        return expEntityInfo.isDefaultedPageable();
+        return true;
     }
 
-    private void authorizeProjection(ProjectionInfo projectionInfo) {
-        if (projectionInfo == null || projectionInfo.getAuthorizationCondition() == null)
-            return;
-        if (expressionEvaluator != null)
-            if (!expressionEvaluator.checkCondition(projectionInfo.getAuthorizationCondition()))
-                throw new AccessDeniedException("Not authorized");
-
+    private ProjectionInfo getProjectionInfo(String projection, Class<?> entityType) {
+        ProjectionInfo projectionInfo = projectionExpandsRegistry.get(projection, entityType);
+        authorizeProjection(projection, projectionInfo);
+        return projectionInfo;
     }
 
+    private void authorizeProjection(String projectionName, ProjectionInfo projectionInfo) {
+        if (projectionInfo != null && projectionAuthorizationStrategy != null)
+            projectionAuthorizationStrategy.authorize(projectionName, projectionInfo.getProjectionType());
+    }
 }

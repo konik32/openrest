@@ -288,7 +288,7 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 				if (expand != null) {
 					expands = ProjectionInfoRegistry.getExpands(expand.value(), entityType, builder);
 				}
-				ProjectionInfo projectionInfo = new ProjectionInfo(expands, secure != null ? secure.value() : null);
+				ProjectionInfo projectionInfo = new ProjectionInfo(expands, projection);
 				expandsRegistry.put(projectionAnn.name(), entityType, projectionInfo);
 			}
 		}
@@ -361,7 +361,8 @@ public class ORestConfig extends RepositoryRestMvcConfiguration {
 	}
 
 	@Bean
-	public static AnnotatedDtoEventHandlerBeanPostProcessor annotatedHandlerBeanPostProcessor() {
+	public static AnnotatedDtoEventHandlerBeanPostProcessor annotatedDtoEventHandlerBeanPostProcessor() {
 		return new AnnotatedDtoEventHandlerBeanPostProcessor();
 	}
+	
 }
