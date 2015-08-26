@@ -39,7 +39,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
     @Autowired(required = false)
     private @Setter ProjectionAuthorizationStrategy projectionAuthorizationStrategy;
-
+    
     @Autowired
     public ExpressionController(PagedResourcesAssembler<Object> pagedResourcesAssembler, FilterStringParser filterStringParser,
             ExpressionBuilder expressionBuilder, EntityExpressionMethodsRegistry entityExpressionMethodsRegistry,
@@ -56,9 +56,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
     public ResponseEntity<Object> executeSearchWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable,
             QSort sort, PersistentEntityResourceAssembler assembler, @PathVariable String search,
             @RequestParam(value = "filters", required = false) String filters,
-            @RequestParam(value = "expand", required = false) String expand,
             @RequestParam(value = "projection", required = false) String projection) {
-        Object result = getResult(rootResourceInformation, pageable, sort, filters, expand, search, projection);
+        Object result = getResult(rootResourceInformation, pageable, sort, filters,  search, projection);
         return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
     }
 
@@ -66,9 +65,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
     @RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
     public ResponseEntity<Object> getCollectionWithFilters(RootResourceInformation rootResourceInformation, DefaultedPageable pageable,
             QSort sort, PersistentEntityResourceAssembler assembler, @RequestParam(value = "filters", required = false) String filters,
-            @RequestParam(value = "expand", required = false) String expand,
             @RequestParam(value = "projection", required = false) String projection) {
-        Object result = getResult(rootResourceInformation, pageable, sort, filters, expand, null, projection);
+        Object result = getResult(rootResourceInformation, pageable, sort, filters,  null, projection);
         return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
     }
 
@@ -76,10 +74,8 @@ public class ExpressionController extends AbstractRepositoryRestController {
     @RequestMapping(value = BASE_MAPPING + "/{id}", method = RequestMethod.GET, params = "orest")
     public ResponseEntity<Object> getWithFilters(RootResourceInformation rootResourceInformation,
             PersistentEntityResourceAssembler assembler, @PathVariable("id") String id,
-            @RequestParam(value = "filters", required = false) String filters,
-            @RequestParam(value = "expand", required = false) String expand,
             @RequestParam(value = "projection", required = false) String projection) {
-        Object result = getSingleResult(rootResourceInformation, filters, expand, id, projection);
+        Object result = getSingleResult(rootResourceInformation, id, projection);
         if (result == null)
             throw new ResourceNotFoundException();
         return new ResponseEntity<Object>(assembler.toFullResource(result), HttpStatus.OK);
@@ -105,7 +101,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
         ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
         RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
         FilterPart searchMethodPart = filterStringParser.getSearchFilterPart(search, expEntityInfo);
-        appendCommons(requestExpBuilder, expEntityInfo, filters, null, null);
+        appendCommons(requestExpBuilder, expEntityInfo, filters, null);
         requestExpBuilder.withSearchMethod(searchMethodPart);
 
         return expEntityInfo.getPredicateInvoker().invokeCount(requestExpBuilder.getFinalExpression(),
@@ -113,14 +109,14 @@ public class ExpressionController extends AbstractRepositoryRestController {
     }
 
     private Iterable<Object> getResult(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, QSort sort,
-            String filters, String expand, String search, String projection) {
+            String filters, String search, String projection) {
         ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
 
         ProjectionInfo projectionInfo = getProjectionInfo(projection, expEntityInfo.getEntityType());
 
         RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
         FilterPart searchMethodPart = filterStringParser.getSearchFilterPart(search, expEntityInfo);
-        appendCommons(requestExpBuilder, expEntityInfo, filters, expand, projectionInfo);
+        appendCommons(requestExpBuilder, expEntityInfo, filters, projectionInfo);
         requestExpBuilder.withSearchMethod(searchMethodPart);
         Iterable<Object> result;
 
@@ -137,23 +133,23 @@ public class ExpressionController extends AbstractRepositoryRestController {
         return expEntityInfo;
     }
 
-    private Object getSingleResult(RootResourceInformation rootResourceInformation, String filters, String expand, String id,
+    private Object getSingleResult(RootResourceInformation rootResourceInformation, String id,
             String projection) {
         ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
 
         ProjectionInfo projectionInfo = getProjectionInfo(projection, expEntityInfo.getEntityType());
 
         RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
-        appendCommons(requestExpBuilder, expEntityInfo, filters, expand, projectionInfo);
+        appendCommons(requestExpBuilder, expEntityInfo, null, projectionInfo);
         requestExpBuilder.withId(id);
         return expEntityInfo.getPredicateInvoker().invokeFindOne(requestExpBuilder.getFinalExpression(),
                 requestExpBuilder.getPredicateContext());
     }
 
     private void appendCommons(RequestBooleanExpressionBuilder requestExpBuilder, ExpressionEntityInformation expEntityInfo,
-            String filters, String expand, ProjectionInfo projectionInfo) {
+            String filters, ProjectionInfo projectionInfo) {
         FilterPart filtersPartTree = filterStringParser.getFilterPart(filters, expEntityInfo);
-        requestExpBuilder.withFilters(filtersPartTree).withStaticFilters().withExpandJoins(expand);
+        requestExpBuilder.withFilters(filtersPartTree).withStaticFilters();
         if (projectionInfo != null)
             requestExpBuilder.withJoins(projectionInfo.getExpands());
     }

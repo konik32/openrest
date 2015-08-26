@@ -56,9 +56,10 @@ public class OpenRestEntityLinks extends RepositoryEntityLinks {
 		List<TemplateVariable> names = new ArrayList<TemplateVariable>();
 		MultiValueMap<String, String> queryParameters = template.getQueryParams();
 		boolean append = !queryParameters.isEmpty();
-		List<String> propertyNames = new ArrayList<String>(Arrays.asList("expand", "orest"));
+		List<String> propertyNames = new ArrayList<String>(Arrays.asList("orest"));
 		if (isCollection) {
 			propertyNames.add("filters");
+			propertyNames.add("count");
 		}
 		for (String propertyName : propertyNames) {
 			if (!queryParameters.containsKey(propertyName)) {
