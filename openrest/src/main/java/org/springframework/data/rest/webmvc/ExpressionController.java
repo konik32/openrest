@@ -8,6 +8,7 @@ import orest.expression.registry.ExpressionEntityInformation;
 import orest.expression.registry.ExpressionMethodInformation;
 import orest.expression.registry.ProjectionInfo;
 import orest.expression.registry.ProjectionInfoRegistry;
+import orest.mvc.CountResponse;
 import orest.parser.FilterPart;
 import orest.parser.FilterStringParser;
 import orest.projection.authorization.ProjectionAuthorizationStrategy;
@@ -36,7 +37,7 @@ public class ExpressionController extends AbstractRepositoryRestController {
 
     private final EntityExpressionMethodsRegistry entityExpressionMethodsRegistry;
 
-    @Autowired(required=false)
+    @Autowired(required = false)
     private @Setter ProjectionAuthorizationStrategy projectionAuthorizationStrategy;
 
     @Autowired
@@ -82,6 +83,33 @@ public class ExpressionController extends AbstractRepositoryRestController {
         if (result == null)
             throw new ResourceNotFoundException();
         return new ResponseEntity<Object>(assembler.toFullResource(result), HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "orest", "count" })
+    public ResponseEntity<CountResponse> getCountWithFilters(RootResourceInformation rootResourceInformation,
+            @RequestParam(value = "filters", required = false) String filters) {
+        Object count = getCountResult(rootResourceInformation, filters, null);
+        return new ResponseEntity<CountResponse>(new CountResponse(count), HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = BASE_MAPPING + "/search/{search}", method = RequestMethod.GET, params = { "orest", "count" })
+    public ResponseEntity<CountResponse> executeSearchWithFilters(RootResourceInformation rootResourceInformation, @PathVariable String search,
+            @RequestParam(value = "filters", required = false) String filters) {
+        Object count = getCountResult(rootResourceInformation, filters, search);
+        return new ResponseEntity<CountResponse>(new CountResponse(count), HttpStatus.OK);
+    }
+    
+    private Object getCountResult(RootResourceInformation rootResourceInformation, String filters, String search) {
+        ExpressionEntityInformation expEntityInfo = getExpressionEntityInfo(rootResourceInformation.getDomainType());
+        RequestBooleanExpressionBuilder requestExpBuilder = new RequestBooleanExpressionBuilder(expEntityInfo, expressionBuilder);
+        FilterPart searchMethodPart = filterStringParser.getSearchFilterPart(search, expEntityInfo);
+        appendCommons(requestExpBuilder, expEntityInfo, filters, null, null);
+        requestExpBuilder.withSearchMethod(searchMethodPart);
+
+        return expEntityInfo.getPredicateInvoker().invokeCount(requestExpBuilder.getFinalExpression(),
+                requestExpBuilder.getPredicateContext());
     }
 
     private Iterable<Object> getResult(RootResourceInformation rootResourceInformation, DefaultedPageable pageable, QSort sort,
