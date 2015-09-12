@@ -106,6 +106,7 @@ OpenRest provides DTO mechanism that is very similar to Projection mechanism in 
 - `name` - name of this dto which should be passed in POST, PUT, PATCH query parameter named `dto`. When name is not specified dto won't be exported, and could be used only as nested object in other dto.
 - `entityCreatorType`, `entityMergerType` - by default entities are created or merged with dto by mapping all matching fields or getters/setters. To have more controll over the process one should create custom bean and pass it by type
 - `type` - the type of dto, whether it will be used for entity creation, merging or both.
+- `exported` - flag that indicates whether this DTO can be referenced in POST, PATCH, PUT requests
 
 ## @Nullable
 
@@ -131,15 +132,33 @@ public void setName(String name){
 
 `@ValidateExpression` parameters:
 
-- `value` - holds SpEL string which will be evaluated with Spring Security Context, DTO object and entity (in PUT, PATCH requests) eg.
+- `value` - holds SpEL string which will be evaluated with Spring Security Context, DTO object and entity(in PATCH requests) under `dto` and `entity` keywords. To validate referenced objects use `@Valid` annotation (objects under `dto` and `entity` keywords are updated while validator traverses object graph).   
 
 ```
 @ValidateExpression("#{dto.password != null && entity.password != null? @passwordService.checkIfCorrectPassword(entity.password): true}")
+private String password;
 ```
 
 ## @Value
 
 `@Value` annotations can be used with DTOs in the same way as in Projections
+
+## DtoAuthorizationStrategy
+
+If dto authorization is too complex to use `SpEL` expression and `@Secure` annotation, you can implement `DtoAuthorizationStrategy` strategy interface and pass its type to `@AuthorizeDto` annotation `value` parameter. 
+
+```
+public interface IsAdmin extends DtoAuthorizationStrategy<LoggedUser, Object, Object>{
+    public boolean isAuthorized(LoggedUser principal, Object dto, Object entity){
+    	return principal.hasRole('ROLE_ADMIN');
+    }
+}
+
+@Dto(entityType = Product.class, type = DtoType.CREATE, name = "productCreateDto")
+@AuthorizeDto(IsAdmin.class)
+public class ProductCreateDto {}
+
+```
 
 ## Events
 
@@ -153,8 +172,7 @@ To default Spring Data Rest events ORest adds four new: `@HandleAfterCreateWithD
 
 ```
 @SpringBootApplication
-@EnableJpaRepositories(repositoryFactoryBeanClass = ExpressionJpaFactoryBean.class)
-@Import(ORestConfig.class)
+@EnableOpenRest
 public class Application {
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(Application.class, args);
