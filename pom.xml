@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>pl.openrest</groupId>
+	<artifactId>openrest-parent</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+
+
+	<properties>
+		<springdata-rest>2.2.2.RELEASE</springdata-rest>
+		<springdata-jpa>1.7.2.RELEASE</springdata-jpa>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-rest-webmvc</artifactId>
+			<version>${springdata-rest}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+			<version>${springdata-jpa}</version>
+		</dependency>
+	</dependencies>
+	<packaging>pom</packaging>
+	<modules>
+		<module>openrest-core</module>
+		<module>openrest-dto</module>
+		<module>openrest-security</module>
+		<module>openrest-filters</module>
+	</modules>
+</project>
