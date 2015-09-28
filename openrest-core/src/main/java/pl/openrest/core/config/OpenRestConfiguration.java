@@ -15,15 +15,6 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
     private List<OpenRestConfigurer> openRestConfigurers;
 
     @Override
-    public RequestMappingHandlerMapping repositoryExporterHandlerMapping() {
-        RequestMappingHandlerMapping mapping = super.repositoryExporterHandlerMapping();
-        for (OpenRestConfigurer configurer : openRestConfigurers) {
-            configurer.configureRepositoryExporterHandlerMapping(mapping);
-        }
-        return mapping;
-    }
-
-    @Override
     protected List<HandlerMethodArgumentResolver> defaultMethodArgumentResolvers() {
         // TODO Auto-generated method stub
         List<HandlerMethodArgumentResolver> resolvers = super.defaultMethodArgumentResolvers();

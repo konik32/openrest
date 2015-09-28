@@ -13,8 +13,6 @@ public interface OpenRestConfigurer {
 
     public void configureHalObjectMapper(ObjectMapper halObjectMapper);
 
-    public void configureRepositoryExporterHandlerMapping(RequestMappingHandlerMapping mapping);
-
     public void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers);
 
 }
