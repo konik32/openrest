@@ -35,7 +35,7 @@ import pl.openrest.dto.registry.DtoType;
  * @author Szymon Konicki
  *
  */
-public class DefaultCreateAndMergeMapper implements CreateMapper<Object, Object>, UpdateMapper<Object, Object> {
+public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object>, UpdateMapper<Object, Object> {
 
     private final DtoInformationRegistry dtoInfoRegistry;
     private final MapperDelegator mapperDelegator;
@@ -57,7 +57,7 @@ public class DefaultCreateAndMergeMapper implements CreateMapper<Object, Object>
         collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
     }
 
-    public DefaultCreateAndMergeMapper(DtoInformationRegistry dtoInfoRegistry, MapperDelegator mapperDelegator,
+    public DefaultCreateAndUpdateMapper(DtoInformationRegistry dtoInfoRegistry, MapperDelegator mapperDelegator,
             PersistentEntities persistentEntities) {
         Assert.notNull(dtoInfoRegistry);
         Assert.notNull(mapperDelegator);

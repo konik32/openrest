@@ -27,7 +27,7 @@ import pl.openrest.dto.registry.DtoInformationRegistry;
 import pl.openrest.dto.registry.DtoType;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultEntityFromDtoCreatorTest {
+public class DefaultCreateAndUpdateMapperTest {
 
     @Mock
     private DtoInformationRegistry dtoInfoRegistry;
@@ -48,7 +48,7 @@ public class DefaultEntityFromDtoCreatorTest {
     @Mock
     private DtoInformation userDtoInfo;
 
-    private DefaultCreateAndMergeMapper defaultMapper;
+    private DefaultCreateAndUpdateMapper defaultMapper;
 
     private ProductDto productDto = new ProductDto();
     private Product product = new Product();
@@ -76,7 +76,7 @@ public class DefaultEntityFromDtoCreatorTest {
         when(persistentEntities.getPersistentEntity(User.class)).thenReturn(Mockito.mock(PersistentEntity.class));
         when(persistentEntities.getPersistentEntity(Product.class)).thenReturn(Mockito.mock(PersistentEntity.class));
 
-        defaultMapper = new DefaultCreateAndMergeMapper(dtoInfoRegistry, mapperDelegator, persistentEntities);
+        defaultMapper = new DefaultCreateAndUpdateMapper(dtoInfoRegistry, mapperDelegator, persistentEntities);
 
         when(mapperDelegator.create(Mockito.any(), Mockito.any(DtoInformation.class))).then(AdditionalAnswers.delegatesTo(defaultMapper));
 

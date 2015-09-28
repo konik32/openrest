@@ -5,7 +5,7 @@ import pl.openrest.dto.registry.DtoInformation;
 /**
  * This interface should be implemented if there is a need for more control over
  * creation of entity from dto, than simply mapping field by field as in
- * {@link DefaultCreateAndMergeMapper}
+ * {@link DefaultCreateAndUpdateMapper}
  * 
  * @author Szymon Konicki
  *
