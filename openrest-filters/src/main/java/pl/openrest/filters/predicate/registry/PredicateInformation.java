@@ -1,4 +1,4 @@
-package pl.openrest.filters.predicate;
+package pl.openrest.filters.predicate.registry;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
