@@ -50,6 +50,7 @@
 		<module>openrest-dto</module>
 		<module>openrest-security</module>
 		<module>openrest-filters</module>
+		<module>openrest-dto-validation</module>
 	</modules>
 
 	<build>
