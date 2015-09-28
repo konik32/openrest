@@ -8,6 +8,7 @@ import org.springframework.validation.Validator;
 import pl.openrest.dto.mapper.BeforeCreateMappingHandler;
 import pl.openrest.dto.mapper.BeforeUpdateMappingHandler;
 import pl.openrest.dto.mapper.MappingManager;
+import pl.openrest.dto.validation.DtoFieldExpressionValidator;
 import pl.openrest.dto.validation.handler.ValidationContextHandler;
 import pl.openrest.dto.validation.handler.ValidatorInvoker;
 
@@ -16,6 +17,9 @@ public class OpenRestDtoValidationConfiguration {
 
     @Autowired
     private Validator validator;
+
+    @Autowired(required = false)
+    private DtoFieldExpressionValidator dtoFieldExpressionValidator;
 
     @Bean
     public ValidatorInvoker validatorInvoker() {
@@ -35,6 +39,9 @@ public class OpenRestDtoValidationConfiguration {
     @Autowired
     private void addValidators(ValidatorInvoker invoker) {
         invoker.addValidator(validator);
+        if (dtoFieldExpressionValidator != null) {
+            invoker.addValidator(dtoFieldExpressionValidator);
+        }
     }
 
 }
