@@ -48,7 +48,7 @@
 	<modules>
 		<module>openrest-core</module>
 		<module>openrest-dto</module>
-		<module>openrest-security</module>
+		<module>openrest-dto-security</module>
 		<module>openrest-filters</module>
 		<module>openrest-dto-validation</module>
 	</modules>
