@@ -21,19 +21,13 @@ public class PredicateInformation {
     private final Method method;
     private final PredicateType type;
     private final boolean defaultedPageable;
-    private final StaticFilter staticFilter;
     private final List<Join> joins;
 
-    private PredicateInformation(Method method, Predicate predicateAnn, StaticFilter staticFilter) {
+    private PredicateInformation(Method method, Predicate predicateAnn) {
         this.name = predicateAnn.name();
         this.method = method;
         this.type = predicateAnn.type();
         this.defaultedPageable = predicateAnn.defaultedPageable();
         this.joins = Arrays.asList(predicateAnn.joins());
-        this.staticFilter = staticFilter;
-    }
-
-    private PredicateInformation(Method method, Predicate predicateAnn) {
-        this(method, predicateAnn, null);
     }
 }
