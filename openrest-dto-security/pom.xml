@@ -6,7 +6,7 @@
 		<artifactId>openrest-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>openrest-security</artifactId>
+	<artifactId>openrest-dto-security</artifactId>
 	<dependencies>
 		<dependency>
 			<groupId>pl.openrest</groupId>
