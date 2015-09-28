@@ -3,6 +3,8 @@ package pl.openrest.dto.security.authorization;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Setter;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -14,7 +16,7 @@ public class DtoAuthorizationStrategyMappingHandler implements BeforeCreateMappi
 
     private List<DtoAuthorizationStrategy> authorizationStrategies = new ArrayList<DtoAuthorizationStrategy>();
 
-    private final AccessDecisionManager accessDecisionManager;
+    private @Setter AccessDecisionManager accessDecisionManager;
 
     public DtoAuthorizationStrategyMappingHandler(AccessDecisionManager accessDecisionManager) {
         this.accessDecisionManager = accessDecisionManager;
