@@ -13,11 +13,11 @@ public class FilterPart {
     };
 
     private List<FilterPart> parts;
-    private String predicate;
+    private PredicateParts predicateParts;
     private FilterPartType type;
 
-    public FilterPart(String predicate) {
-        this.predicate = predicate;
+    public FilterPart(PredicateParts predicateParts) {
+        this.predicateParts = predicateParts;
         type = FilterPartType.LEAF;
     }
 

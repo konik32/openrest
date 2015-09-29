@@ -4,15 +4,32 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
 import pl.openrest.predicate.parser.FilterPart;
 import pl.openrest.predicate.parser.FilterPart.FilterPartType;
+import pl.openrest.predicate.parser.PredicateParts;
+import pl.openrest.predicate.parser.PredicatePartsExtractor;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DefaultFilterTreeBuilderTest {
 
-    private DefaultFilterTreeBuilder builder = new DefaultFilterTreeBuilder();
+    @Mock
+    private PredicatePartsExtractor predicatePartsExtractor;
+
+    private DefaultFilterTreeBuilder builder;
+
+    @Before
+    public void setUp() {
+        builder = new DefaultFilterTreeBuilder(predicatePartsExtractor);
+        Mockito.when(predicatePartsExtractor.extractParts(Mockito.anyString())).thenReturn(Mockito.mock(PredicateParts.class));
+    }
 
     @Test
     public void shouldBuildTree() throws Exception {
@@ -27,7 +44,7 @@ public class DefaultFilterTreeBuilderTest {
             assertEquals(part.getType(), FilterPartType.AND);
             for (FilterPart p : part.getParts()) {
                 assertEquals(p.getType(), FilterPartType.LEAF);
-                assertNotNull(p.getPredicate());
+                assertNotNull(p.getPredicateParts());
             }
         }
     }
