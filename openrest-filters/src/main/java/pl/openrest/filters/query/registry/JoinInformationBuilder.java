@@ -11,7 +11,7 @@ import com.mysema.query.types.path.PathBuilderFactory;
 
 public class JoinInformationBuilder {
 
-    private static PathBuilderFactory builderFactory;
+    private static PathBuilderFactory builderFactory = new PathBuilderFactory();
 
     public static List<JoinInformation> getJoinsInformation(String joinPath, Class<?> entityType, boolean fetch) {
         PathBuilder<?> builder = builderFactory.create(entityType);
