@@ -2,6 +2,7 @@ package pl.openrest.filters.predicate.registry;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
@@ -25,7 +26,7 @@ public class PredicateInformation {
     private final List<JoinInformation> joins;
 
     public PredicateInformation(Method method, Predicate predicateAnn, Class<?> entityType) {
-        this.name = predicateAnn.name();
+        this.name = predicateAnn.name().isEmpty()? method.getName(): predicateAnn.name();
         this.method = method;
         this.type = predicateAnn.type();
         this.defaultedPageable = predicateAnn.defaultedPageable();
@@ -34,6 +35,14 @@ public class PredicateInformation {
             joins.addAll(JoinInformationBuilder.getJoinsInformation(join.value(), entityType, join.fetch()));
         }
         this.joins = joins;
+    }
+
+    public PredicateInformation(Method method) {
+        this.name = method.getName();
+        this.method = method;
+        this.type = PredicateType.STATIC_FILTER;
+        this.defaultedPageable = true;
+        this.joins = Collections.EMPTY_LIST;
     }
 
 }

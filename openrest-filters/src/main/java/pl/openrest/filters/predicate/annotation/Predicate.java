@@ -15,11 +15,6 @@ import pl.openrest.filters.query.annotation.Join;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Predicate {
-    /**
-     * Flag indicating whether this predicate could be used in filters query parameter
-     * 
-     */
-    boolean exported() default true;
 
     String name() default "";
 
@@ -29,7 +24,7 @@ public @interface Predicate {
      * Flag indicating whether this expression method could be used as search method in url /{repository}/search/{searchMethod}
      */
 
-    PredicateType type() default PredicateType.SEARCH;
+    PredicateType type() default PredicateType.FILTER;
 
     /**
      * Joins that will be added to query
@@ -39,6 +34,6 @@ public @interface Predicate {
     Join[] joins() default {};
 
     public enum PredicateType {
-        SEARCH, FILTER;
+        SEARCH, FILTER, STATIC_FILTER;
     }
 }
