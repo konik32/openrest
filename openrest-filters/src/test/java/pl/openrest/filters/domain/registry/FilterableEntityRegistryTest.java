@@ -50,11 +50,14 @@ public class FilterableEntityRegistryTest {
         Assert.assertNotNull(entityInfo.getPredicateRepository());
         Assert.assertFalse(entityInfo.getStaticFilters().isEmpty());
         Assert.assertEquals(PredicateType.SEARCH, entityInfo.getPredicateInformation("userIdEq").getType());
-
+        Assert.assertEquals("principal.id != null", entityInfo.getStaticFilters().get(0).getCondition());
+        Assert.assertArrayEquals(new String[]{"1", "2"}, entityInfo.getStaticFilters().get(0).getParameters());
+        Assert.assertNotNull(entityInfo.getStaticFilters().get(0).getPredicateInformation());
         Assert.assertEquals(PredicateType.SEARCH, entityInfo.getPredicateInformation("nameLike").getType());
         Assert.assertEquals(false, entityInfo.getPredicateInformation("nameLike").isDefaultedPageable());
         Assert.assertNotNull(entityInfo.getPredicateInformation("nameLike").getMethod());
 
+        Assert.assertNull(entityInfo.getPredicateInformation("productionYearBetween"));
         Assert.assertFalse(entityInfo.getPredicateInformation("tagIdEq").getJoins().isEmpty());
         Assert.assertFalse(entityInfo.getPredicateInformation("tagIdEq").getJoins().get(0).isFetch());
     }
@@ -62,7 +65,7 @@ public class FilterableEntityRegistryTest {
     @PredicateRepository(value = Product.class)
     public class ProductExpressions {
 
-        @StaticFilter
+        @StaticFilter(offOnCondition="principal.id != null", parameters={"1","2"})
         public BooleanExpression productionYearBetween(Integer from, Integer to) {
             return null;
         }

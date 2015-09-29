@@ -73,11 +73,12 @@ public class FilterableEntityRegistry {
             public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
                 Predicate predicateAnn = method.getAnnotation(Predicate.class);
                 PredicateInformation predicateInfo;
-                if (predicateAnn != null)
+                if (predicateAnn != null) {
                     predicateInfo = new PredicateInformation(method, predicateAnn, entityType);
-                else
+                    predicateRegistry.put(predicateInfo.getName(), predicateInfo);
+                } else {
                     predicateInfo = new PredicateInformation(method);
-                predicateRegistry.put(predicateInfo.getName(), predicateInfo);
+                }
                 StaticFilter staticFilterAnn = method.getAnnotation(StaticFilter.class);
                 if (staticFilterAnn != null) {
                     staticFilterRegistry.add(new StaticFilterInformation(staticFilterAnn, predicateInfo));
