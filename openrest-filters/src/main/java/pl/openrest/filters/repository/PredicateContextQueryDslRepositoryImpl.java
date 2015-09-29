@@ -22,6 +22,7 @@ import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
+import pl.openrest.filters.query.PredicateContext;
 import pl.openrest.filters.query.registry.JoinInformation;
 
 import com.mysema.query.jpa.JPQLQuery;
@@ -62,26 +63,26 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     @Override
-    public T findOne(Predicate predicate, PredicateContext predicateContext) {
-        return createQuery(predicate, predicateContext).uniqueResult(path);
+    public T findOne(PredicateContext predicateContext) {
+        return createQuery(predicateContext).uniqueResult(path);
     }
 
     @Override
-    public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext) {
-        return createQuery(predicate, predicateContext).list(path);
+    public Iterable<T> findAll(PredicateContext predicateContext) {
+        return createQuery(predicateContext).list(path);
     }
 
     @Override
-    public Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, QSort sort) {
-        JPQLQuery query = createQuery(predicate, predicateContext);
+    public Iterable<T> findAll(PredicateContext predicateContext, QSort sort) {
+        JPQLQuery query = createQuery(predicateContext);
         query = querydsl.applySorting(sort, query);
         return query.list(path);
     }
 
     @Override
-    public Page<T> findAll(Predicate predicate, PredicateContext predicateContext, Pageable pageable) {
-        JPQLQuery countQuery = createQuery(predicate, predicateContext);
-        JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate, predicateContext));
+    public Page<T> findAll(PredicateContext predicateContext, Pageable pageable) {
+        JPQLQuery countQuery = createQuery(predicateContext);
+        JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicateContext));
 
         Long total = countQuery.count();
         List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
@@ -89,8 +90,8 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     @Override
-    public long count(Predicate predicate, PredicateContext predicateContext) {
-        return createQuery(predicate, predicateContext).count();
+    public long count(PredicateContext predicateContext) {
+        return createQuery(predicateContext).count();
     }
 
     protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query, PredicateContext context) {
@@ -105,10 +106,10 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
         return query;
     }
 
-    protected JPQLQuery createQuery(Predicate predicate, PredicateContext context) {
+    protected JPQLQuery createQuery(PredicateContext context) {
         AbstractJPAQuery<JPAQuery> query = querydsl.createQuery(path);
         query = addJoins(query, context);
-        query.where(predicate);
+        query.where(context.getPredicate());
 
         CrudMethodMetadata metadata = getRepositoryMethodMetadata();
 

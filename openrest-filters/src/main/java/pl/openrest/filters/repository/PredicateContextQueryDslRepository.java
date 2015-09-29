@@ -6,8 +6,7 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
-
-import com.mysema.query.types.Predicate;
+import pl.openrest.filters.query.PredicateContext;
 /**
  * This repository has to be declared for every entity for which {@link PredicateRepository} has been declared.
  * @author Szymon Konicki
@@ -16,10 +15,10 @@ import com.mysema.query.types.Predicate;
  */
 public interface PredicateContextQueryDslRepository<T> extends QueryDslPredicateExecutor<T> {
 	
-	T findOne(Predicate predicate, PredicateContext predicateContext);
-	Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext);
-	Iterable<T> findAll(Predicate predicate, PredicateContext predicateContext, QSort sort);
-	Page<T> findAll(Predicate predicate, PredicateContext predicateContext,Pageable pageable);
-	long count(Predicate predicate, PredicateContext predicateContext);
+	T findOne(PredicateContext predicateContext);
+	Iterable<T> findAll(PredicateContext predicateContext);
+	Iterable<T> findAll(PredicateContext predicateContext, QSort sort);
+	Page<T> findAll(PredicateContext predicateContext,Pageable pageable);
+	long count(PredicateContext predicateContext);
 	
 }
