@@ -16,14 +16,14 @@ import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 import pl.openrest.predicate.parser.FilterPart;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
 
-public abstract class AbstractFiltersController extends AbstractRepositoryRestController {
+public abstract class AbstractFilterablesController extends AbstractRepositoryRestController {
 
     public static final String FILTERS_PARAM_NAME = "filter";
 
     protected final PredicateContextBuilderFactory predicateContextBuilderFactory;
     protected final FilterTreeBuilder filterTreeBuilder;
 
-    public AbstractFiltersController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
+    public AbstractFilterablesController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
             @NonNull PredicateContextBuilderFactory predicateContextBuilderFactory, @NonNull FilterTreeBuilder filterTreeBuilder) {
         super(pagedResourcesAssembler);
         this.predicateContextBuilderFactory = predicateContextBuilderFactory;

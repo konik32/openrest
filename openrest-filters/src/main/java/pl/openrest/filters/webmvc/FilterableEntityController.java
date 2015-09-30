@@ -3,7 +3,7 @@ package pl.openrest.filters.webmvc;
 import java.io.Serializable;
 
 import org.springframework.data.querydsl.QSort;
-import org.springframework.data.rest.webmvc.AbstractFiltersController;
+import org.springframework.data.rest.webmvc.AbstractFilterablesController;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RootResourceInformation;
 import org.springframework.data.rest.webmvc.support.BackendId;
@@ -24,11 +24,11 @@ import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContext
 import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
 
-public class FiltersEntityController extends AbstractFiltersController {
+public class FilterableEntityController extends AbstractFilterablesController {
 
     private final static String BASE_MAPPING = "/{repository}";
 
-    public FiltersEntityController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
+    public FilterableEntityController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
             PredicateContextBuilderFactory predicateContextBuilderFactory, FilterTreeBuilder filterTreeBuilder) {
         super(pagedResourcesAssembler, predicateContextBuilderFactory, filterTreeBuilder);
     }
