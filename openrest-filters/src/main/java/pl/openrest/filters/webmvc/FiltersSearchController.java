@@ -50,6 +50,7 @@ public class FiltersSearchController extends AbstractFiltersController {
         PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
 
         predicateContextBuilder.withPredicateParts(searchPredicateParts);
+        predicateContextBuilder.withStaticFilters();
         addFilters(parameters, predicateContextBuilder);
 
         PredicateInformation searchPredicateInfo = entityInfo.getPredicateInformation(searchPredicateParts.getPredicateName());
