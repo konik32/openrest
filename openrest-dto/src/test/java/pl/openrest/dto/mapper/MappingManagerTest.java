@@ -186,14 +186,4 @@ public class MappingManagerTest {
         // then
     }
 
-    @Test(expected = OrestException.class)
-    public void shouldThrowOrestExceptionOnDtoNotExported() {
-        // given
-        DtoInformation dtoInfo = mock(DtoInformation.class);
-        when(dtoInfo.isExported()).thenReturn(false);
-        when(dtoDomainRegistry.get(dtoParam)).thenReturn(dtoInfo);
-        // when
-        mappingManager.create(contentType, inputMessage, dtoParam);
-    }
-
 }

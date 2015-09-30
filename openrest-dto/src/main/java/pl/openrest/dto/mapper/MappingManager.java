@@ -108,9 +108,8 @@ public class MappingManager {
             throw new OrestException(OrestExceptionDictionary.NO_DTO_PARAMETER, "Request must contain dto parameter");
         DtoInformation dtoInfo = dtoInfoRegistry.get(dtoParam);
         if (dtoInfo == null)
-            throw new OrestException(OrestExceptionDictionary.NO_SUCH_DTO, "There is no such dto: " + dtoParam + " defined");
-        if (!dtoInfo.isExported())
-            throw new OrestException(OrestExceptionDictionary.DTO_NOT_EXPORTED, dtoParam + " is not exported");
+            throw new OrestException(OrestExceptionDictionary.NO_SUCH_DTO, "There is no such dto: " + dtoParam
+                    + " defined or it is not exported");
         return dtoInfo;
     }
 
