@@ -22,7 +22,7 @@ public abstract class AbstractFiltersController extends AbstractRepositoryRestCo
 
     protected final PredicateContextBuilderFactory predicateContextBuilderFactory;
     protected final FilterTreeBuilder filterTreeBuilder;
- 
+
     public AbstractFiltersController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
             @NonNull PredicateContextBuilderFactory predicateContextBuilderFactory, @NonNull FilterTreeBuilder filterTreeBuilder) {
         super(pagedResourcesAssembler);

@@ -30,7 +30,7 @@ public class PredicateContextRepositoryInvoker {
         return repository.findAll(predicateContext);
     }
 
-    public Object invokeFindOne(Predicate predicate, PredicateContext predicateContext) {
+    public Object invokeFindOne(PredicateContext predicateContext) {
         return repository.findOne(predicateContext);
     }
 
