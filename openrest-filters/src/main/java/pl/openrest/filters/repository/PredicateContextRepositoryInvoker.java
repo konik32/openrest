@@ -1,6 +1,6 @@
 package pl.openrest.filters.repository;
 
-import lombok.Data;
+import lombok.NonNull;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.QSort;
@@ -8,12 +8,13 @@ import org.springframework.data.querydsl.QSort;
 import pl.openrest.filters.query.PredicateContext;
 
 import com.mysema.query.types.Predicate;
-import com.mysema.query.types.path.PathBuilder;
 
-@Data
-public class QueryDslPredicateInvoker {
+public class PredicateContextRepositoryInvoker {
     private final PredicateContextQueryDslRepository<Object> repository;
-    private final PathBuilder<?> builder;
+
+    public PredicateContextRepositoryInvoker(@NonNull PredicateContextQueryDslRepository<Object> repository) {
+        this.repository = repository;
+    }
 
     public Iterable<Object> invokeFindAll(PredicateContext predicateContext, Pageable pageable) {
         return pageable == null ? invokeFindAll(predicateContext) : repository.findAll(predicateContext, pageable);

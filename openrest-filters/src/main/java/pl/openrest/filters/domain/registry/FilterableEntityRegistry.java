@@ -11,6 +11,7 @@ import lombok.NonNull;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.PersistentEntities;
+import org.springframework.data.repository.support.Repositories;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
@@ -21,15 +22,19 @@ import pl.openrest.filters.predicate.annotation.PredicateRepository;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.annotation.StaticFilter;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
+import pl.openrest.filters.repository.PredicateContextQueryDslRepository;
+import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 
 public class FilterableEntityRegistry {
 
     private Map<Class<?>, FilterableEntityInformation> registry = new HashMap<>();
 
     private final PersistentEntities persistentEntities;
+    private final Repositories repositories;
 
-    public FilterableEntityRegistry(@NonNull PersistentEntities persistentEntities) {
+    public FilterableEntityRegistry(@NonNull PersistentEntities persistentEntities, @NonNull Repositories repositories) {
         this.persistentEntities = persistentEntities;
+        this.repositories = repositories;
     }
 
     public void register(Object predicateRepo) {
@@ -42,7 +47,7 @@ public class FilterableEntityRegistry {
         builder.predicateRepository(predicateRepo);
         addPersistentEntity(builder, entityType);
         addSubRegisters(builder, entityType, predicateRepo);
-
+        addPredicateContextRepositoryInvoker(entityType, builder);
         registry.put(entityType, builder.build());
     }
 
@@ -94,5 +99,13 @@ public class FilterableEntityRegistry {
         });
         builder.predicateRegistry(predicateRegistry);
         builder.staticFilterRegistry(staticFilterRegistry);
+    }
+
+    private void addPredicateContextRepositoryInvoker(Class<?> entityType, FilterableEntityInformationBuilder builder) {
+        Object repository = repositories.getRepositoryFor(entityType);
+        if (repository instanceof PredicateContextQueryDslRepository)
+            builder.repositoryInvoker(new PredicateContextRepositoryInvoker((PredicateContextQueryDslRepository) repository));
+        else
+            throw new IllegalStateException("You must specify PredicateContextQueryDslRepository for " + entityType);
     }
 }

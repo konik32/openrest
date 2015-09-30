@@ -13,6 +13,7 @@ import org.springframework.data.mapping.PersistentEntity;
 
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
+import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 
 @ToString
 @EqualsAndHashCode
@@ -22,6 +23,7 @@ public class FilterableEntityInformation {
     private @Getter final PersistentEntity<?, ?> persistentEntity;
     private final List<StaticFilterInformation> staticFilterRegistry;
     private final Map<String, PredicateInformation> predicateRegistry;
+    private @Getter final PredicateContextRepositoryInvoker repositoryInvoker;
     private @Getter final Object predicateRepository;
     private @Getter final boolean defaultedPageable;
 

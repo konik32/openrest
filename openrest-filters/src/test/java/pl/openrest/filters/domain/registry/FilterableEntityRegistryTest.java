@@ -16,12 +16,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.PersistentEntities;
+import org.springframework.data.repository.support.Repositories;
 
 import pl.openrest.filters.predicate.annotation.Predicate;
 import pl.openrest.filters.predicate.annotation.Predicate.PredicateType;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
 import pl.openrest.filters.query.annotation.Join;
 import pl.openrest.filters.query.annotation.StaticFilter;
+import pl.openrest.filters.repository.PredicateContextQueryDslRepository;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.NumberExpression;
@@ -32,12 +34,16 @@ public class FilterableEntityRegistryTest {
     @Mock
     private PersistentEntities persistentEntities;
 
+    @Mock
+    private Repositories repositories;
+
     private FilterableEntityRegistry registry;
 
     @Before
     public void setUp() {
         when(persistentEntities.getPersistentEntity(Product.class)).thenReturn(mock(PersistentEntity.class));
-        registry = new FilterableEntityRegistry(persistentEntities);
+        when(repositories.getRepositoryFor(Product.class)).thenReturn(mock(PredicateContextQueryDslRepository.class));
+        registry = new FilterableEntityRegistry(persistentEntities, repositories);
     }
 
     @Test
@@ -48,10 +54,11 @@ public class FilterableEntityRegistryTest {
         FilterableEntityInformation entityInfo = registry.get(Product.class);
         // then
         Assert.assertNotNull(entityInfo.getPredicateRepository());
+        Assert.assertNotNull(entityInfo.getRepositoryInvoker());
         Assert.assertFalse(entityInfo.getStaticFilters().isEmpty());
         Assert.assertEquals(PredicateType.SEARCH, entityInfo.getPredicateInformation("userIdEq").getType());
         Assert.assertEquals("principal.id != null", entityInfo.getStaticFilters().get(0).getCondition());
-        Assert.assertArrayEquals(new String[]{"1", "2"}, entityInfo.getStaticFilters().get(0).getParameters());
+        Assert.assertArrayEquals(new String[] { "1", "2" }, entityInfo.getStaticFilters().get(0).getParameters());
         Assert.assertNotNull(entityInfo.getStaticFilters().get(0).getPredicateInformation());
         Assert.assertEquals(PredicateType.SEARCH, entityInfo.getPredicateInformation("nameLike").getType());
         Assert.assertEquals(false, entityInfo.getPredicateInformation("nameLike").isDefaultedPageable());
@@ -65,7 +72,7 @@ public class FilterableEntityRegistryTest {
     @PredicateRepository(value = Product.class)
     public class ProductExpressions {
 
-        @StaticFilter(offOnCondition="principal.id != null", parameters={"1","2"})
+        @StaticFilter(offOnCondition = "principal.id != null", parameters = { "1", "2" })
         public BooleanExpression productionYearBetween(Integer from, Integer to) {
             return null;
         }
