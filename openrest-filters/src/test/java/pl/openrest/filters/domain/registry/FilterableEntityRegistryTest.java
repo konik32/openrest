@@ -3,6 +3,7 @@ package pl.openrest.filters.domain.registry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
@@ -32,7 +34,7 @@ import com.mysema.query.types.expr.NumberExpression;
 public class FilterableEntityRegistryTest {
 
     @Mock
-    private PersistentEntities persistentEntities;
+    private ApplicationContext applicationContext;
 
     @Mock
     private Repositories repositories;
@@ -41,15 +43,16 @@ public class FilterableEntityRegistryTest {
 
     @Before
     public void setUp() {
-        when(persistentEntities.getPersistentEntity(Product.class)).thenReturn(mock(PersistentEntity.class));
         when(repositories.getRepositoryFor(Product.class)).thenReturn(mock(PredicateContextQueryDslRepository.class));
-        registry = new FilterableEntityRegistry(persistentEntities, repositories);
+        when(applicationContext.getBeansWithAnnotation(PredicateRepository.class)).thenReturn(
+                Collections.singletonMap("ProductExpressions", (Object) new ProductPredicates()));
+        registry = new FilterableEntityRegistry(repositories);
+        registry.setApplicationContext(applicationContext);
     }
 
     @Test
     public void shouldCreateRegistryWithPredicatesInformationAndStaticFiltersInformation() throws Exception {
         // given
-        registry.register(new ProductExpressions());
         // when
         FilterableEntityInformation entityInfo = registry.get(Product.class);
         // then
@@ -70,7 +73,7 @@ public class FilterableEntityRegistryTest {
     }
 
     @PredicateRepository(value = Product.class)
-    public class ProductExpressions {
+    public class ProductPredicates {
 
         @StaticFilter(offOnCondition = "principal.id != null", parameters = { "1", "2" })
         public BooleanExpression productionYearBetween(Integer from, Integer to) {

@@ -8,9 +8,10 @@ import java.util.Map;
 
 import lombok.NonNull;
 
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
@@ -25,19 +26,17 @@ import pl.openrest.filters.query.registry.StaticFilterInformation;
 import pl.openrest.filters.repository.PredicateContextQueryDslRepository;
 import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 
-public class FilterableEntityRegistry {
+public class FilterableEntityRegistry implements ApplicationContextAware {
 
     private Map<Class<?>, FilterableEntityInformation> registry = new HashMap<>();
 
-    private final PersistentEntities persistentEntities;
     private final Repositories repositories;
 
-    public FilterableEntityRegistry(@NonNull PersistentEntities persistentEntities, @NonNull Repositories repositories) {
-        this.persistentEntities = persistentEntities;
+    public FilterableEntityRegistry(@NonNull Repositories repositories) {
         this.repositories = repositories;
     }
 
-    public void register(Object predicateRepo) {
+    private void register(Object predicateRepo) {
         PredicateRepository repoAnn = findAnnotation(predicateRepo);
         Class<?> entityType = repoAnn.value();
 
@@ -45,7 +44,7 @@ public class FilterableEntityRegistry {
 
         builder.defaultedPageable(repoAnn.defaultedPageable());
         builder.predicateRepository(predicateRepo);
-        addPersistentEntity(builder, entityType);
+        builder.entityType(entityType);
         addSubRegisters(builder, entityType, predicateRepo);
         addPredicateContextRepositoryInvoker(entityType, builder);
         registry.put(entityType, builder.build());
@@ -60,13 +59,6 @@ public class FilterableEntityRegistry {
         if (repoAnn == null)
             throw new IllegalArgumentException("Predicate repository should be annotated with @PredicateRepository");
         return repoAnn;
-    }
-
-    private void addPersistentEntity(FilterableEntityInformationBuilder builder, Class<?> entityType) {
-        PersistentEntity<?, ?> persistentEntity = persistentEntities.getPersistentEntity(entityType);
-        if (persistentEntity == null)
-            throw new IllegalArgumentException("No such entity: " + entityType);
-        builder.persistentEntity(persistentEntity);
     }
 
     private void addSubRegisters(FilterableEntityInformationBuilder builder, final Class<?> entityType, Object predicateRepo) {
@@ -107,5 +99,12 @@ public class FilterableEntityRegistry {
             builder.repositoryInvoker(new PredicateContextRepositoryInvoker((PredicateContextQueryDslRepository) repository));
         else
             throw new IllegalStateException("You must specify PredicateContextQueryDslRepository for " + entityType);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        for (Object predicateRepository : applicationContext.getBeansWithAnnotation(PredicateRepository.class).values()) {
+            register(predicateRepository);
+        }
     }
 }

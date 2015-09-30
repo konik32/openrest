@@ -8,9 +8,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import org.springframework.data.mapping.PersistentEntity;
-
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
 import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
@@ -20,9 +17,9 @@ import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 @Builder
 public class FilterableEntityInformation {
 
-    private @Getter final PersistentEntity<?, ?> persistentEntity;
     private final List<StaticFilterInformation> staticFilterRegistry;
     private final Map<String, PredicateInformation> predicateRegistry;
+    private @Getter final Class<?> entityType;
     private @Getter final PredicateContextRepositoryInvoker repositoryInvoker;
     private @Getter final Object predicateRepository;
     private @Getter final boolean defaultedPageable;

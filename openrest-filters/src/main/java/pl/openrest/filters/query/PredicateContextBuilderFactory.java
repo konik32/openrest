@@ -6,8 +6,6 @@ import java.util.List;
 
 import lombok.NonNull;
 
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.util.ReflectionUtils;
 
 import pl.openrest.exception.OrestException;
@@ -52,7 +50,7 @@ public class PredicateContextBuilderFactory {
 
         public PredicateContextBuilder(FilterableEntityInformation entityInfo) {
             this.entityInfo = entityInfo;
-            this.pathBuilder = pathBuilderFactory.create(entityInfo.getPersistentEntity().getType());
+            this.pathBuilder = pathBuilderFactory.create(entityInfo.getEntityType());
         }
 
         public PredicateContextBuilder withFilterTree(FilterPart tree) {
@@ -61,8 +59,9 @@ public class PredicateContextBuilderFactory {
             return this;
         }
 
-        public PredicateContextBuilder withId(Serializable id) {
-            addBooleanExpression(getIdEqualsExpression(id));
+        @SuppressWarnings("unchecked")
+        public PredicateContextBuilder withId(String idPropertyName, Serializable id) {
+            addBooleanExpression(pathBuilder.get(idPropertyName).eq(id));
             return this;
         }
 
@@ -117,13 +116,6 @@ public class PredicateContextBuilderFactory {
         private Expression getExpression(PredicateInformation predicateInfo, Object[] parameters) {
             joins.addAll(predicateInfo.getJoins());
             return (Expression) ReflectionUtils.invokeMethod(predicateInfo.getMethod(), entityInfo.getPredicateRepository(), parameters);
-        }
-
-        @SuppressWarnings("unchecked")
-        private BooleanExpression getIdEqualsExpression(Serializable id) {
-            PersistentEntity<?, ?> pe = entityInfo.getPersistentEntity();
-            PersistentProperty<?> idProperty = pe.getIdProperty();
-            return pathBuilder.get(idProperty.getName()).eq(id);
         }
 
         public PredicateContext build() {
