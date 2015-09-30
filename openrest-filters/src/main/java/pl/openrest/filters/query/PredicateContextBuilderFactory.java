@@ -59,8 +59,10 @@ public class PredicateContextBuilderFactory {
         }
 
         public PredicateContextBuilder withFilterTree(FilterPart tree) {
-            BooleanExpression treeExpression = processTreeRecursively(tree);
-            addBooleanExpression(treeExpression);
+            if (tree != null) {
+                BooleanExpression treeExpression = processTreeRecursively(tree);
+                addBooleanExpression(treeExpression);
+            }
             return this;
         }
 
@@ -89,7 +91,7 @@ public class PredicateContextBuilderFactory {
         }
 
         private void addBooleanExpression(BooleanExpression expression) {
-            this.expression = this.expression == null? expression: this.expression.and(expression);
+            this.expression = this.expression == null ? expression : this.expression.and(expression);
         }
 
         private BooleanExpression processTreeRecursively(FilterPart part) {

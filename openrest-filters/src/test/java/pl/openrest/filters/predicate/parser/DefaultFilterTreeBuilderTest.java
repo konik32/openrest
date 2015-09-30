@@ -57,4 +57,5 @@ public class DefaultFilterTreeBuilderTest {
         // then
         assertNull(builder.from(filters));
     }
+    
 }
