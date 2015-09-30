@@ -82,7 +82,7 @@ public class FilterableEntityController extends AbstractFilterablesController {
         Object result = getResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build());
         if (result == null)
             throw new ResourceNotFoundException();
-        return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
+        return new ResponseEntity<Object>(assembler.toFullResource(result), HttpStatus.OK);
     }
 
     private Object getResult(PredicateContextRepositoryInvoker invoker, PredicateContext predicateContext) {
