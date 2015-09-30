@@ -39,12 +39,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 @Configuration
 public class OpenRestDtoConfiguration {
 
-    // @Autowired
-    // private RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver;
-    //
-    // @Autowired
-    // private BackendIdHandlerMethodArgumentResolver backendIdResolver;
-
     @Autowired
     private Repositories repositories;
     @Autowired
@@ -75,13 +69,12 @@ public class OpenRestDtoConfiguration {
     }
 
     @Bean
-    public static MapperFactory mapperFactory() {
-        MapperFactory mapperFactory = new MapperFactory();
-        return mapperFactory;
+    public MapperFactory mapperFactory() {
+        return new MapperFactory();
     }
 
     @Autowired
-    protected void setDefaultMappers(MapperFactory mapperFactory, PersistentEntities persistentEntities,
+    public void setDefaultMappers(MapperFactory mapperFactory, PersistentEntities persistentEntities,
             DtoInformationRegistry dtoInformationRegistry) {
         DefaultCreateAndUpdateMapper defaultCreateAndUpdateMapper = new DefaultCreateAndUpdateMapper(dtoInformationRegistry,
                 mapperDelegator(), persistentEntities);

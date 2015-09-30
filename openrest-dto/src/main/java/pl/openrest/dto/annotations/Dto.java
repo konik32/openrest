@@ -31,6 +31,4 @@ public @interface Dto {
 
     DtoType type();
 
-    boolean exported() default true;
-
 }

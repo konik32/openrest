@@ -8,10 +8,11 @@ import java.util.Map;
 import lombok.Setter;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 @SuppressWarnings("rawtypes")
-public class MapperFactory implements BeanPostProcessor {
+public class MapperFactory implements ApplicationContextAware {
 
     private Map<Class<?>, CreateMapper> createMappers = new HashMap<>();
     private Map<Class<?>, UpdateMapper> updateMappers = new HashMap<>();
@@ -29,17 +30,6 @@ public class MapperFactory implements BeanPostProcessor {
         return mapperType == null ? defaultUpdateMapper : mapperType;
     }
 
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(final Object bean, String beanName) throws BeansException {
-        registerMappers(bean);
-        return bean;
-    }
-
     private void registerMappers(final Object bean) {
         Class<?> beanType = bean.getClass();
         for (Type i : beanType.getGenericInterfaces()) {
@@ -51,6 +41,16 @@ public class MapperFactory implements BeanPostProcessor {
                     updateMappers.put((Class<?>) pType.getActualTypeArguments()[1], (UpdateMapper) bean);
                 }
             }
+        }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        for (Object bean : applicationContext.getBeansOfType(CreateMapper.class).values()) {
+            registerMappers(bean);
+        }
+        for (Object bean : applicationContext.getBeansOfType(UpdateMapper.class).values()) {
+            registerMappers(bean);
         }
     }
 

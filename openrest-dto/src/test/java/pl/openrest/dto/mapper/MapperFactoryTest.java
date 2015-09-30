@@ -1,5 +1,7 @@
 package pl.openrest.dto.mapper;
 
+import java.util.Collections;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 
 import pl.openrest.dto.registry.DtoInformation;
 
@@ -21,19 +24,27 @@ public class MapperFactoryTest {
     @Mock
     private UpdateMapper defaultUpdateMapper;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
     @Before
     public void setUp() {
         mapperFactory = new MapperFactory();
         mapperFactory.setDefaultCreateMapper(defaultCreateMapper);
         mapperFactory.setDefaultUpdateMapper(defaultUpdateMapper);
+
     }
 
     @Test
     public void shouldRegisterMappers() throws Exception {
         // given
         DummyMapper mapper = new DummyMapper();
+        Mockito.when(applicationContext.getBeansOfType(CreateMapper.class)).thenReturn(
+                Collections.singletonMap("createMapper", (CreateMapper) mapper));
+        Mockito.when(applicationContext.getBeansOfType(UpdateMapper.class)).thenReturn(
+                Collections.singletonMap("createMapper", (UpdateMapper) mapper));
         // when
-        mapperFactory.postProcessAfterInitialization(mapper, "mapper");
+        mapperFactory.setApplicationContext(applicationContext);
         // then
         Assert.assertEquals(mapper, mapperFactory.getCreateMapper(Object.class));
         Assert.assertEquals(mapper, mapperFactory.getUpdateMapper(Object.class));
