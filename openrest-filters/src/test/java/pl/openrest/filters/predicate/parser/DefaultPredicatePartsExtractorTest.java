@@ -39,4 +39,14 @@ public class DefaultPredicatePartsExtractorTest {
         PredicateParts parts = extractor.extractParts(predicate);
         // then
     }
+    
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentExceptionOnNotClosedBrackets() throws Exception {
+        // given
+        String predicate = "between(1;2";
+        // when
+        PredicateParts parts = extractor.extractParts(predicate);
+        // then
+    }
 }
