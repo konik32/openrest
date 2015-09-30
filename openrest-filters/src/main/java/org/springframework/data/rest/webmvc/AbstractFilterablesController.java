@@ -32,6 +32,8 @@ public abstract class AbstractFilterablesController extends AbstractRepositoryRe
 
     protected void addFilters(MultiValueMap<String, Object> parameters, PredicateContextBuilder builder) {
         List<Object> filterParams = parameters.get(FILTERS_PARAM_NAME);
+        if (filterParams == null)
+            return;
         for (Object filterParam : filterParams) {
             FilterPart filterTree = filterTreeBuilder.from((String) filterParam);
             builder.withFilterTree(filterTree);
