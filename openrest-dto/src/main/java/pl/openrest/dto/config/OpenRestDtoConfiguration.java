@@ -58,7 +58,7 @@ public class OpenRestDtoConfiguration {
             packagesToScan.add(domainType.getPackage().getName());
         }
         DtoInformationRegistry registry = new DtoInformationRegistry();
-        Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes("packagesToScan");
+        Set<Class<?>> candidates = new AnnotatedTypeScanner(Dto.class).findTypes(packagesToScan);
         for (Class<?> dtoClass : candidates) {
             Dto dtoAnn = AnnotationUtils.findAnnotation(dtoClass, Dto.class);
             DtoInformation dtoInfo = new DtoInformation(dtoClass, dtoAnn);
