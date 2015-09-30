@@ -2,17 +2,13 @@ package pl.openrest.core.config;
 
 import java.util.List;
 
+import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
+import org.springframework.data.rest.webmvc.config.RootResourceInformationHandlerMethodArgumentResolver;
+import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public interface OpenRestConfigurer {
 
-    public void configureObjectMapper(ObjectMapper objectMapper);
-
-    public void configureHalObjectMapper(ObjectMapper halObjectMapper);
-
-    public void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers);
+    public void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers, RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver, BackendIdHandlerMethodArgumentResolver backendIdResolver, ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver);
 
 }
