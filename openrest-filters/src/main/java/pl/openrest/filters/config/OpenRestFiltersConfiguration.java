@@ -3,14 +3,9 @@ package pl.openrest.filters.config;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.repository.support.Repositories;
-import org.springframework.data.rest.webmvc.BaseUriAwareController;
-import org.springframework.data.rest.webmvc.RepositoryRestController;
-import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
 
 import pl.openrest.core.config.OpenRestConfigurer;
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
@@ -20,7 +15,7 @@ import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.SpelMethodParameterConverter;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
-import pl.openrest.filters.webmvc.FilterableEntityInformationMethodArgumentResolver;
+import pl.openrest.filters.webmvc.support.PageAndSortUtils;
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
 import pl.openrest.predicate.parser.DefaultPredicatePartsExtractor;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
@@ -77,5 +72,11 @@ public class OpenRestFiltersConfiguration {
     public OpenRestConfigurer openRestFiltersConfigurer() {
         return new OpenRestFiltersConfigurer();
     }
+
+    @Bean
+    public PageAndSortUtils pageAndSortUtils() {
+        return new PageAndSortUtils(predicateContextBuilderFactory(), predicatePartsExtractor());
+    }
+    
 
 }

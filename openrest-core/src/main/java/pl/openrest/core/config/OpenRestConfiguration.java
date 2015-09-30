@@ -19,13 +19,9 @@ public class OpenRestConfiguration extends RepositoryRestMvcConfiguration {
     protected List<HandlerMethodArgumentResolver> defaultMethodArgumentResolvers() {
         List<HandlerMethodArgumentResolver> resolvers = super.defaultMethodArgumentResolvers();
         List<HandlerMethodArgumentResolver> newResolvers = new ArrayList<HandlerMethodArgumentResolver>(resolvers.size() + 1);
-        for (int i = 1; i < resolvers.size(); i++) {
-            newResolvers.add(resolvers.get(i));
-        }
-
+        newResolvers.addAll(resolvers);
         for (OpenRestConfigurer configurer : applicationContext.getBeansOfType(OpenRestConfigurer.class).values()) {
-            configurer.addDefaultMethodArgumentResolvers(newResolvers, repoRequestArgumentResolver(),
-                    backendIdHandlerMethodArgumentResolver(), resourceMetadataHandlerMethodArgumentResolver());
+            configurer.addDefaultMethodArgumentResolvers(newResolvers);
         }
         return newResolvers;
     }

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import org.springframework.data.mapping.PersistentProperty;
@@ -31,7 +32,7 @@ public class PredicateContextBuilderFactory {
     private final MethodParameterConverter predicateParameterConverter;
     private final MethodParameterConverter staticFiltersParameterConverter;
     private final IdConverter idConverter;
-    private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
+    private final @Getter PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextBuilderFactory(@NonNull MethodParameterConverter predicateParameterConverter,
             @NonNull MethodParameterConverter staticFiltersParameterConverter, @NonNull IdConverter idConverter) {

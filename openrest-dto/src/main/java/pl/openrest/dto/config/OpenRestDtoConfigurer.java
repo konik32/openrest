@@ -3,7 +3,6 @@ package pl.openrest.dto.config;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.config.RootResourceInformationHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -18,12 +17,17 @@ public class OpenRestDtoConfigurer implements OpenRestConfigurer {
     private MappingManager mappingManager;
 
     @Override
-    public void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers,
-            RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver,
-            BackendIdHandlerMethodArgumentResolver backendIdResolver, ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver) {
+    public void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         // TODO Auto-generated method stub
+        RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver = null;
+        BackendIdHandlerMethodArgumentResolver backendIdResolver = null;
+        for (HandlerMethodArgumentResolver resolver : resolvers) {
+            if (resolver instanceof RootResourceInformationHandlerMethodArgumentResolver)
+                rootResourceResolver = (RootResourceInformationHandlerMethodArgumentResolver) resolver;
+            else if (resolver instanceof BackendIdHandlerMethodArgumentResolver)
+                backendIdResolver = (BackendIdHandlerMethodArgumentResolver) resolver;
+        }
         resolvers.add(new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(rootResourceResolver, backendIdResolver,
                 mappingManager));
     }
-
 }
