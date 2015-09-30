@@ -1,11 +1,11 @@
-package pl.openrest.filters.webmvc;
+package org.springframework.data.rest.webmvc;
 
 import lombok.NonNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.querydsl.QSort;
-import org.springframework.data.rest.webmvc.AbstractFilterablesController;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
+import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.rest.webmvc.RootResourceInformation;
 import org.springframework.data.rest.webmvc.support.DefaultedPageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -22,10 +22,12 @@ import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
 import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContextBuilder;
+import pl.openrest.filters.webmvc.CountResponse;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
 import pl.openrest.predicate.parser.PredicateParts;
 import pl.openrest.predicate.parser.PredicatePartsExtractor;
 
+@RepositoryRestController
 public class FilterableSearchController extends AbstractFilterablesController {
 
     private final PredicatePartsExtractor predicatePartsExtractor;

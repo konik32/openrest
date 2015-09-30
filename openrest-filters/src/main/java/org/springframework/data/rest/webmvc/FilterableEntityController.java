@@ -1,10 +1,11 @@
-package pl.openrest.filters.webmvc;
+package org.springframework.data.rest.webmvc;
 
 import java.io.Serializable;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.querydsl.QSort;
-import org.springframework.data.rest.webmvc.AbstractFilterablesController;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
+import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.rest.webmvc.RootResourceInformation;
 import org.springframework.data.rest.webmvc.support.BackendId;
 import org.springframework.data.rest.webmvc.support.DefaultedPageable;
@@ -22,12 +23,15 @@ import pl.openrest.filters.query.PredicateContext;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
 import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContextBuilder;
 import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
+import pl.openrest.filters.webmvc.CountResponse;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
 
+@RepositoryRestController
 public class FilterableEntityController extends AbstractFilterablesController {
 
     private final static String BASE_MAPPING = "/{repository}";
 
+    @Autowired
     public FilterableEntityController(PagedResourcesAssembler<Object> pagedResourcesAssembler,
             PredicateContextBuilderFactory predicateContextBuilderFactory, FilterTreeBuilder filterTreeBuilder) {
         super(pagedResourcesAssembler, predicateContextBuilderFactory, filterTreeBuilder);
@@ -71,7 +75,8 @@ public class FilterableEntityController extends AbstractFilterablesController {
             @RequestParam MultiValueMap<String, Object> parameters, @BackendId Serializable id, PersistentEntityResourceAssembler assembler) {
 
         PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
-        predicateContextBuilder.withId(id);
+        String idPropertyName = resourceInformation.getPersistentEntity().getIdProperty().getName();
+        predicateContextBuilder.withId(idPropertyName, id);
         predicateContextBuilder.withStaticFilters();
         addFilters(parameters, predicateContextBuilder);
 
