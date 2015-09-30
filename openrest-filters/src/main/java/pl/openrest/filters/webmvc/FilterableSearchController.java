@@ -41,7 +41,7 @@ public class FilterableSearchController extends AbstractFilterablesController {
     }
 
     @ResponseBody
-    @RequestMapping(value = BASE_MAPPING + "/{search}", method = RequestMethod.GET, params="orest")
+    @RequestMapping(value = BASE_MAPPING + "/{search}", method = RequestMethod.GET, params = "orest")
     public ResponseEntity<Object> executeSearch(RootResourceInformation resourceInformation, FilterableEntityInformation entityInfo,
             @RequestParam MultiValueMap<String, Object> parameters, @PathVariable String search, DefaultedPageable pageable, QSort sort,
             PersistentEntityResourceAssembler assembler) {
@@ -60,4 +60,21 @@ public class FilterableSearchController extends AbstractFilterablesController {
                 addDefaultPageable);
         return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
     }
+
+    @ResponseBody
+    @RequestMapping(value = BASE_MAPPING + "/{search}", method = RequestMethod.GET, params = {"orest", "count"})
+    public ResponseEntity<Object> executeSearchCount(RootResourceInformation resourceInformation, FilterableEntityInformation entityInfo,
+            @RequestParam MultiValueMap<String, Object> parameters, @PathVariable String search) {
+
+        PredicateParts searchPredicateParts = predicatePartsExtractor.extractParts(search);
+        PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
+
+        predicateContextBuilder.withPredicateParts(searchPredicateParts);
+        predicateContextBuilder.withStaticFilters();
+        addFilters(parameters, predicateContextBuilder);
+
+        Object result = getCountResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build());
+        return new ResponseEntity<Object>(new CountResponse(result), HttpStatus.OK);
+    }
+
 }

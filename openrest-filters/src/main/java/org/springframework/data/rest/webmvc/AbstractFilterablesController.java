@@ -48,6 +48,10 @@ public abstract class AbstractFilterablesController extends AbstractRepositoryRe
         return result;
     }
 
+    protected Object getCountResult(PredicateContextRepositoryInvoker invoker, PredicateContext predicateContext) {
+        return invoker.invokeCount(predicateContext);
+    }
+
     protected boolean checkIfAddDefaultPageable(boolean entityInfoPageable, boolean searchPredicatePageable) {
         if (!entityInfoPageable)
             return false;

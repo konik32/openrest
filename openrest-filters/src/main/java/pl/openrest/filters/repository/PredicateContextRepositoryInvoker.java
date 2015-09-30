@@ -7,8 +7,6 @@ import org.springframework.data.querydsl.QSort;
 
 import pl.openrest.filters.query.PredicateContext;
 
-import com.mysema.query.types.Predicate;
-
 public class PredicateContextRepositoryInvoker {
     private final PredicateContextQueryDslRepository<Object> repository;
 
@@ -34,7 +32,7 @@ public class PredicateContextRepositoryInvoker {
         return repository.findOne(predicateContext);
     }
 
-    public Object invokeCount(Predicate predicate, PredicateContext predicateContext) {
+    public Object invokeCount(PredicateContext predicateContext) {
         return repository.count(predicateContext);
     }
 }

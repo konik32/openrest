@@ -35,23 +35,6 @@ public class FilterableEntityController extends AbstractFilterablesController {
 
     @ResponseBody
     @RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
-    public ResponseEntity<Object> executeSearch(RootResourceInformation resourceInformation, FilterableEntityInformation entityInfo,
-            @RequestParam MultiValueMap<String, Object> parameters, DefaultedPageable pageable, QSort sort,
-            PersistentEntityResourceAssembler assembler) {
-
-        PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
-
-        addFilters(parameters, predicateContextBuilder);
-
-        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.isDefaultedPageable());
-
-        Iterable<Object> result = getResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build(), pageable, sort,
-                addDefaultPageable);
-        return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
-    }
-
-    @ResponseBody
-    @RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = "orest")
     public ResponseEntity<Object> getFilteredCollectionResource(RootResourceInformation resourceInformation,
             FilterableEntityInformation entityInfo, @RequestParam MultiValueMap<String, Object> parameters, DefaultedPageable pageable,
             QSort sort, PersistentEntityResourceAssembler assembler) {
@@ -66,6 +49,20 @@ public class FilterableEntityController extends AbstractFilterablesController {
         Iterable<Object> result = getResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build(), pageable, sort,
                 addDefaultPageable);
         return new ResponseEntity<Object>(resultToResources(result, assembler, null), HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET, params = { "orest", "count" })
+    public ResponseEntity<Object> getFilteredCollectionCount(RootResourceInformation resourceInformation,
+            FilterableEntityInformation entityInfo, @RequestParam MultiValueMap<String, Object> parameters) {
+
+        PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
+
+        addFilters(parameters, predicateContextBuilder);
+        predicateContextBuilder.withStaticFilters();
+
+        Object result = getCountResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build());
+        return new ResponseEntity<Object>(new CountResponse(result), HttpStatus.OK);
     }
 
     @ResponseBody
