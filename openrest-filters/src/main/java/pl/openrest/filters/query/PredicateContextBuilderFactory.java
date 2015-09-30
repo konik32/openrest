@@ -89,10 +89,7 @@ public class PredicateContextBuilderFactory {
         }
 
         private void addBooleanExpression(BooleanExpression expression) {
-            if (this.expression == null)
-                this.expression = expression;
-            else
-                this.expression.and(expression);
+            this.expression = this.expression == null? expression: this.expression.and(expression);
         }
 
         private BooleanExpression processTreeRecursively(FilterPart part) {
