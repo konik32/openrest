@@ -19,7 +19,7 @@ import pl.openrest.dto.validation.handler.ValidatorInvoker;
 public class OpenRestDtoValidationConfiguration {
 
     @Autowired
-    private Validator validator;
+    private Validator mvcValidator;
 
     @Autowired(required = false)
     private DtoFieldExpressionValidator dtoFieldExpressionValidator;
@@ -40,7 +40,7 @@ public class OpenRestDtoValidationConfiguration {
 
     @Autowired
     private void addValidators(ValidatorInvoker invoker) {
-        invoker.addValidator(validator);
+        invoker.addValidator(mvcValidator);
         if (dtoFieldExpressionValidator != null) {
             invoker.addValidator(dtoFieldExpressionValidator);
         }
