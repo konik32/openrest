@@ -1,4 +1,4 @@
-package pl.openrest.dto.webmvc;
+package org.springframework.data.rest.webmvc;
 
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.PUT;
@@ -40,6 +40,7 @@ import pl.openrest.dto.event.AfterCreateWithDtoEvent;
 import pl.openrest.dto.event.AfterSaveWithDtoEvent;
 import pl.openrest.dto.event.BeforeCreateWithDtoEvent;
 import pl.openrest.dto.event.BeforeSaveWithDtoEvent;
+import pl.openrest.dto.webmvc.PersistentEntityResourceWithDtoWrapper;
 
 @RepositoryRestController
 public class DtoController implements ApplicationEventPublisherAware {
