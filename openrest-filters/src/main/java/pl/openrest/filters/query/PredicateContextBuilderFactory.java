@@ -1,10 +1,13 @@
 package pl.openrest.filters.query;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 import lombok.NonNull;
 
+import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.util.ReflectionUtils;
 
 import pl.openrest.exception.OrestException;
@@ -20,11 +23,14 @@ import pl.openrest.predicate.parser.PredicateParts;
 
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.path.PathBuilder;
+import com.mysema.query.types.path.PathBuilderFactory;
 
 public class PredicateContextBuilderFactory {
 
     private final MethodParameterConverter predicateParameterConverter;
     private final MethodParameterConverter staticFiltersParameterConverter;
+    private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextBuilderFactory(@NonNull MethodParameterConverter predicateParameterConverter,
             @NonNull MethodParameterConverter staticFiltersParameterConverter) {
@@ -41,14 +47,22 @@ public class PredicateContextBuilderFactory {
         private List<JoinInformation> joins = new LinkedList<>();
         private BooleanExpression expression;
         private final FilterableEntityInformation entityInfo;
+        @SuppressWarnings("rawtypes")
+        private final PathBuilder pathBuilder;
 
         public PredicateContextBuilder(FilterableEntityInformation entityInfo) {
             this.entityInfo = entityInfo;
+            this.pathBuilder = pathBuilderFactory.create(entityInfo.getPersistentEntity().getType());
         }
 
         public PredicateContextBuilder withFilterTree(FilterPart tree) {
             BooleanExpression treeExpression = processTreeRecursively(tree);
             addBooleanExpression(treeExpression);
+            return this;
+        }
+
+        public PredicateContextBuilder withId(Serializable id) {
+            addBooleanExpression(getIdEqualsExpression(id));
             return this;
         }
 
@@ -103,6 +117,13 @@ public class PredicateContextBuilderFactory {
         private Expression getExpression(PredicateInformation predicateInfo, Object[] parameters) {
             joins.addAll(predicateInfo.getJoins());
             return (Expression) ReflectionUtils.invokeMethod(predicateInfo.getMethod(), entityInfo.getPredicateRepository(), parameters);
+        }
+
+        @SuppressWarnings("unchecked")
+        private BooleanExpression getIdEqualsExpression(Serializable id) {
+            PersistentEntity<?, ?> pe = entityInfo.getPersistentEntity();
+            PersistentProperty<?> idProperty = pe.getIdProperty();
+            return pathBuilder.get(idProperty.getName()).eq(id);
         }
 
         public PredicateContext build() {
