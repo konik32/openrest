@@ -28,6 +28,7 @@ public class NonDtoRequestsFilter implements Filter {
         if (isPostOrPatchOrPutRequest(method) && !req.getParameterMap().containsKey("dto")) {
             throw new OrestException(OrestExceptionDictionary.NON_OREST_REQUEST, "Request should cointain dto parameter");
         }
+        chain.doFilter(request, response);
     }
 
     @Override
