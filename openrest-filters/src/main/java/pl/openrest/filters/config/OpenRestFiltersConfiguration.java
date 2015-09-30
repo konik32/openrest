@@ -14,7 +14,9 @@ import org.springframework.data.rest.webmvc.config.ResourceMetadataHandlerMethod
 
 import pl.openrest.core.config.OpenRestConfigurer;
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
+import pl.openrest.filters.predicate.ConversionServiceBasedIdConverter;
 import pl.openrest.filters.predicate.ConversionServiceBasedMethodParameterConverter;
+import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.SpelMethodParameterConverter;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
@@ -52,6 +54,10 @@ public class OpenRestFiltersConfiguration {
         return new SpelMethodParameterConverter(beanFactory);
     }
 
+    protected IdConverter idConverter() {
+        return new ConversionServiceBasedIdConverter(defaultConversionService);
+    }
+
     @Bean
     public FilterTreeBuilder filterTreeBuilder() {
         return new DefaultFilterTreeBuilder(predicatePartsExtractor());
@@ -64,7 +70,7 @@ public class OpenRestFiltersConfiguration {
 
     @Bean
     public PredicateContextBuilderFactory predicateContextBuilderFactory() {
-        return new PredicateContextBuilderFactory(predicateParameterConverter(), staticFiltersParameterConverter());
+        return new PredicateContextBuilderFactory(predicateParameterConverter(), staticFiltersParameterConverter(), idConverter());
     }
 
     @Bean

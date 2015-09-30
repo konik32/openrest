@@ -75,8 +75,7 @@ public class FilterableEntityController extends AbstractFilterablesController {
             @RequestParam MultiValueMap<String, Object> parameters, @BackendId Serializable id, PersistentEntityResourceAssembler assembler) {
 
         PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
-        String idPropertyName = resourceInformation.getPersistentEntity().getIdProperty().getName();
-        predicateContextBuilder.withId(idPropertyName, id);
+        predicateContextBuilder.withId(resourceInformation.getPersistentEntity().getIdProperty(), id);
         predicateContextBuilder.withStaticFilters();
         addFilters(parameters, predicateContextBuilder);
 

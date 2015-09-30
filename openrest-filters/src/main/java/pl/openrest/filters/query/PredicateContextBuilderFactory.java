@@ -6,11 +6,13 @@ import java.util.List;
 
 import lombok.NonNull;
 
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.util.ReflectionUtils;
 
 import pl.openrest.exception.OrestException;
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.exception.ORestFiltersExceptionDictionary;
+import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.registry.JoinInformation;
@@ -28,12 +30,14 @@ public class PredicateContextBuilderFactory {
 
     private final MethodParameterConverter predicateParameterConverter;
     private final MethodParameterConverter staticFiltersParameterConverter;
+    private final IdConverter idConverter;
     private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextBuilderFactory(@NonNull MethodParameterConverter predicateParameterConverter,
-            @NonNull MethodParameterConverter staticFiltersParameterConverter) {
+            @NonNull MethodParameterConverter staticFiltersParameterConverter, @NonNull IdConverter idConverter) {
         this.predicateParameterConverter = predicateParameterConverter;
         this.staticFiltersParameterConverter = staticFiltersParameterConverter;
+        this.idConverter = idConverter;
     }
 
     public PredicateContextBuilder create(FilterableEntityInformation entityInfo) {
@@ -60,8 +64,9 @@ public class PredicateContextBuilderFactory {
         }
 
         @SuppressWarnings("unchecked")
-        public PredicateContextBuilder withId(String idPropertyName, Serializable id) {
-            addBooleanExpression(pathBuilder.get(idPropertyName).eq(id));
+        public PredicateContextBuilder withId(PersistentProperty idProperty, Serializable id) {
+            Object convertedId = idConverter.convert(idProperty, id);
+            addBooleanExpression(pathBuilder.get(idProperty.getName()).eq(convertedId));
             return this;
         }
 
