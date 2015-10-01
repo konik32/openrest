@@ -12,6 +12,7 @@ import javax.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadata;
@@ -19,7 +20,6 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.QueryDslJpaRepository;
 import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.querydsl.EntityPathResolver;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
 import pl.openrest.filters.query.PredicateContext;
@@ -73,7 +73,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     @Override
-    public Iterable<T> findAll(PredicateContext predicateContext, QSort sort) {
+    public Iterable<T> findAll(PredicateContext predicateContext, Sort sort) {
         JPQLQuery query = createQuery(predicateContext);
         query = querydsl.applySorting(sort, query);
         return query.list(path);

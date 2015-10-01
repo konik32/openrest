@@ -3,7 +3,7 @@ package pl.openrest.filters.repository;
 import lombok.NonNull;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.QSort;
+import org.springframework.data.domain.Sort;
 
 import pl.openrest.filters.query.PredicateContext;
 
@@ -18,7 +18,7 @@ public class PredicateContextRepositoryInvoker {
         return pageable == null ? invokeFindAll(predicateContext) : repository.findAll(predicateContext, pageable);
     }
 
-    public Iterable<Object> invokeFindAll(PredicateContext predicateContext, QSort sort) {
+    public Iterable<Object> invokeFindAll(PredicateContext predicateContext, Sort sort) {
         if (sort == null)
             return invokeFindAll(predicateContext);
         return repository.findAll(predicateContext, sort);
