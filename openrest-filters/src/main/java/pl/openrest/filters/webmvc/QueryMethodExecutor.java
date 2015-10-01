@@ -8,4 +8,5 @@ import org.springframework.util.MultiValueMap;
 public interface QueryMethodExecutor {
     Object executeQueryMethod(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters, String search,
             DefaultedPageable pageable, Sort sort);
+    Object executeCountQueryMethod(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters, String search);
 }

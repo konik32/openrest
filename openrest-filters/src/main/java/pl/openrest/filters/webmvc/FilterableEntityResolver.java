@@ -12,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
+import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.PredicateContext;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
 import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContextBuilder;
@@ -45,12 +46,10 @@ public class FilterableEntityResolver implements ResourceResolver, QueryMethodEx
 
         FilterableEntityInformation entityInfo = getEntityInfor(resourceInformation.getDomainType());
 
-        PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
-        predicateContextBuilder.withStaticFilters();
-        addFilters(parameters, predicateContextBuilder);
+        PredicateContext predicateContext = buildCollectionPredicateContext(resourceInformation, parameters, entityInfo);
 
         boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.isDefaultedPageable());
-        return getResult(entityInfo.getRepositoryInvoker(), predicateContextBuilder.build(), pageable, sort, addDefaultPageable);
+        return getResult(entityInfo.getRepositoryInvoker(), predicateContext, pageable, sort, addDefaultPageable);
     }
 
     @Override
@@ -73,15 +72,53 @@ public class FilterableEntityResolver implements ResourceResolver, QueryMethodEx
         FilterableEntityInformation entityInfo = getEntityInfor(resourceInformation.getDomainType());
         PredicateParts searchPredicateParts = predicatePartsExtractor.extractParts(search);
 
+        PredicateContext predicateContext = buildQueryMethodPredicateContext(resourceInformation, parameters, searchPredicateParts,
+                entityInfo);
+        PredicateInformation searchPredicateInformation = entityInfo.getPredicateInformation(searchPredicateParts.getPredicateName());
+        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.isDefaultedPageable(),
+                searchPredicateInformation.isDefaultedPageable());
+        return getResult(entityInfo.getRepositoryInvoker(), predicateContext, pageable, sort, addDefaultPageable);
+    }
+
+    @Override
+    public Object executeCountQueryMethod(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters,
+            String search) {
+        FilterableEntityInformation entityInfo = getEntityInfor(resourceInformation.getDomainType());
+        PredicateParts searchPredicateParts = predicatePartsExtractor.extractParts(search);
+        PredicateContext predicateContext = buildQueryMethodPredicateContext(resourceInformation, parameters, searchPredicateParts,
+                entityInfo);
+
+        return entityInfo.getRepositoryInvoker().invokeCount(predicateContext);
+    }
+
+    @Override
+    public Object getCollectionCount(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters) {
+        FilterableEntityInformation entityInfo = getEntityInfor(resourceInformation.getDomainType());
+
+        PredicateContext predicateContext = buildCollectionPredicateContext(resourceInformation, parameters, entityInfo);
+
+        return entityInfo.getRepositoryInvoker().invokeCount(predicateContext);
+    }
+
+    private PredicateContext buildQueryMethodPredicateContext(RootResourceInformation resourceInformation,
+            MultiValueMap<String, Object> parameters, PredicateParts searchPredicateParts, FilterableEntityInformation entityInfo) {
+
         PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
         predicateContextBuilder.withPredicateParts(searchPredicateParts);
         predicateContextBuilder.withStaticFilters();
         addFilters(parameters, predicateContextBuilder);
-
-        return null;
+        return predicateContextBuilder.build();
     }
 
-    protected void addFilters(MultiValueMap<String, Object> parameters, PredicateContextBuilder builder) {
+    private PredicateContext buildCollectionPredicateContext(RootResourceInformation resourceInformation,
+            MultiValueMap<String, Object> parameters, FilterableEntityInformation entityInfo) {
+        PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
+        predicateContextBuilder.withStaticFilters();
+        addFilters(parameters, predicateContextBuilder);
+        return predicateContextBuilder.build();
+    }
+
+    private void addFilters(MultiValueMap<String, Object> parameters, PredicateContextBuilder builder) {
         List<Object> filterParams = parameters.get(FILTERS_PARAM_NAME);
         if (filterParams == null)
             return;

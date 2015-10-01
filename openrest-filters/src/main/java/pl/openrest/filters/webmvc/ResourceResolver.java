@@ -12,7 +12,8 @@ public interface ResourceResolver {
     Iterable<Object> getCollectionResource(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters,
             DefaultedPageable pageable, Sort sort);
 
-    Object getItemResource(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters, Serializable id);
+    Object getCollectionCount(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters);
 
+    Object getItemResource(RootResourceInformation resourceInformation, MultiValueMap<String, Object> parameters, Serializable id);
 
 }
