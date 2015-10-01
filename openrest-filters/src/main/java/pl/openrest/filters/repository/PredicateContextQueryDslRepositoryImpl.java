@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
@@ -13,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.query.Jpa21Utils;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.QueryDslJpaRepository;
@@ -41,7 +38,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     private final EntityPath<T> path;
     private final PathBuilder<T> builder;
     private final Querydsl querydsl;
-    private final EntityManager em;
+//    private final EntityManager em;
     private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextQueryDslRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
@@ -50,8 +47,8 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
 
     public PredicateContextQueryDslRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
             EntityPathResolver resolver) {
-        super(entityInformation, entityManager);
-        this.em = entityManager;
+
+        super(entityInformation, entityManager, resolver);
         this.path = resolver.createPath(entityInformation.getJavaType());
         this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
         this.querydsl = new Querydsl(entityManager, builder);
@@ -120,23 +117,9 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
         LockModeType type = metadata.getLockModeType();
         query = type == null ? query : query.setLockMode(type);
 
-        for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
+        for (Entry<String, Object> hint : getQueryHints().entrySet()) {
             query.setHint(hint.getKey(), hint.getValue());
         }
-
-        JpaEntityGraph jpaEntityGraph = metadata.getEntityGraph();
-
-        if (jpaEntityGraph == null) {
-            return query;
-        }
-
-        EntityGraph<?> entityGraph = Jpa21Utils.tryGetFetchGraph(em, jpaEntityGraph);
-
-        if (entityGraph == null) {
-            return query;
-        }
-
-        query.setHint(jpaEntityGraph.getType().getKey(), entityGraph);
 
         return query;
     }
