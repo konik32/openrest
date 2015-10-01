@@ -7,8 +7,8 @@
 
 
 	<properties>
-		<springdata-rest>2.2.2.RELEASE</springdata-rest>
-		<springdata-jpa>1.7.2.RELEASE</springdata-jpa>
+		<springdata-rest>2.2.3.RELEASE</springdata-rest>
+		<springdata-jpa>1.7.3.RELEASE</springdata-jpa>
 	</properties>
 
 	<dependencies>
