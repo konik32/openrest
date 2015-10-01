@@ -11,9 +11,7 @@ import lombok.Setter;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.util.ReflectionUtils;
 
-import pl.openrest.exception.OrestException;
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
-import pl.openrest.filters.exception.ORestFiltersExceptionDictionary;
 import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.StaticFilterConditionEvaluator;
