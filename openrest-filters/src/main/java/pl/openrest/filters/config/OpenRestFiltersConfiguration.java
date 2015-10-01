@@ -15,6 +15,7 @@ import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.SpelMethodParameterConverter;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
+import pl.openrest.filters.webmvc.FilterableEntityResolver;
 import pl.openrest.filters.webmvc.support.PageAndSortUtils;
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
 import pl.openrest.predicate.parser.DefaultPredicatePartsExtractor;
@@ -77,6 +78,11 @@ public class OpenRestFiltersConfiguration {
     public PageAndSortUtils pageAndSortUtils() {
         return new PageAndSortUtils(predicateContextBuilderFactory(), predicatePartsExtractor());
     }
-    
+
+    @Bean
+    public FilterableEntityResolver filterableEntityResolver() {
+        return new FilterableEntityResolver(predicateContextBuilderFactory(), filterableEntityRegistry(), filterTreeBuilder(),
+                predicatePartsExtractor());
+    }
 
 }
