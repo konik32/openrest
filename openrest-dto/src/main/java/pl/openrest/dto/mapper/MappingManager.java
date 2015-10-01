@@ -19,8 +19,6 @@ import org.springframework.util.StringUtils;
 
 import pl.openrest.dto.registry.DtoInformation;
 import pl.openrest.dto.registry.DtoInformationRegistry;
-import pl.openrest.exception.OrestException;
-import pl.openrest.exception.OrestExceptionDictionary;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class MappingManager {
@@ -105,11 +103,10 @@ public class MappingManager {
 
     private DtoInformation getDtoInformation(String dtoParam) {
         if (!StringUtils.hasText(dtoParam))
-            throw new OrestException(OrestExceptionDictionary.NO_DTO_PARAMETER, "Request must contain dto parameter");
+            throw new IllegalArgumentException("Request must contain dto parameter");
         DtoInformation dtoInfo = dtoInfoRegistry.get(dtoParam);
         if (dtoInfo == null)
-            throw new OrestException(OrestExceptionDictionary.NO_SUCH_DTO, "There is no such dto: " + dtoParam
-                    + " defined or it is not exported");
+            throw new IllegalArgumentException(String.format("There is no such dto: %s defined or it is not exported", dtoParam));
         return dtoInfo;
     }
 

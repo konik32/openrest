@@ -6,8 +6,6 @@ import java.util.List;
 import lombok.NonNull;
 import pl.openrest.core.utils.HierarchicalAnnotationUtils;
 import pl.openrest.dto.security.authorization.annotation.AuthorizeDto;
-import pl.openrest.exception.OrestException;
-import pl.openrest.exception.OrestExceptionDictionary;
 
 public class AuthorizeDtoAnnotationAuthorizationStrategy implements DtoAuthorizationStrategy<Object, Object, Object> {
 
@@ -35,8 +33,7 @@ public class AuthorizeDtoAnnotationAuthorizationStrategy implements DtoAuthoriza
             for (Class<? extends DtoAuthorizationStrategy> strategyType : authStrategiesAnn.value()) {
                 DtoAuthorizationStrategy strategy = strategyFactory.getAuthorizationStrategy(strategyType);
                 if (strategy == null)
-                    throw new OrestException(OrestExceptionDictionary.NO_SUCH_AUTHORIZATION_STRATEGY, String.format(
-                            "There is no strategy of type: %s", strategyType));
+                    throw new IllegalArgumentException(String.format("There is no strategy of type: %s", strategyType));
                 strategies.add(strategy);
             }
         }

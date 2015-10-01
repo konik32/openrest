@@ -2,7 +2,6 @@ package pl.openrest.dto.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +29,6 @@ import pl.openrest.dto.dummy.model.dto.UserDto;
 import pl.openrest.dto.mapper.MappingManager.DtoAndEntityWrapper;
 import pl.openrest.dto.registry.DtoInformation;
 import pl.openrest.dto.registry.DtoInformationRegistry;
-import pl.openrest.exception.OrestException;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("unchecked")
@@ -161,14 +159,14 @@ public class MappingManagerTest {
         assertEquals(user, wrapperCreate.getEntity());
     }
 
-    @Test(expected = OrestException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowOrestExceptionIfDtoParameterIsEmpty() throws Exception {
         // when
         mappingManager.merge(contentType, inputMessage, invoker, id, "");
         // then
     }
 
-    @Test(expected = OrestException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowOrestExceptionIfNoDtoFound() throws Exception {
         // given
         when(dtoDomainRegistry.get(dtoParam)).thenReturn(null);

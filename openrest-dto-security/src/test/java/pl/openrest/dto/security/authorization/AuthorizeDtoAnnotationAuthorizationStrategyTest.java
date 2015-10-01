@@ -19,7 +19,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import pl.openrest.dto.security.authorization.annotation.AuthorizeDto;
-import pl.openrest.exception.OrestException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuthorizeDtoAnnotationAuthorizationStrategyTest {
@@ -52,7 +51,7 @@ public class AuthorizeDtoAnnotationAuthorizationStrategyTest {
         // then
     }
 
-    @Test(expected = OrestException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowOrestExceptionOnNoStrategyInStrategyFactory() throws Exception {
         // given
         // when
