@@ -6,6 +6,7 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.util.ReflectionUtils;
@@ -15,6 +16,7 @@ import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.exception.ORestFiltersExceptionDictionary;
 import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
+import pl.openrest.filters.predicate.StaticFilterConditionEvaluator;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.registry.JoinInformation;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
@@ -29,9 +31,10 @@ import com.mysema.query.types.path.PathBuilderFactory;
 
 public class PredicateContextBuilderFactory {
 
-    private final MethodParameterConverter predicateParameterConverter;
-    private final MethodParameterConverter staticFiltersParameterConverter;
-    private final IdConverter idConverter;
+    private @Setter MethodParameterConverter predicateParameterConverter;
+    private @Setter MethodParameterConverter staticFiltersParameterConverter;
+    private @Setter IdConverter idConverter;
+    private @Setter StaticFilterConditionEvaluator staticFilterConditionEvaluator;
     private final @Getter PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextBuilderFactory(@NonNull MethodParameterConverter predicateParameterConverter,
@@ -82,10 +85,13 @@ public class PredicateContextBuilderFactory {
         public PredicateContextBuilder withStaticFilters() {
             List<StaticFilterInformation> staticFilters = entityInfo.getStaticFilters();
             for (StaticFilterInformation staticFilter : staticFilters) {
-                Object[] parameters = staticFiltersParameterConverter.convert(staticFilter.getPredicateInformation().getMethod(),
-                        staticFilter.getParameters());
-                BooleanExpression expression = (BooleanExpression) getExpression(staticFilter.getPredicateInformation(), parameters);
-                addBooleanExpression(expression);
+                if (staticFilterConditionEvaluator == null
+                        || !staticFilterConditionEvaluator.evaluateCondition(staticFilter.getCondition())) {
+                    Object[] parameters = staticFiltersParameterConverter.convert(staticFilter.getPredicateInformation().getMethod(),
+                            staticFilter.getParameters());
+                    BooleanExpression expression = (BooleanExpression) getExpression(staticFilter.getPredicateInformation(), parameters);
+                    addBooleanExpression(expression);
+                }
             }
             return this;
         }
@@ -111,8 +117,7 @@ public class PredicateContextBuilderFactory {
         private Expression getExpression(PredicateParts predicateParts) {
             PredicateInformation predicateInfo = entityInfo.getPredicateInformation(predicateParts.getPredicateName());
             if (predicateInfo == null)
-                throw new OrestException(ORestFiltersExceptionDictionary.NO_SUCH_PREDICATE, "No such predicate"
-                        + predicateParts.getParameters());
+                throw new IllegalArgumentException("No such predicate" + predicateParts.getParameters());
             Object[] parameters = predicateParameterConverter.convert(predicateInfo.getMethod(), predicateParts.getParameters());
             return getExpression(predicateInfo, parameters);
         }
