@@ -39,7 +39,7 @@ public class OpenRestDtoValidationConfiguration {
     }
 
     @Autowired
-    private void addValidators(ValidatorInvoker invoker) {
+    public void addValidators(ValidatorInvoker invoker) {
         invoker.addValidator(mvcValidator);
         if (dtoFieldExpressionValidator != null) {
             invoker.addValidator(dtoFieldExpressionValidator);

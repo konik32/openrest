@@ -42,7 +42,7 @@ public class PredicateInformation {
         this.method = method;
         this.type = PredicateType.STATIC_FILTER;
         this.defaultedPageable = true;
-        this.joins = Collections.EMPTY_LIST;
+        this.joins = Collections.<JoinInformation>emptyList();
     }
 
 }

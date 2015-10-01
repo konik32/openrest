@@ -47,7 +47,7 @@ public class ObjectGraphTraverser {
 
 	public ObjectGraphTraverser(TraverserCallback callback, TraverserFieldFilter traverseFilter,
 			TraverserFieldFilter fieldFilter) {
-		this(callback, traverseFilter, fieldFilter, (List<Traverser>) Collections.EMPTY_LIST);
+		this(callback, traverseFilter, fieldFilter,  Collections.<Traverser>emptyList());
 	}
 
 	public void traverse(Object root) {

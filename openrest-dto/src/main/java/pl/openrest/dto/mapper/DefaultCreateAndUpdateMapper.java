@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
@@ -41,7 +42,7 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
     private final MapperDelegator mapperDelegator;
     private final PersistentEntities persistentEntities;
 
-    final static HashMap<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
+    final static Map<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
     static {
         collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
         collectionFallbacks.put(List.class.getName(), ArrayList.class);
@@ -154,9 +155,9 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
     @SuppressWarnings("unchecked")
     private void doWithCollectionField(final Object from, final Field field, final Field entityField, final Object entity)
             throws IllegalArgumentException, IllegalAccessException {
-        Collection<Object> fieldCollection = ((Collection<Object>) field.get(from));
+        Collection<Object> fieldCollection = (Collection<Object>) field.get(from);
         Collection<Object> entityFieldCollection = CollectionFactory.createCollection(entityField.getType(), 0);
-        populateEntityFieldCollection(fieldCollection, entityField, entityFieldCollection);
+        populateEntityFieldCollection(fieldCollection, entityFieldCollection);
         entityField.set(entity, entityFieldCollection);
     }
 
@@ -172,7 +173,7 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
      * @throws IllegalArgumentException
      * @throws IllegalAccessException
      */
-    private void populateEntityFieldCollection(Collection<Object> from, Field field, Collection<Object> entityFieldCollection)
+    private void populateEntityFieldCollection(Collection<Object> from, Collection<Object> entityFieldCollection)
             throws IllegalArgumentException, IllegalAccessException {
         Iterator<Object> it = from.iterator();
         while (it.hasNext()) {

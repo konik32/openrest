@@ -77,7 +77,7 @@ public class PredicateContextBuilderFactory {
         }
 
         public PredicateContextBuilder withPredicateParts(PredicateParts predicateParts) {
-            BooleanExpression expression = (BooleanExpression) getExpression(predicateParts);
+            BooleanExpression expression = (BooleanExpression) createExpression(predicateParts);
             addBooleanExpression(expression);
             return this;
         }
@@ -89,7 +89,7 @@ public class PredicateContextBuilderFactory {
                         || !staticFilterConditionEvaluator.evaluateCondition(staticFilter.getCondition())) {
                     Object[] parameters = staticFiltersParameterConverter.convert(staticFilter.getPredicateInformation().getMethod(),
                             staticFilter.getParameters());
-                    BooleanExpression expression = (BooleanExpression) getExpression(staticFilter.getPredicateInformation(), parameters);
+                    BooleanExpression expression = (BooleanExpression) createExpression(staticFilter.getPredicateInformation(), parameters);
                     addBooleanExpression(expression);
                 }
             }
@@ -102,7 +102,7 @@ public class PredicateContextBuilderFactory {
 
         private BooleanExpression processTreeRecursively(FilterPart part) {
             if (part.getType() == FilterPartType.LEAF) {
-                return (BooleanExpression) getExpression(part.getPredicateParts());
+                return (BooleanExpression) createExpression(part.getPredicateParts());
             } else {
                 BooleanExpression exp = null;
                 for (FilterPart p : part.getParts()) {
@@ -114,16 +114,16 @@ public class PredicateContextBuilderFactory {
         }
 
         @SuppressWarnings("rawtypes")
-        private Expression getExpression(PredicateParts predicateParts) {
+        private Expression createExpression(PredicateParts predicateParts) {
             PredicateInformation predicateInfo = entityInfo.getPredicateInformation(predicateParts.getPredicateName());
             if (predicateInfo == null)
                 throw new IllegalArgumentException("No such predicate" + predicateParts.getParameters());
             Object[] parameters = predicateParameterConverter.convert(predicateInfo.getMethod(), predicateParts.getParameters());
-            return getExpression(predicateInfo, parameters);
+            return createExpression(predicateInfo, parameters);
         }
 
         @SuppressWarnings("rawtypes")
-        private Expression getExpression(PredicateInformation predicateInfo, Object[] parameters) {
+        private Expression createExpression(PredicateInformation predicateInfo, Object[] parameters) {
             joins.addAll(predicateInfo.getJoins());
             return (Expression) ReflectionUtils.invokeMethod(predicateInfo.getMethod(), entityInfo.getPredicateRepository(), parameters);
         }
