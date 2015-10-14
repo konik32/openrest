@@ -95,7 +95,7 @@ public class FilterableEntityRegistryTest {
             return null;
         }
 
-        @Predicate
+        @Predicate(type = PredicateType.SORT)
         public NumberExpression<Integer> tagsSize() {
             return null;
         }

@@ -26,9 +26,10 @@ public class PredicateInformation {
     private final List<JoinInformation> joins;
 
     public PredicateInformation(Method method, Predicate predicateAnn, Class<?> entityType) {
-        this.name = predicateAnn.name().isEmpty()? method.getName(): predicateAnn.name();
+        this.name = predicateAnn.name().isEmpty() ? method.getName() : predicateAnn.name();
         this.method = method;
         this.type = predicateAnn.type();
+        PredicateTypeUtils.verifyMethodReturnTypeMatchesPredicateType(method.getReturnType(), type);
         this.defaultedPageable = predicateAnn.defaultedPageable();
         List<JoinInformation> joins = new ArrayList<>();
         for (Join join : predicateAnn.joins()) {
@@ -41,8 +42,9 @@ public class PredicateInformation {
         this.name = method.getName();
         this.method = method;
         this.type = PredicateType.STATIC_FILTER;
+        PredicateTypeUtils.verifyMethodReturnTypeMatchesPredicateType(method.getReturnType(), type);
         this.defaultedPageable = true;
-        this.joins = Collections.<JoinInformation>emptyList();
+        this.joins = Collections.<JoinInformation> emptyList();
     }
 
 }

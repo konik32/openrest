@@ -34,6 +34,6 @@ public @interface Predicate {
     Join[] joins() default {};
 
     public enum PredicateType {
-        SEARCH, FILTER, STATIC_FILTER;
+        SEARCH, FILTER, STATIC_FILTER, SORT;
     }
 }
