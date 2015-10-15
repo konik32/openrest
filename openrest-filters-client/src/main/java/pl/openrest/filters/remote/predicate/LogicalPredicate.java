@@ -2,8 +2,6 @@ package pl.openrest.filters.remote.predicate;
 
 import lombok.Getter;
 
-import org.springframework.core.convert.ConversionService;
-
 public abstract class LogicalPredicate implements Predicate {
 
     protected final String separator;
@@ -15,11 +13,10 @@ public abstract class LogicalPredicate implements Predicate {
     }
 
     @Override
-    public String toString(ConversionService conversionService) {
+    public String toString(ParameterSerializer serializer) {
         String predicatesStr[] = new String[predicates.length];
         for (int i = 0; i < predicates.length; i++) {
-            if (conversionService != null)
-                predicatesStr[i] = predicates[i].toString(conversionService);
+            predicatesStr[i] = predicates[i].toString(serializer);
         }
         return String.join(separator, predicatesStr);
     }

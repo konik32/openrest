@@ -3,8 +3,6 @@ package pl.openrest.filters.remote.predicate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import org.springframework.core.convert.ConversionService;
-
 @Getter
 @EqualsAndHashCode
 public abstract class AbstractPredicate implements Predicate {
@@ -17,8 +15,8 @@ public abstract class AbstractPredicate implements Predicate {
     }
 
     @Override
-    public String toString(ConversionService conversionService) {
-        return parameters.length > 0 ? String.format("%s(%s)", name, getSerializedParameters(conversionService)) : name;
+    public String toString(ParameterSerializer serializer) {
+        return parameters.length > 0 ? String.format("%s(%s)", name, getSerializedParameters(serializer)) : name;
     }
 
     @Override
@@ -30,11 +28,11 @@ public abstract class AbstractPredicate implements Predicate {
         return parameters.length > 0 ? String.format("%s(%s)", name, String.join(",", parametersStr)) : name;
     }
 
-    private String getSerializedParameters(ConversionService conversionService) {
+    private String getSerializedParameters(ParameterSerializer serializer) {
         String paramtersStr[] = new String[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i] != null) {
-                paramtersStr[i] = conversionService.convert(parameters[i], String.class);
+                paramtersStr[i] = serializer.serialize(parameters[i]);
             } else {
                 paramtersStr[i] = "";
             }

@@ -6,13 +6,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.core.convert.ConversionService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractPredicateTest {
 
     @Mock
-    private ConversionService conversionService;
+    private ParameterSerializer serializer;
     private AbstractPredicate predicate;
 
     @Test
@@ -21,7 +20,7 @@ public class AbstractPredicateTest {
         predicate = new AbstractPredicate("name") {
         };
         // when
-        String result = predicate.toString(conversionService);
+        String result = predicate.toString(serializer);
         // then
         Assert.assertEquals("name", result);
     }
@@ -31,11 +30,11 @@ public class AbstractPredicateTest {
         // given
         predicate = new AbstractPredicate("name", 1l, 2l) {
         };
-        Mockito.when(conversionService.convert(Mockito.any(), Mockito.eq(String.class))).thenReturn("param");
+        Mockito.when(serializer.serialize(Mockito.any())).thenReturn("param");
         // when
-        String result = predicate.toString(conversionService);
+        String result = predicate.toString(serializer);
         // then
-        Assert.assertEquals("name(param,param)", result);
+        Assert.assertEquals("name(param;param)", result);
     }
 
     @Test
@@ -43,11 +42,11 @@ public class AbstractPredicateTest {
         // given
         predicate = new AbstractPredicate("name", 1l, null, 2l) {
         };
-        Mockito.when(conversionService.convert(Mockito.any(), Mockito.eq(String.class))).thenReturn("param");
+        Mockito.when(serializer.serialize(Mockito.any())).thenReturn("param");
         // when
-        String result = predicate.toString(conversionService);
+        String result = predicate.toString(serializer);
         // then
-        Assert.assertEquals("name(param,,param)", result);
+        Assert.assertEquals("name(param;;param)", result);
     }
 
 }
