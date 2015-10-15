@@ -39,7 +39,7 @@ public abstract class AbstractPredicate implements Predicate {
                 paramtersStr[i] = "";
             }
         }
-        return String.join(",", paramtersStr);
+        return String.join(";", paramtersStr);
     }
 
 }
