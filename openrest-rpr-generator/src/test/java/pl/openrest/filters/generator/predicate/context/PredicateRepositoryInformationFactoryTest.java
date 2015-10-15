@@ -12,9 +12,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import pl.openrest.filters.client.predicate.AbstractPredicate;
 import pl.openrest.filters.predicate.annotation.Predicate;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
+import pl.openrest.filters.remote.predicate.AbstractPredicate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PredicateRepositoryInformationFactoryTest {

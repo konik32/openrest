@@ -11,10 +11,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import pl.openrest.filters.client.predicate.FilterPredicate;
-import pl.openrest.filters.client.predicate.SearchPredicate;
 import pl.openrest.filters.generator.predicate.context.PredicateInformationFactory.ParameterInformation;
 import pl.openrest.filters.generator.predicate.context.PredicateRepositoryInformation;
+import pl.openrest.filters.remote.predicate.FilterPredicate;
+import pl.openrest.filters.remote.predicate.SearchPredicate;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;

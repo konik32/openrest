@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import pl.openrest.filters.client.predicate.AbstractPredicate;
 import pl.openrest.filters.predicate.annotation.Predicate;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
+import pl.openrest.filters.remote.predicate.AbstractPredicate;
 
 public class PredicateRepositoryInformationFactory {
 

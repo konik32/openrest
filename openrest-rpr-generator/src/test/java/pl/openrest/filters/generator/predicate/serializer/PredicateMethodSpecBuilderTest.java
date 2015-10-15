@@ -10,10 +10,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import pl.openrest.filters.client.predicate.FilterPredicate;
-import pl.openrest.filters.client.predicate.SearchPredicate;
 import pl.openrest.filters.generator.predicate.context.PredicateInformationFactory.ParameterInformation;
 import pl.openrest.filters.generator.predicate.serializer.JavaRemotePredicateRepositorySerializer.PredicateMethodSpecBuilder;
+import pl.openrest.filters.remote.predicate.FilterPredicate;
+import pl.openrest.filters.remote.predicate.SearchPredicate;
 
 import com.squareup.javapoet.MethodSpec;
 
@@ -35,7 +35,7 @@ public class PredicateMethodSpecBuilderTest {
         Assert.assertThat(spec.modifiers, Matchers.contains(Modifier.PUBLIC, Modifier.STATIC));
         Assert.assertThat(spec.parameters, Matchers.hasSize(2));
         Assert.assertEquals(FilterPredicate.class.getName(), spec.returnType.toString());
-        Assert.assertEquals(String.format("return new pl.openrest.filters.client.predicate.FilterPredicate(%s,%s,%s);\n",
+        Assert.assertEquals(String.format("return new pl.openrest.filters.remote.predicate.FilterPredicate(%s,%s,%s);\n",
                 methodNameFieldName, "id", "date"), spec.code.toString());
     }
 
@@ -51,7 +51,7 @@ public class PredicateMethodSpecBuilderTest {
         MethodSpec spec = builder.build();
         // then
         Assert.assertEquals(SearchPredicate.class.getName(), spec.returnType.toString());
-        Assert.assertEquals(String.format("return new pl.openrest.filters.client.predicate.SearchPredicate(%s,%s,%s);\n",
+        Assert.assertEquals(String.format("return new pl.openrest.filters.remote.predicate.SearchPredicate(%s,%s,%s);\n",
                 methodNameFieldName, "false", "id"), spec.code.toString());
     }
 
@@ -67,7 +67,7 @@ public class PredicateMethodSpecBuilderTest {
         // then
         Assert.assertEquals(SearchPredicate.class.getName(), spec.returnType.toString());
         Assert.assertEquals(
-                String.format("return new pl.openrest.filters.client.predicate.SearchPredicate(%s,%s);\n", methodNameFieldName, "false"),
+                String.format("return new pl.openrest.filters.remote.predicate.SearchPredicate(%s,%s);\n", methodNameFieldName, "false"),
                 spec.code.toString());
     }
 
@@ -82,7 +82,7 @@ public class PredicateMethodSpecBuilderTest {
         MethodSpec spec = builder.build();
         // then
         Assert.assertEquals(FilterPredicate.class.getName(), spec.returnType.toString());
-        Assert.assertEquals(String.format("return new pl.openrest.filters.client.predicate.FilterPredicate(%s);\n", methodNameFieldName),
+        Assert.assertEquals(String.format("return new pl.openrest.filters.remote.predicate.FilterPredicate(%s);\n", methodNameFieldName),
                 spec.code.toString());
     }
 }

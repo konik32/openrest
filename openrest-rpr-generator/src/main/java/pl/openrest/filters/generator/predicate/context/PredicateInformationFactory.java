@@ -8,12 +8,12 @@ import lombok.Data;
 
 import org.reflections.Reflections;
 
-import pl.openrest.filters.client.predicate.AbstractPredicate;
-import pl.openrest.filters.client.predicate.FilterPredicate;
-import pl.openrest.filters.client.predicate.SearchPredicate;
-import pl.openrest.filters.client.predicate.SortPredicate;
 import pl.openrest.filters.predicate.annotation.Predicate;
 import pl.openrest.filters.predicate.annotation.Predicate.PredicateType;
+import pl.openrest.filters.remote.predicate.AbstractPredicate;
+import pl.openrest.filters.remote.predicate.FilterPredicate;
+import pl.openrest.filters.remote.predicate.SearchPredicate;
+import pl.openrest.filters.remote.predicate.SortPredicate;
 
 public class PredicateInformationFactory {
 

@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import pl.openrest.filters.client.predicate.AbstractPredicate;
+import pl.openrest.filters.remote.predicate.AbstractPredicate;
 
 @Getter
 @EqualsAndHashCode

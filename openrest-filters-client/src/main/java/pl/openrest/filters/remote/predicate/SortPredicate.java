@@ -1,4 +1,4 @@
-package pl.openrest.filters.client.predicate;
+package pl.openrest.filters.remote.predicate;
 
 import lombok.EqualsAndHashCode;
 

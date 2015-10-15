@@ -46,6 +46,7 @@ public class RemotePredicateRepositoryGeneratorMojo extends AbstractMojo {
         Set<Class<?>> repositoriesTypes = reflections.getTypesAnnotatedWith(PredicateRepository.class);
         List<PredicateRepositoryInformation> repositoriesInfo = new ArrayList<PredicateRepositoryInformation>(repositoriesTypes.size());
 
+        
         for (Class repoType : repositoriesTypes) {
             repositoriesInfo.add(repoFactory.from(repoType));
         }

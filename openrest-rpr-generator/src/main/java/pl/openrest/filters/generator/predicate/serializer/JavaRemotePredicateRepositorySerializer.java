@@ -9,10 +9,10 @@ import javax.lang.model.element.Modifier;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import pl.openrest.filters.client.predicate.AbstractPredicate;
-import pl.openrest.filters.client.predicate.SearchPredicate;
 import pl.openrest.filters.generator.predicate.context.PredicateInformationFactory.ParameterInformation;
 import pl.openrest.filters.generator.predicate.context.PredicateRepositoryInformation;
+import pl.openrest.filters.remote.predicate.AbstractPredicate;
+import pl.openrest.filters.remote.predicate.SearchPredicate;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.CodeBlock.Builder;

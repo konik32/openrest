@@ -2,8 +2,8 @@ package pl.openrest.filters.generator.predicate.serializer;
 
 import java.lang.String;
 import javax.annotation.Generated;
-import pl.openrest.filters.client.predicate.FilterPredicate;
-import pl.openrest.filters.client.predicate.SearchPredicate;
+import pl.openrest.filters.remote.predicate.FilterPredicate;
+import pl.openrest.filters.remote.predicate.SearchPredicate;
 
 @Generated("pl.openrest.rpr.generator")
 public final class RTestPredicateRepository {
