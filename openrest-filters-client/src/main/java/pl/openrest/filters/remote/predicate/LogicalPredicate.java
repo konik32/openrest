@@ -18,8 +18,8 @@ public abstract class LogicalPredicate implements Predicate {
     public String toString(ConversionService conversionService) {
         String predicatesStr[] = new String[predicates.length];
         for (int i = 0; i < predicates.length; i++) {
-            if (conversionService == null)
-            predicatesStr[i] = predicates[i].toString(conversionService);
+            if (conversionService != null)
+                predicatesStr[i] = predicates[i].toString(conversionService);
         }
         return String.join(separator, predicatesStr);
     }
@@ -28,7 +28,7 @@ public abstract class LogicalPredicate implements Predicate {
         return new OrPredicate(predicates);
     }
 
-    public static AndPredicate and(Predicate... predicates) {
+    public static AndPredicate and(AbstractPredicate... predicates) {
         return new AndPredicate(predicates);
     }
 
@@ -59,7 +59,7 @@ public abstract class LogicalPredicate implements Predicate {
 
         private static final String SEPARATOR = ";and;";
 
-        public AndPredicate(Predicate[] predicates) {
+        public AndPredicate(AbstractPredicate[] predicates) {
             super(SEPARATOR, predicates);
         }
 
