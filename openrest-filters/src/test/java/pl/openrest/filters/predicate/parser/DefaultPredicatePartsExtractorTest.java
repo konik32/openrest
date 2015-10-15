@@ -1,5 +1,7 @@
 package pl.openrest.filters.predicate.parser;
 
+import static org.junit.Assert.*;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,5 +50,17 @@ public class DefaultPredicatePartsExtractorTest {
         // when
         PredicateParts parts = extractor.extractParts(predicate);
         // then
+    }
+    
+    
+    @Test
+    public void shouldExtractPartsReturnPredicatePartsWithParametersIncludingEmptyOnes() throws Exception {
+        // given
+        String predicate = "between(1;)";
+        // when
+        PredicateParts parts = extractor.extractParts(predicate);
+        // then
+        Assert.assertEquals(2, parts.getParameters().length);
+        Assert.assertTrue(parts.getParameters()[1].isEmpty());
     }
 }

@@ -27,6 +27,6 @@ public class DefaultPredicatePartsExtractor implements PredicatePartsExtractor {
     private String[] extractParameters(String paramsStr) {
         if (StringUtils.isEmpty(paramsStr))
             return EMPTY_PARAMS;
-        return paramsStr.split(PARAMS_SPLITTER);
+        return paramsStr.split(PARAMS_SPLITTER,-1);
     }
 }
