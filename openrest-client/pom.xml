@@ -5,5 +5,5 @@
     <artifactId>openrest-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>openrest-filters-client</artifactId>
+  <artifactId>openrest-client</artifactId>
 </project>

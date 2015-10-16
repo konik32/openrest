@@ -61,7 +61,7 @@
 		<module>openrest-filters</module>
 		<module>openrest-dto-validation</module>
 		<module>openrest-rpr-generator</module>
-		<module>openrest-filters-client</module>
+		<module>openrest-client</module>
 	</modules>
 
 	<build>

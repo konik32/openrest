@@ -36,7 +36,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>openrest-filters-client</artifactId>
+			<artifactId>openrest-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
