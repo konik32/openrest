@@ -62,6 +62,8 @@
 		<module>openrest-dto-validation</module>
 		<module>openrest-rpr-generator</module>
 		<module>openrest-client</module>
+		<module>openrest-rdto-generator</module>
+		<module>openrest-generator-commons</module>
 	</modules>
 
 	<build>
