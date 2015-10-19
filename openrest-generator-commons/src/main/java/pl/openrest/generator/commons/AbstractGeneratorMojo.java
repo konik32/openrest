@@ -77,15 +77,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
     }
 
     protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
-        EnumTypeResolver enumTypeResolver = new EnumTypeResolver();
-        typeResolvers.add(enumTypeResolver);
-    }
-
-    protected void prepareTypeResolvers(Configuration configuration, List<TypeResolver> typeResolvers) {
-        for (TypeResolver resolver : typeResolvers) {
-            if (resolver instanceof ConfigurationAware)
-                ((ConfigurationAware) resolver).setConfiguration(configuration);
-        }
+        typeResolvers.add(new EnumTypeResolver());
     }
 
     protected void initializeDefault() {
