@@ -44,10 +44,10 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
 
     @Override
     protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
-        super.addDefaultTypeResolvers(typeResolvers);
         dtoFieldFilters.add(new NonFinalOrStaticFieldFilter());
         DtoTypeResolver dtoTypeResolver = new DtoTypeResolver(new CompositeFieldFilter(dtoFieldFilters));
         typeResolvers.add(dtoTypeResolver);
+        super.addDefaultTypeResolvers(typeResolvers);
     }
 
     @Override
