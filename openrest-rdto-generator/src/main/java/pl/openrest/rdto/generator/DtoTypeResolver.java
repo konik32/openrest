@@ -94,11 +94,7 @@ public class DtoTypeResolver implements TypeResolver, ConfigurationAware {
         ReflectionUtils.doWithFields(type, new FieldCallback() {
             @Override
             public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-                if (typeResolver.supports(field.getType())) {
-                    builder.addField(typeResolver.resolve(field.getType()), field.getName(), Modifier.PRIVATE);
-                } else {
-                    builder.addField(field.getType(), field.getName(), Modifier.PRIVATE);
-                }
+                builder.addField(typeResolver.resolve(field.getType()), field.getName(), Modifier.PRIVATE);
             }
         }, fieldFilter);
 

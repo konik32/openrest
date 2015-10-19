@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.reflections.scanners.Scanner;
 
 import pl.openrest.generator.commons.type.EnumTypeResolver;
+import pl.openrest.generator.commons.type.SameTypeResolver;
 import pl.openrest.generator.commons.type.TypeFileWriter;
 import pl.openrest.generator.commons.type.TypeResolver;
 import pl.openrest.generator.commons.type.TypeResolverComposite;
@@ -78,6 +79,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
 
     protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
         typeResolvers.add(new EnumTypeResolver());
+        typeResolvers.add(new SameTypeResolver());
     }
 
     protected void initializeDefault() {

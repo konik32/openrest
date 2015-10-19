@@ -1,7 +1,9 @@
 package pl.openrest.rdto.generator;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 
 import javax.lang.model.element.Modifier;
 
@@ -14,7 +16,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.util.ReflectionUtils.FieldFilter;
 
 import pl.openrest.dto.annotations.Dto;
@@ -25,6 +29,7 @@ import pl.openrest.generator.commons.type.TypeFileWriter;
 import pl.openrest.generator.commons.type.TypeResolver;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -59,32 +64,20 @@ public class DtoTypeResolverTest {
         Mockito.when(configuration.get("typeFileWriter")).thenReturn(typeFileWriter);
         Mockito.when(configuration.get("defaultTypeResolver")).thenReturn(typeResolver);
 
-        Mockito.when(typeResolver.supports(Mockito.any(Class.class))).thenReturn(false);
+        Mockito.when(typeResolver.supports(Mockito.any(Class.class))).thenReturn(true);
+
+        Mockito.when(typeResolver.resolve(Mockito.any(Class.class))).then(new Answer<TypeName>() {
+
+            @Override
+            public TypeName answer(InvocationOnMock invocation) throws Throwable {
+                return TypeName.get((Class<?>) invocation.getArguments()[0]);
+            }
+        });
         Mockito.when(namingStrategy.getClassName("TestDto")).thenReturn(remoteDtoClassName);
         Mockito.when(namingStrategy.getPackageName(Mockito.anyString())).thenReturn(packageName);
 
         dtoTypeResolver = new DtoTypeResolver(fieldFilter);
         dtoTypeResolver.setConfiguration(configuration);
-    }
-
-    @Test
-    public void shouldResolveCallTypeResolverSupportsThreeTimes() throws Exception {
-        // given
-        // when
-        dtoTypeResolver.resolve(TestDto.class);
-        // then
-        Mockito.verify(typeResolver, Mockito.times(4)).supports(Mockito.any(Class.class));
-    }
-
-    @Test
-    public void shouldResolveCallTypeResolverResolveOnlyIfSupportsTrue() throws Exception {
-        // given
-        Mockito.when(typeResolver.supports(String.class)).thenReturn(true);
-        Mockito.when(typeResolver.resolve(String.class)).thenReturn(ClassName.get(String.class));
-        // when
-        dtoTypeResolver.resolve(TestDto.class);
-        // then
-        Mockito.verify(typeResolver, Mockito.times(1)).resolve(Mockito.any(Class.class));
     }
 
     @Test

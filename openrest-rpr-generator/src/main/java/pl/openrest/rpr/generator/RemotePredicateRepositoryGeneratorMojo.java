@@ -31,8 +31,8 @@ public class RemotePredicateRepositoryGeneratorMojo extends AbstractGeneratorMoj
 
     @Override
     protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
-        super.addDefaultTypeResolvers(typeResolvers);
         typeResolvers.add(new PredicateRepositoryResolver());
+        super.addDefaultTypeResolvers(typeResolvers);
     }
 
     @Override

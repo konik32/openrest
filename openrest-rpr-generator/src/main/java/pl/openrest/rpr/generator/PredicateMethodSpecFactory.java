@@ -58,11 +58,7 @@ public class PredicateMethodSpecFactory {
     public List<ParameterSpec> createParameters(ParameterInformation[] parameters) {
         List<ParameterSpec> specs = new ArrayList<>(parameters.length);
         for (int i = 0; i < parameters.length; i++) {
-            if (typeResolver.supports(parameters[i].getType())) {
-                specs.add(ParameterSpec.builder(typeResolver.resolve(parameters[i].getType()), parameters[i].getName()).build());
-            } else {
-                specs.add(ParameterSpec.builder(parameters[i].getType(), parameters[i].getName()).build());
-            }
+            specs.add(ParameterSpec.builder(typeResolver.resolve(parameters[i].getType()), parameters[i].getName()).build());
         }
         return specs;
     }
