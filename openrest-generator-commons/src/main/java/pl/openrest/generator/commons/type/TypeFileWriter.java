@@ -20,7 +20,7 @@ public class TypeFileWriter {
     }
 
     public void write(TypeSpec typeSpec, String packageName) {
-        JavaFile file = JavaFile.builder(packageName, typeSpec).build();
+        JavaFile file = JavaFile.builder(packageName, typeSpec).skipJavaLangImports(true).build();
         try {
             file.writeTo(outputDirectory);
         } catch (IOException e) {
