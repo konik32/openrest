@@ -1,11 +1,11 @@
 package pl.openrest.generator.commons.type;
 
-import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
 public interface TypeResolver {
 
     boolean supports(Class<?> type);
 
-    ClassName resolve(Class<?> type);
+    TypeName resolve(Class<?> type);
 
 }

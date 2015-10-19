@@ -8,12 +8,12 @@ import java.util.Map;
 import pl.openrest.generator.commons.Configuration;
 import pl.openrest.generator.commons.ConfigurationAware;
 
-import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
 public class TypeResolverComposite implements TypeResolver, ConfigurationAware {
 
     private final List<TypeResolver> resolvers = new LinkedList<TypeResolver>();
-    private final Map<Class<?>, ClassName> resolvedTypeRegistry = new HashMap<>();
+    private final Map<Class<?>, TypeName> resolvedTypeRegistry = new HashMap<>();
 
     public TypeResolverComposite(List<TypeResolver> resolvers) {
         this.resolvers.addAll(resolvers);
@@ -30,12 +30,12 @@ public class TypeResolverComposite implements TypeResolver, ConfigurationAware {
     }
 
     @Override
-    public ClassName resolve(Class<?> type) {
+    public TypeName resolve(Class<?> type) {
         if (resolvedTypeRegistry.containsKey(type))
             return resolvedTypeRegistry.get(type);
         for (TypeResolver resolver : resolvers) {
             if (resolver.supports(type)) {
-                ClassName className = resolver.resolve(type);
+                TypeName className = resolver.resolve(type);
                 resolvedTypeRegistry.put(type, className);
                 return className;
             }
