@@ -11,8 +11,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 
 public class CodeBlockUtils {
 
-    private static final String DTO_PARAM_NAME = "dto";
-    private static final String ENTITY_PARAM_NAME = "entity";
+    public static final String DTO_PARAM_NAME = "dto";
+    public static final String ENTITY_PARAM_NAME = "entity";
     private static final String MAPPER_DELEGATOR_FIELD_NAME = "mapperDelegator";
 
     public static String delegateCreateLiteral(String getterLiteral) {
