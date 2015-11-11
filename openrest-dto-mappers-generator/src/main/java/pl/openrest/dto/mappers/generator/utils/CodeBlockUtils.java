@@ -1,6 +1,12 @@
 package pl.openrest.dto.mappers.generator.utils;
 
+import javax.lang.model.element.Modifier;
+
+import pl.openrest.dto.mapper.MapperDelegator;
+
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 
 public class CodeBlockUtils {
@@ -32,6 +38,24 @@ public class CodeBlockUtils {
                 .add(wrapWithNotNullIf("o", addCodeBlock)).endControlFlow().add(setterCodeBlock(setter, name)).build();
     }
 
+    private static CodeBlock addCodeBlock(String collectionName, String addLiteral) {
+        return CodeBlock.builder().addStatement("$L.add($L)", collectionName, addLiteral).build();
+    }
+
+    private static CodeBlock collectionVariable(String collectionName, Class<?> collectionType, Class<?> rawType) {
+        ParameterizedTypeName collectionTypeName = ParameterizedTypeName.get(collectionType, rawType);
+        return CodeBlock.builder().addStatement("$T $L = new $T()", collectionTypeName, collectionName, collectionTypeName).build();
+    }
+
+    public static FieldSpec mapperDelegatorField() {
+        return FieldSpec.builder(MapperDelegator.class, MAPPER_DELEGATOR_FIELD_NAME, Modifier.PRIVATE, Modifier.FINAL).build();
+    }
+
+    public static MethodSpec constructor() {
+        return MethodSpec.constructorBuilder().addParameter(MapperDelegator.class, MAPPER_DELEGATOR_FIELD_NAME)
+                .addStatement("this.$L = $L", MAPPER_DELEGATOR_FIELD_NAME, MAPPER_DELEGATOR_FIELD_NAME).build();
+    }
+
     public static CodeBlock wrapWithNotNullIf(String getterLiteral, CodeBlock codeBlock) {
         return CodeBlock.builder().beginControlFlow("if($L != null)", getterLiteral).add(codeBlock).endControlFlow().build();
     }
@@ -42,15 +66,6 @@ public class CodeBlockUtils {
 
     public static String getterLiteral(String getter) {
         return getterLiteral(DTO_PARAM_NAME, getter);
-    }
-
-    private static CodeBlock addCodeBlock(String collectionName, String addLiteral) {
-        return CodeBlock.builder().addStatement("$L.add($L)", collectionName, addLiteral).build();
-    }
-
-    private static CodeBlock collectionVariable(String collectionName, Class<?> collectionType, Class<?> rawType) {
-        ParameterizedTypeName collectionTypeName = ParameterizedTypeName.get(collectionType, rawType);
-        return CodeBlock.builder().addStatement("$T $L = new $T()", collectionTypeName, collectionName, collectionTypeName).build();
     }
 
 }

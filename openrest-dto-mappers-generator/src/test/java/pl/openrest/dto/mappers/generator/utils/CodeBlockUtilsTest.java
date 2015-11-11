@@ -2,10 +2,13 @@ package pl.openrest.dto.mappers.generator.utils;
 
 import java.util.ArrayList;
 
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 
 public class CodeBlockUtilsTest {
 
@@ -50,6 +53,25 @@ public class CodeBlockUtilsTest {
         Assert.assertEquals("java.util.ArrayList<java.lang.Object> objects = new java.util.ArrayList<java.lang.Object>();\n"
                 + "for(java.lang.Long o: dto.getObjects()) {\n" + "  if(o != null) {\n"
                 + "    objects.add(mapperDelegator.create(o));\n  }\n" + "}\n" + "entity.setObjects(objects);\n", codeBlock.toString());
+    }
+
+    @Test
+    public void shouldConstructorReturnMethodSpecWithMapperDelegatorParameter() throws Exception {
+        // given
+        // when
+        MethodSpec spec = CodeBlockUtils.constructor();
+        // then
+        Assert.assertThat(spec.toString(), Matchers.containsString("this.mapperDelegator = mapperDelegator;"));
+        Assert.assertThat(spec.toString(), Matchers.containsString("(pl.openrest.dto.mapper.MapperDelegator mapperDelegator)"));
+    }
+
+    @Test
+    public void shouldMapperDelegatorFieldReturnFieldSpecWithMapperDelegatorField() throws Exception {
+        // given
+        // when
+        FieldSpec spec = CodeBlockUtils.mapperDelegatorField();
+        // then
+        Assert.assertEquals("private final pl.openrest.dto.mapper.MapperDelegator mapperDelegator;\n", spec.toString());
     }
 
 }
