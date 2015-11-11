@@ -62,13 +62,13 @@ public class MapperFactoryTest {
     public static class DummyMapper implements CreateMapper<Object, Object>, UpdateMapper<Object, Object> {
 
         @Override
-        public Object create(Object from, DtoInformation dtoInfo) {
+        public Object create(Object from) {
             // TODO Auto-generated method stub
             return null;
         }
 
         @Override
-        public void merge(Object from, Object entity, DtoInformation dtoInfo) {
+        public void merge(Object from, Object entity) {
             // TODO Auto-generated method stub
 
         }

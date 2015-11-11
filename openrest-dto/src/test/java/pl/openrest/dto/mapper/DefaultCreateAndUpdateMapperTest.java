@@ -72,13 +72,17 @@ public class DefaultCreateAndUpdateMapperTest {
         when(dtoInfoRegistry.get(TagDto.class)).thenReturn(tagDtoInfo);
         when(dtoInfoRegistry.get(UserDto.class)).thenReturn(userDtoInfo);
 
+        when(dtoInfoRegistry.contains(ProductDto.class)).thenReturn(true);
+        when(dtoInfoRegistry.contains(TagDto.class)).thenReturn(true);
+        when(dtoInfoRegistry.contains(UserDto.class)).thenReturn(true);
+
         when(persistentEntities.getPersistentEntity(Tag.class)).thenReturn(Mockito.mock(PersistentEntity.class));
         when(persistentEntities.getPersistentEntity(User.class)).thenReturn(Mockito.mock(PersistentEntity.class));
         when(persistentEntities.getPersistentEntity(Product.class)).thenReturn(Mockito.mock(PersistentEntity.class));
 
         defaultMapper = new DefaultCreateAndUpdateMapper(dtoInfoRegistry, mapperDelegator, persistentEntities);
 
-        when(mapperDelegator.create(Mockito.any(), Mockito.any(DtoInformation.class))).then(AdditionalAnswers.delegatesTo(defaultMapper));
+        when(mapperDelegator.create(Mockito.any())).then(AdditionalAnswers.delegatesTo(defaultMapper));
 
         productDto.setDescription("Lorem Impsum");
         productDto.setName("agd");
@@ -100,9 +104,9 @@ public class DefaultCreateAndUpdateMapperTest {
         // given
         Mockito.doReturn(Tag.class).when(tagDtoInfo).getEntityType();
         // call
-        defaultMapper.create(productDto, productDtoInfo);
+        defaultMapper.create(productDto);
         // verify
-        Mockito.verify(mapperDelegator, Mockito.times(2)).create(Mockito.any(), Mockito.any(DtoInformation.class));
+        Mockito.verify(mapperDelegator, Mockito.times(2)).create(Mockito.any());
 
     }
 
@@ -110,7 +114,7 @@ public class DefaultCreateAndUpdateMapperTest {
     public void shouldThrowIllegalStateExceptionOnDtoTypeMergeWhileCreating() {
         // call
         when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
-        defaultMapper.create(new Object(), productDtoInfo);
+        defaultMapper.create(new ProductDto());
     }
 
     @Test
@@ -119,7 +123,7 @@ public class DefaultCreateAndUpdateMapperTest {
 
         productDto.setTags(Arrays.asList(tagDto, tagDto, tagDto));
         // call
-        Product product = (Product) defaultMapper.create(productDto, productDtoInfo);
+        Product product = (Product) defaultMapper.create(productDto);
         // verify
         Assert.assertEquals(Tag.class, product.getTags().get(0).getClass());
         Assert.assertEquals(3, product.getTags().size());
@@ -129,7 +133,7 @@ public class DefaultCreateAndUpdateMapperTest {
     public void shouldCreateCorrectEntity() {
 
         // call
-        Product product = (Product) defaultMapper.create(productDto, productDtoInfo);
+        Product product = (Product) defaultMapper.create(productDto);
 
         // verify
         Assert.assertEquals("Lorem Impsum", product.getDescription());
@@ -143,7 +147,7 @@ public class DefaultCreateAndUpdateMapperTest {
 
         when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
         // call
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.merge(productDto, product);
 
         // verify
         Assert.assertEquals(productDto.getDescription(), product.getDescription());
@@ -159,7 +163,7 @@ public class DefaultCreateAndUpdateMapperTest {
         // given
         when(productDtoInfo.getType()).thenReturn(DtoType.CREATE);
         // call
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.merge(productDto, product);
     }
 
     @Test
@@ -167,8 +171,8 @@ public class DefaultCreateAndUpdateMapperTest {
         // given
         when(productDtoInfo.getType()).thenReturn(DtoType.BOTH);
         // call
-        defaultMapper.create(productDto, productDtoInfo);
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.create(productDto);
+        defaultMapper.merge(productDto, product);
     }
 
     //
@@ -179,7 +183,7 @@ public class DefaultCreateAndUpdateMapperTest {
         productDto.setUser(null);
         when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
         // call
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.merge(productDto, product);
 
         // verify
         Assert.assertNull(product.getUser());
@@ -193,7 +197,7 @@ public class DefaultCreateAndUpdateMapperTest {
         productDto.setUserSet(false);
         when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
         // call
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.merge(productDto, product);
         // verify
         Assert.assertNotNull(product.getUser());
     }
@@ -203,7 +207,7 @@ public class DefaultCreateAndUpdateMapperTest {
         // given
         when(productDtoInfo.getType()).thenReturn(DtoType.MERGE);
         // call
-        defaultMapper.merge(productDto, product, productDtoInfo);
+        defaultMapper.merge(productDto, product);
         // verify
         Assert.assertNotNull(product.getUser());
         Assert.assertEquals(User.class, product.getUser().getClass());

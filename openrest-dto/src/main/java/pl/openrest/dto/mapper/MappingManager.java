@@ -45,7 +45,7 @@ public class MappingManager {
 
         handle(dto);
 
-        Object entity = mapperDelegator.create(dto, dtoInfo);
+        Object entity = mapperDelegator.create(dto);
         return new DtoAndEntityWrapper(dto, entity);
     }
 
@@ -63,7 +63,7 @@ public class MappingManager {
 
         handle(dto, existingObject);
 
-        mapperDelegator.merge(dto, existingObject, dtoInfo);
+        mapperDelegator.merge(dto, existingObject);
         return new DtoAndEntityWrapper(dto, existingObject);
     }
 

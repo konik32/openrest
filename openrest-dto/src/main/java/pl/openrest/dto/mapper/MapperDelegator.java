@@ -1,6 +1,5 @@
 package pl.openrest.dto.mapper;
 
-import pl.openrest.dto.registry.DtoInformation;
 
 public class MapperDelegator implements CreateMapper<Object, Object>, UpdateMapper<Object, Object> {
 
@@ -12,14 +11,14 @@ public class MapperDelegator implements CreateMapper<Object, Object>, UpdateMapp
 
     @Override
     @SuppressWarnings("unchecked")
-    public void merge(Object from, Object entity, DtoInformation dtoInfo) {
-        mapperFactory.getUpdateMapper(from.getClass()).merge(from, entity, dtoInfo);
+    public void merge(Object from, Object entity) {
+        mapperFactory.getUpdateMapper(from.getClass()).merge(from, entity);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object create(Object from, DtoInformation dtoInfo) {
-        return mapperFactory.getCreateMapper(from.getClass()).create(from, dtoInfo);
+    public Object create(Object from) {
+        return mapperFactory.getCreateMapper(from.getClass()).create(from);
     }
 
 }

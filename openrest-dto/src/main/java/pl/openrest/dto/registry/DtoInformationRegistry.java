@@ -16,6 +16,14 @@ public class DtoInformationRegistry {
         return namesMapping.get(name);
     }
 
+    public boolean contains(Class<?> dtoType) {
+        return mapping.containsKey(dtoType);
+    }
+
+    public boolean contains(String name) {
+        return namesMapping.containsKey(name);
+    }
+
     public void put(String name, DtoInformation dtoInfo) {
         namesMapping.put(name, dtoInfo);
     }

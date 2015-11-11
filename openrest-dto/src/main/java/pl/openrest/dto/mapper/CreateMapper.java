@@ -16,6 +16,6 @@ import pl.openrest.dto.registry.DtoInformation;
  */
 public interface CreateMapper<R, P> {
 
-	R create(P from, DtoInformation dtoInfo);
+	R create(P from);
 
 }

@@ -42,22 +42,6 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
     private final MapperDelegator mapperDelegator;
     private final PersistentEntities persistentEntities;
 
-    final static Map<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
-    static {
-        collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
-        collectionFallbacks.put(List.class.getName(), ArrayList.class);
-        collectionFallbacks.put(Set.class.getName(), HashSet.class);
-        collectionFallbacks.put(SortedSet.class.getName(), TreeSet.class);
-        collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
-
-        /*
-         * 11-Jan-2009, tatu: Let's see if we can still add support for JDK 1.6 interfaces, even if we run on 1.5. Just need to be more
-         * careful with typos, since compiler won't notice any problems...
-         */
-        collectionFallbacks.put("java.util.Deque", LinkedList.class);
-        collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
-    }
-
     public DefaultCreateAndUpdateMapper(DtoInformationRegistry dtoInfoRegistry, MapperDelegator mapperDelegator,
             PersistentEntities persistentEntities) {
         Assert.notNull(dtoInfoRegistry);
@@ -68,18 +52,10 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
         this.persistentEntities = persistentEntities;
     }
 
-    /**
-     * Method checks whether passed dto has custom {@link EntityFromDtoCreator}. If so it invokes that creator, otherwise entity is created
-     * by mapping fields.
-     * 
-     * @param from
-     *            - dto object
-     * @param dtoInfo
-     *            - information about dto
-     */
     @SuppressWarnings("unchecked")
     @Override
-    public Object create(Object from, DtoInformation dtoInfo) {
+    public Object create(Object from) {
+        DtoInformation dtoInfo = dtoInfoRegistry.get(from.getClass());
         if (dtoInfo.getType() == DtoType.MERGE)
             throw new IllegalStateException("Cannot use merge dto to create entity");
         return createByFields(from, dtoInfo);
@@ -133,10 +109,9 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
      */
     private void doWithField(final Object from, final Field field, final Field entityField, final Object entity)
             throws IllegalArgumentException, IllegalAccessException {
-        DtoInformation subDtoInfo = dtoInfoRegistry.get(field.getType());
         Object value = field.get(from);
-        if (value != null && subDtoInfo != null)
-            value = mapperDelegator.create(value, subDtoInfo);
+        if (value != null && dtoInfoRegistry.contains(field.getType()))
+            value = mapperDelegator.create(value);
         entityField.set(entity, value);
     }
 
@@ -180,8 +155,7 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
             Object object = it.next();
             if (object == null)
                 continue;
-            DtoInformation subDtoInfo = dtoInfoRegistry.get(object.getClass());
-            Object value = subDtoInfo != null ? mapperDelegator.create(object, subDtoInfo) : object;
+            Object value = dtoInfoRegistry.contains(object.getClass())? mapperDelegator.create(object) : object;
             entityFieldCollection.add(value);
         }
     }
@@ -195,7 +169,8 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
      *            - dto
      */
     @Override
-    public void merge(Object from, Object entity, DtoInformation dtoInfo) {
+    public void merge(Object from, Object entity) {
+        DtoInformation dtoInfo = dtoInfoRegistry.get(from.getClass());
         if (dtoInfo.getType() == DtoType.CREATE)
             throw new IllegalStateException("Cannot use create dto to merge with entity");
         mergeByFields(from, entity);
@@ -246,9 +221,9 @@ public class DefaultCreateAndUpdateMapper implements CreateMapper<Object, Object
                                         + entityField.getType()
                                         + " is null. Cannot merge with null object. If you want to create new entity use dto of type CREATE or BOTH.");
                     else
-                        setEntityField(entity, entityField, mapperDelegator.create(value, subDtoInfo));
+                        setEntityField(entity, entityField, mapperDelegator.create(value));
                 } else {
-                    mapperDelegator.merge(value, entityFieldValue, subDtoInfo);
+                    mapperDelegator.merge(value, entityFieldValue);
                 }
             }
 

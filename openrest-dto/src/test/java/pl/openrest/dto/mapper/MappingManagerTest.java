@@ -81,7 +81,7 @@ public class MappingManagerTest {
         when(converter.canRead(PersistentEntityResource.class, contentType)).thenReturn(true);
         when(converter.read(UserDto.class, inputMessage)).thenReturn(userDto);
         when(invoker.invokeFindOne(id)).thenReturn(user);
-        when(mapperDelegator.create(userDto, dtoInfo)).thenReturn(user);
+        when(mapperDelegator.create(userDto)).thenReturn(user);
     }
 
     @Test
@@ -104,13 +104,13 @@ public class MappingManagerTest {
     @Test
     public void shouldCallEntityFromDtoCreatorCreate() throws Exception {
         mappingManager.create(contentType, inputMessage, dtoParam);
-        verify(mapperDelegator, times(1)).create(userDto, dtoInfo);
+        verify(mapperDelegator, times(1)).create(userDto);
     }
 
     @Test
     public void shouldCallEntityFromDtoCreatorMerge() throws Exception {
         mappingManager.merge(contentType, inputMessage, invoker, id, dtoParam);
-        verify(mapperDelegator, times(1)).merge(userDto, user, dtoInfo);
+        verify(mapperDelegator, times(1)).merge(userDto, user);
     }
 
     @Test
