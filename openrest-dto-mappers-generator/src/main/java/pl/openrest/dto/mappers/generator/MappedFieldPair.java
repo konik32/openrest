@@ -2,7 +2,7 @@ package pl.openrest.dto.mappers.generator;
 
 public class MappedFieldPair {
 
-    private static final String NON_MATCHING_TYPE_ERROR_MESSAGE_FORMAT = "Type of dto field %s does not match the type of entity field %s";
+    private static final String NON_MATCHING_TYPE_ERROR_MESSAGE_FORMAT = "%s and %s should have the same type or dto field type should be a dto itself";
 
     protected final MappedFieldInformation dtoFieldInfo;
     protected final MappedFieldInformation entityFieldInfo;

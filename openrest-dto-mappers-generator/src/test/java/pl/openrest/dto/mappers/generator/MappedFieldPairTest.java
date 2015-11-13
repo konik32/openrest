@@ -47,7 +47,8 @@ public class MappedFieldPairTest {
         Mockito.when(dtoFieldInfo.isDto()).thenReturn(false);
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(Matchers.equalTo("Type of dto field dtoField does not match the type of entity field entityField"));
+        thrown.expectMessage(Matchers
+                .equalTo("dtoField and entityField should have the same type or dto field type should be a dto itself"));
         // when
         new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
         // then
@@ -63,10 +64,12 @@ public class MappedFieldPairTest {
         Mockito.doReturn(Long.class).when(dtoFieldInfo).getEntityType();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(Matchers.equalTo("Type of dto field dtoField does not match the type of entity field entityField"));
+        thrown.expectMessage(Matchers
+                .equalTo("dtoField and entityField should have the same type or dto field type should be a dto itself"));
         // when
         new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
         // then
     }
+
 
 }
