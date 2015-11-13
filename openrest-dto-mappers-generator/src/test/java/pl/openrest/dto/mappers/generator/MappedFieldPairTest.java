@@ -1,6 +1,7 @@
 package pl.openrest.dto.mappers.generator;
 
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.squareup.javapoet.CodeBlock;
+
 @RunWith(MockitoJUnitRunner.class)
 public class MappedFieldPairTest {
 
@@ -17,6 +20,8 @@ public class MappedFieldPairTest {
     private MappedFieldInformation dtoFieldInfo;
     @Mock
     private MappedFieldInformation entityFieldInfo;
+
+    private MappedFieldPair fieldPair;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -30,6 +35,7 @@ public class MappedFieldPairTest {
         Mockito.doReturn(Integer.class).when(entityFieldInfo).getDeclaringClass();
 
         Mockito.when(dtoFieldInfo.getGetterName()).thenReturn("getName");
+        Mockito.when(entityFieldInfo.getGetterName()).thenReturn("getName");
         Mockito.when(entityFieldInfo.getSetterName()).thenReturn("setName");
 
         Mockito.when(dtoFieldInfo.getName()).thenReturn("name");
@@ -37,6 +43,10 @@ public class MappedFieldPairTest {
 
         Mockito.when(dtoFieldInfo.toString()).thenReturn("dtoField");
         Mockito.when(entityFieldInfo.toString()).thenReturn("entityField");
+
+        Mockito.when(dtoFieldInfo.isDto()).thenReturn(false);
+        Mockito.when(dtoFieldInfo.isNullable()).thenReturn(false);
+        fieldPair = new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
     }
 
     @Test
@@ -71,5 +81,70 @@ public class MappedFieldPairTest {
         // then
     }
 
+    @Test
+    public void shouldConstructorThrowExceptionOnNonMatchingFieldNames() throws Exception {
+        // given
+        Mockito.when(dtoFieldInfo.getName()).thenReturn("name");
+        Mockito.when(entityFieldInfo.getName()).thenReturn("year");
 
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(Matchers.equalTo("Names of fields dtoField and entityField do not match"));
+        // when
+        new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
+        // then
+    }
+
+    @Test
+    public void shouldToCreateCodeBlockReturnCodeBlockWithSimpleGetterAndSetterForNonDtoField() throws Exception {
+        // given
+        // when
+        CodeBlock codeBlock = fieldPair.toCreateCodeBlock();
+        // then
+        Assert.assertEquals("entity.setName(dto.getName());\n", codeBlock.toString());
+    }
+
+    @Test
+    public void shouldToCreateCodeBlockReturnCodeBlockWithMapperDelegatorOnIsDtoTrue() throws Exception {
+        // given
+        Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
+        // when
+        CodeBlock codeBlock = fieldPair.toCreateCodeBlock();
+        // then
+        Assert.assertEquals("entity.setName(mapperDelegator.create(dto.getName()));\n", codeBlock.toString());
+    }
+
+    @Test
+    public void shouldToUpdateCodeBlockReturnCodeBlockWithSimpleGetterAndSetterForNonDtoField() throws Exception {
+        // given
+        // when
+        CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
+        // then
+        Assert.assertEquals("if(dto.getName()!=null){entity.setName(dto.getName());}", codeBlock.toString().replaceAll("\\s", ""));
+    }
+
+    @Test
+    public void shouldToUpdateCodeBlockReturnCodeBlockWithMapperDelegatorOnIsDtoTrue() throws Exception {
+        // given
+        Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
+//        Mockito.when(dtoFieldInfo.isNullable()).thenReturn(true);
+//        Mockito.when(dtoFieldInfo.getNullableGetterName()).thenReturn("isSetName");
+        // when
+        CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
+        // then
+        Assert.assertEquals("if(dto.getName()!=null){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock
+                .toString().replaceAll("\\s", ""));
+    }
+    
+    @Test
+    public void shouldToUpdateCodeBlockReturnCodeBlockWithMapperDelegatorOnIsDtoTrueAndNullableTrue() throws Exception {
+        // given
+        Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
+        Mockito.when(dtoFieldInfo.isNullable()).thenReturn(true);
+        Mockito.when(dtoFieldInfo.getNullableGetterName()).thenReturn("isSetName");
+        // when
+        CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
+        // then
+        Assert.assertEquals("if(dto.getName()!=null||dto.isSetName()){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock
+                .toString().replaceAll("\\s", ""));
+    }
 }
