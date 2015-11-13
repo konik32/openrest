@@ -23,6 +23,10 @@ public class MappedFieldInformation {
         }
     }
 
+    public String getName() {
+        return field.getName();
+    }
+
     public String getGetterName() {
         return propertyDescriptor.getReadMethod().getName();
     }
@@ -70,7 +74,7 @@ public class MappedFieldInformation {
 
     @Override
     public String toString() {
-        return String.format("%s.%s", getDeclaringClass(), getType());
+        return String.format("%s.%s", getDeclaringClass().getName(), getName());
     }
 
 }
