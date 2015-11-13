@@ -19,6 +19,11 @@ public class CodeBlockUtils {
         return String.format("%s.create(%s)", MAPPER_DELEGATOR_FIELD_NAME, getterLiteral);
     }
 
+    public static CodeBlock delegateUpdateCodeBlock(String dtoGetterLiteral, String entityGetterLiteral) {
+        return CodeBlock.builder().addStatement("$L.update($L,$L)", MAPPER_DELEGATOR_FIELD_NAME, dtoGetterLiteral, entityGetterLiteral)
+                .build();
+    }
+
     public static CodeBlock setterCodeBlock(String setter, String getterLiteral) {
         return CodeBlock.builder().addStatement("$L.$L($L)", ENTITY_PARAM_NAME, setter, getterLiteral).build();
     }
