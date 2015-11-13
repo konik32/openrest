@@ -1,6 +1,10 @@
 package pl.openrest.dto.mappers.generator;
 
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -14,18 +18,42 @@ public class MappedFieldPairTest {
     @Mock
     private MappedFieldInformation entityFieldInfo;
 
-    @Test(expected = IllegalArgumentException.class)
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Before
+    public void setUp() {
+        Mockito.doReturn(Object.class).when(dtoFieldInfo).getType();
+        Mockito.doReturn(Object.class).when(entityFieldInfo).getType();
+
+        Mockito.doReturn(Long.class).when(dtoFieldInfo).getDeclaringClass();
+        Mockito.doReturn(Integer.class).when(entityFieldInfo).getDeclaringClass();
+
+        Mockito.when(dtoFieldInfo.getGetterName()).thenReturn("getName");
+        Mockito.when(entityFieldInfo.getSetterName()).thenReturn("setName");
+
+        Mockito.when(dtoFieldInfo.getName()).thenReturn("name");
+        Mockito.when(entityFieldInfo.getName()).thenReturn("name");
+
+        Mockito.when(dtoFieldInfo.toString()).thenReturn("dtoField");
+        Mockito.when(entityFieldInfo.toString()).thenReturn("entityField");
+    }
+
+    @Test
     public void shouldConstructorThrowExceptionOnNonMatchingDtoAndEntityFieldTypesIfNonNestedDto() throws Exception {
         // given
         Mockito.doReturn(Object.class).when(dtoFieldInfo).getType();
         Mockito.doReturn(Long.class).when(entityFieldInfo).getType();
         Mockito.when(dtoFieldInfo.isDto()).thenReturn(false);
+
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(Matchers.equalTo("Type of dto field dtoField does not match the type of entity field entityField"));
         // when
         new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
         // then
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldConstructorThrowExceptionOnNonMatchingDtoAndEntityFieldTypesIfNestedDtoHasEntityTypeDifferentThanEntityFieldType()
             throws Exception {
         // given
@@ -33,6 +61,9 @@ public class MappedFieldPairTest {
         Mockito.doReturn(Long.class).when(entityFieldInfo).getType();
         Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
         Mockito.doReturn(Long.class).when(dtoFieldInfo).getEntityType();
+
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(Matchers.equalTo("Type of dto field dtoField does not match the type of entity field entityField"));
         // when
         new MappedFieldPair(dtoFieldInfo, entityFieldInfo);
         // then
