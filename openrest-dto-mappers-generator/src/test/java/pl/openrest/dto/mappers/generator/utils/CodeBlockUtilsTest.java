@@ -1,5 +1,8 @@
 package pl.openrest.dto.mappers.generator.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -120,6 +123,26 @@ public class CodeBlockUtilsTest {
         FieldSpec spec = CodeBlockUtils.mapperDelegatorField();
         // then
         Assert.assertEquals("private final pl.openrest.dto.mapper.MapperDelegator mapperDelegator;\n", spec.toString());
+    }
+
+    @Test
+    public void shouldCollectionVariableReturnStatementWithFallbackedCollectionTypeWhenCollectionTypeIsInterface() throws Exception {
+        // given
+        // when
+        CodeBlock codeBlock = CodeBlockUtils.collectionVariable("list", List.class, Object.class);
+        // then
+        Assert.assertEquals("java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();\n",
+                codeBlock.toString());
+    }
+    
+    @Test
+    public void shouldCollectionVariableReturnStatementWithNonFallbackCollectionType() throws Exception {
+        // given
+        // when
+        CodeBlock codeBlock = CodeBlockUtils.collectionVariable("list", ArrayList.class, Object.class);
+        // then
+        Assert.assertEquals("java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();\n",
+                codeBlock.toString());
     }
 
 }

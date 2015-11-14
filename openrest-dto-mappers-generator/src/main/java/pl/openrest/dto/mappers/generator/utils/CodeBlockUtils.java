@@ -1,5 +1,17 @@
 package pl.openrest.dto.mappers.generator.utils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import javax.lang.model.element.Modifier;
 
 import pl.openrest.dto.mapper.MapperDelegator;
@@ -15,6 +27,18 @@ public class CodeBlockUtils {
     public static final String ENTITY_PARAM_NAME = "entity";
     private static final String MAPPER_DELEGATOR_FIELD_NAME = "mapperDelegator";
     public static final String COLLECTION_ELEM_NAME = "o";
+
+    private final static Map<String, Class<? extends Collection>> collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
+    static {
+        collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
+        collectionFallbacks.put(List.class.getName(), ArrayList.class);
+        collectionFallbacks.put(Set.class.getName(), HashSet.class);
+        collectionFallbacks.put(SortedSet.class.getName(), TreeSet.class);
+        collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
+
+        collectionFallbacks.put("java.util.Deque", LinkedList.class);
+        collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
+    }
 
     public static String delegateCreateLiteral(String getterLiteral) {
         return String.format("%s.create(%s)", MAPPER_DELEGATOR_FIELD_NAME, getterLiteral);
@@ -34,7 +58,9 @@ public class CodeBlockUtils {
     }
 
     public static CodeBlock collectionVariable(String collectionName, Class<?> collectionType, Class<?> rawType) {
-        ParameterizedTypeName collectionTypeName = ParameterizedTypeName.get(collectionType, rawType);
+        ParameterizedTypeName collectionTypeName = ParameterizedTypeName.get(
+                collectionFallbacks.containsKey(collectionType.getName()) ? collectionFallbacks.get(collectionType.getName())
+                        : collectionType, rawType);
         return CodeBlock.builder().addStatement("$T $L = new $T()", collectionTypeName, collectionName, collectionTypeName).build();
     }
 
