@@ -13,23 +13,23 @@ import org.springframework.util.ReflectionUtils;
 public class MappedFieldInformationFactoryTest {
 
     @Test
-    public void shouldCreateReturnMappedFieldInformation() throws Exception {
+    public void shouldCreateReturnMappedFieldPair() throws Exception {
         // given
         Field field = ReflectionUtils.findField(TestClass.class, "name");
         // when
-        MappedFieldInformation information = MappedFieldInformationFactory.create(field);
+        MappedFieldPair information = MappedFieldPairFactory.create(field, field);
         // then
-        Assert.assertEquals(MappedFieldInformation.class, information.getClass());
+        Assert.assertEquals(MappedFieldPair.class, information.getClass());
     }
-    
+
     @Test
-    public void shouldCreateReturnMappedCollectionFieldInformation() throws Exception {
+    public void shouldCreateReturnMappedCollectionFieldPair() throws Exception {
         // given
         Field field = ReflectionUtils.findField(TestClass.class, "list");
         // when
-        MappedFieldInformation information = MappedFieldInformationFactory.create(field);
+        MappedFieldPair information = MappedFieldPairFactory.create(field, field);
         // then
-        Assert.assertEquals(MappedCollectionFieldInformation.class, information.getClass());
+        Assert.assertEquals(MappedCollectionFieldPair.class, information.getClass());
     }
 
     @Getter

@@ -126,15 +126,15 @@ public class MappedFieldPairTest {
     public void shouldToUpdateCodeBlockReturnCodeBlockWithMapperDelegatorOnIsDtoTrue() throws Exception {
         // given
         Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
-//        Mockito.when(dtoFieldInfo.isNullable()).thenReturn(true);
-//        Mockito.when(dtoFieldInfo.getNullableGetterName()).thenReturn("isSetName");
+        // Mockito.when(dtoFieldInfo.isNullable()).thenReturn(true);
+        // Mockito.when(dtoFieldInfo.getNullableGetterName()).thenReturn("isSetName");
         // when
         CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
         // then
-        Assert.assertEquals("if(dto.getName()!=null){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock
-                .toString().replaceAll("\\s", ""));
+        Assert.assertEquals("if(dto.getName()!=null){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock.toString()
+                .replaceAll("\\s", ""));
     }
-    
+
     @Test
     public void shouldToUpdateCodeBlockReturnCodeBlockWithMapperDelegatorOnIsDtoTrueAndNullableTrue() throws Exception {
         // given
@@ -147,4 +147,5 @@ public class MappedFieldPairTest {
         Assert.assertEquals("if(dto.getName()!=null||dto.isSetName()){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock
                 .toString().replaceAll("\\s", ""));
     }
+
 }
