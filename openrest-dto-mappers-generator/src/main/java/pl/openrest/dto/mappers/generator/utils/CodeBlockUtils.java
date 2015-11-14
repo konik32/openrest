@@ -14,6 +14,7 @@ public class CodeBlockUtils {
     public static final String DTO_PARAM_NAME = "dto";
     public static final String ENTITY_PARAM_NAME = "entity";
     private static final String MAPPER_DELEGATOR_FIELD_NAME = "mapperDelegator";
+    public static final String COLLECTION_ELEM_NAME = "o";
 
     public static String delegateCreateLiteral(String getterLiteral) {
         return String.format("%s.create(%s)", MAPPER_DELEGATOR_FIELD_NAME, getterLiteral);
@@ -47,7 +48,8 @@ public class CodeBlockUtils {
     }
 
     public static CodeBlock collecionLoop(Class<?> elementType, String getterLiteral, CodeBlock codeBlock) {
-        return CodeBlock.builder().beginControlFlow("for($T o: $L)", elementType, getterLiteral).add(codeBlock).endControlFlow().build();
+        return CodeBlock.builder().beginControlFlow("for($T $L: $L)", elementType, COLLECTION_ELEM_NAME, getterLiteral).add(codeBlock)
+                .endControlFlow().build();
     }
 
     public static CodeBlock wrapWithNotNullOrNullableIf(String getterLiteral, String nullableGetterLiteral, CodeBlock codeBlock) {
@@ -65,6 +67,14 @@ public class CodeBlockUtils {
 
     public static CodeBlock wrapWithElse(CodeBlock codeBlock) {
         return CodeBlock.builder().beginControlFlow("else").add(codeBlock).endControlFlow().build();
+    }
+
+    public static CodeBlock concatenate(CodeBlock... blocks) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        for (CodeBlock block : blocks) {
+            builder.add(block);
+        }
+        return builder.build();
     }
 
     public static String getterLiteral(String property, String getter) {
