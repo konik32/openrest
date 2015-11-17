@@ -3,13 +3,21 @@ package pl.openrest.dto.mappers.generator.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.lang.model.element.Modifier;
+
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import pl.openrest.dto.mapper.MapperDelegator;
+import pl.openrest.dto.mappers.generator.DtoMapperResolverTest.TestDto;
+import pl.openrest.generator.commons.utils.JavaPoetTestUtils;
+
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 
 public class CodeBlockUtilsTest {
 
@@ -17,7 +25,7 @@ public class CodeBlockUtilsTest {
     public void shouldSetterCodeBlockReturnCodeBlockForSingleNonDtoField() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.setterCodeBlock("setObject", CodeBlockUtils.getterLiteral("getObject"));
+        CodeBlock codeBlock = CodeBlockUtils.setterCodeBlock("setObject", CodeBlockUtils.getterCodeBlock("getObject"));
         // then
         Assert.assertEquals("entity.setObject(dto.getObject());\n", codeBlock.toString());
     }
@@ -25,18 +33,20 @@ public class CodeBlockUtilsTest {
     @Test
     public void shouldSetterCodeBlockReturnCodeBlockWithDelegatedCreate() throws Exception {
         // given
-        String delegateLiteral = CodeBlockUtils.delegateCreateLiteral(CodeBlockUtils.getterLiteral("getObject"));
+        CodeBlock delegateCreateCodeBlock = CodeBlockUtils.delegateCreateCodeBlock(Object.class,
+                CodeBlockUtils.getterCodeBlock("getObject"));
         // when
-        CodeBlock codeBlock = CodeBlockUtils.setterCodeBlock("setObject", delegateLiteral);
+        CodeBlock codeBlock = CodeBlockUtils.setterCodeBlock("setObject", delegateCreateCodeBlock);
         // then
-        Assert.assertEquals("entity.setObject(mapperDelegator.create(dto.getObject()));\n", codeBlock.toString());
+        Assert.assertEquals("entity.setObject((java.lang.Object) mapperDelegator.create(dto.getObject()));\n", codeBlock.toString());
     }
 
     @Test
     public void shouldCollectionLoopReturnCodeBlockWithForLoopWithTypeAndGetterLiteral() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.collecionLoop(Object.class, "dto.getObjects()", CodeBlock.builder().build());
+        CodeBlock codeBlock = CodeBlockUtils.collecionLoop(Object.class, JavaPoetTestUtils.geCodeBlock("dto.getObjects()"), CodeBlock
+                .builder().build());
         // then
         Assert.assertThat(codeBlock.toString(), Matchers.containsString("for(java.lang.Object o: dto.getObjects())"));
     }
@@ -45,8 +55,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNotNullOrNullableIfReturnCodeBlockWithIfWithGetterLiteralAndNullableGetterLiteral() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullOrNullableIf("dto.getObject()", "dto.isObjectSet()", CodeBlock.builder()
-                .build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullOrNullableIf(JavaPoetTestUtils.geCodeBlock("dto.getObject()"),
+                JavaPoetTestUtils.geCodeBlock("dto.isObjectSet()"), CodeBlock.builder().build());
         // then
         Assert.assertThat(codeBlock.toString(), Matchers.containsString("if(dto.getObject() != null || dto.isObjectSet())"));
     }
@@ -55,7 +65,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNotNullIfReturnCodeBlockWithIfWithGetterLiteral() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullIf("dto.getObject()", CodeBlock.builder().build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullIf(JavaPoetTestUtils.geCodeBlock("dto.getObject()"), CodeBlock.builder()
+                .build());
         // then
         Assert.assertThat(codeBlock.toString(), Matchers.containsString("if(dto.getObject() != null)"));
     }
@@ -64,7 +75,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNullableIfReturnCodeBlockWithIfWithNullableGetterLiteral() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNullableIf("dto.isObjectSet()", CodeBlock.builder().build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNullableIf(JavaPoetTestUtils.geCodeBlock("dto.isObjectSet()"), CodeBlock.builder()
+                .build());
         // then
         Assert.assertThat(codeBlock.toString(), Matchers.containsString("if(dto.isObjectSet())"));
     }
@@ -73,7 +85,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNullableIfReturnIfWithWrappedCodeBlock() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNullableIf("dto.isObjectSet()", CodeBlock.builder().add("codeBlock").build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNullableIf(JavaPoetTestUtils.geCodeBlock("dto.isObjectSet()"), CodeBlock.builder()
+                .add("codeBlock").build());
         // then
         Assert.assertThat(codeBlock.toString().replaceAll("\\s", ""), Matchers.containsString("{codeBlock}"));
     }
@@ -82,8 +95,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNotNullOrNullableIfReturnIfWithWrappedCodeBlock() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullOrNullableIf("dto.getObject()", "dto.isObjectSet()",
-                CodeBlock.builder().add("codeBlock").build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullOrNullableIf(JavaPoetTestUtils.geCodeBlock("dto.getObject()"),
+                JavaPoetTestUtils.geCodeBlock("dto.isObjectSet()"), CodeBlock.builder().add("codeBlock").build());
         // then
         Assert.assertThat(codeBlock.toString().replaceAll("\\s", ""), Matchers.containsString("{codeBlock}"));
     }
@@ -92,7 +105,8 @@ public class CodeBlockUtilsTest {
     public void shouldWrapWithNotNullIfReturnIfWithWrappedCodeBlock() throws Exception {
         // given
         // when
-        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullIf("dto.getObjectSet()", CodeBlock.builder().add("codeBlock").build());
+        CodeBlock codeBlock = CodeBlockUtils.wrapWithNotNullIf(JavaPoetTestUtils.geCodeBlock("dto.getObjectSet()"), CodeBlock.builder()
+                .add("codeBlock").build());
         // then
         Assert.assertThat(codeBlock.toString().replaceAll("\\s", ""), Matchers.containsString("{codeBlock}"));
     }
@@ -134,7 +148,7 @@ public class CodeBlockUtilsTest {
         Assert.assertEquals("java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();\n",
                 codeBlock.toString());
     }
-    
+
     @Test
     public void shouldCollectionVariableReturnStatementWithNonFallbackCollectionType() throws Exception {
         // given
@@ -143,6 +157,19 @@ public class CodeBlockUtilsTest {
         // then
         Assert.assertEquals("java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();\n",
                 codeBlock.toString());
+    }
+
+    @Test
+    public void shouldConstructorReturnMethodSpecForPublicConstructorWithMapperDelegatorParameter() throws Exception {
+        // given
+        // when
+        MethodSpec constructor = CodeBlockUtils.constructor();
+        // then
+        Assert.assertNotNull(constructor);
+        Assert.assertEquals(1, constructor.parameters.size());
+        Assert.assertEquals("mapperDelegator", constructor.parameters.get(0).name);
+        Assert.assertEquals(TypeName.get(MapperDelegator.class), constructor.parameters.get(0).type);
+        Assert.assertThat(constructor.modifiers, Matchers.contains(Modifier.PUBLIC));
     }
 
 }

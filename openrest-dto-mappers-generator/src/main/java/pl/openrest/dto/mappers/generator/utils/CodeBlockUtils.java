@@ -14,6 +14,7 @@ import java.util.TreeSet;
 
 import javax.lang.model.element.Modifier;
 
+import lombok.NonNull;
 import pl.openrest.dto.mapper.MapperDelegator;
 
 import com.squareup.javapoet.CodeBlock;
@@ -40,24 +41,32 @@ public class CodeBlockUtils {
         collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
     }
 
-    public static String delegateCreateLiteral(String getterLiteral) {
-        return String.format("%s.create(%s)", MAPPER_DELEGATOR_FIELD_NAME, getterLiteral);
+    public static CodeBlock delegateCreateCodeBlock(@NonNull Class<?> entityType, @NonNull CodeBlock getter) {
+        return CodeBlock.builder().add("($T) $L.create($L)", entityType, MAPPER_DELEGATOR_FIELD_NAME, getter).build();
     }
 
-    public static CodeBlock delegateUpdateCodeBlock(String dtoGetterLiteral, String entityGetterLiteral) {
-        return CodeBlock.builder().addStatement("$L.update($L,$L)", MAPPER_DELEGATOR_FIELD_NAME, dtoGetterLiteral, entityGetterLiteral)
+    public static CodeBlock delegateUpdateCodeBlock(@NonNull CodeBlock dtoGetterCodeBlock, @NonNull CodeBlock entityGetterCodeBlock) {
+        return CodeBlock.builder().addStatement("$L.merge($L,$L)", MAPPER_DELEGATOR_FIELD_NAME, dtoGetterCodeBlock, entityGetterCodeBlock)
                 .build();
     }
 
-    public static CodeBlock setterCodeBlock(String setter, String getterLiteral) {
-        return CodeBlock.builder().addStatement("$L.$L($L)", ENTITY_PARAM_NAME, setter, getterLiteral).build();
+    public static CodeBlock entityVariable(@NonNull Class<?> entityType) {
+        return CodeBlock.builder().addStatement("$T $L = new $T()", entityType, ENTITY_PARAM_NAME, entityType).build();
     }
 
-    public static CodeBlock addCodeBlock(String collectionName, String addLiteral) {
-        return CodeBlock.builder().addStatement("$L.add($L)", collectionName, addLiteral).build();
+    public static CodeBlock entityReturnStatement() {
+        return CodeBlock.builder().addStatement("return $L", ENTITY_PARAM_NAME).build();
     }
 
-    public static CodeBlock collectionVariable(String collectionName, Class<?> collectionType, Class<?> rawType) {
+    public static CodeBlock setterCodeBlock(@NonNull String setter, @NonNull CodeBlock getter) {
+        return CodeBlock.builder().addStatement("$L.$L($L)", ENTITY_PARAM_NAME, setter, getter).build();
+    }
+
+    public static CodeBlock addCodeBlock(@NonNull String collectionName, @NonNull CodeBlock addCodeBlock) {
+        return CodeBlock.builder().addStatement("$L.add($L)", collectionName, addCodeBlock).build();
+    }
+
+    public static CodeBlock collectionVariable(@NonNull String collectionName, @NonNull Class<?> collectionType, @NonNull Class<?> rawType) {
         ParameterizedTypeName collectionTypeName = ParameterizedTypeName.get(
                 collectionFallbacks.containsKey(collectionType.getName()) ? collectionFallbacks.get(collectionType.getName())
                         : collectionType, rawType);
@@ -70,32 +79,34 @@ public class CodeBlockUtils {
 
     public static MethodSpec constructor() {
         return MethodSpec.constructorBuilder().addParameter(MapperDelegator.class, MAPPER_DELEGATOR_FIELD_NAME)
-                .addStatement("this.$L = $L", MAPPER_DELEGATOR_FIELD_NAME, MAPPER_DELEGATOR_FIELD_NAME).build();
+                .addStatement("this.$L = $L", MAPPER_DELEGATOR_FIELD_NAME, MAPPER_DELEGATOR_FIELD_NAME).addModifiers(Modifier.PUBLIC)
+                .build();
     }
 
-    public static CodeBlock collecionLoop(Class<?> elementType, String getterLiteral, CodeBlock codeBlock) {
-        return CodeBlock.builder().beginControlFlow("for($T $L: $L)", elementType, COLLECTION_ELEM_NAME, getterLiteral).add(codeBlock)
+    public static CodeBlock collecionLoop(@NonNull Class<?> elementType, @NonNull CodeBlock getterCodeBlock, @NonNull CodeBlock codeBlock) {
+        return CodeBlock.builder().beginControlFlow("for($T $L: $L)", elementType, COLLECTION_ELEM_NAME, getterCodeBlock).add(codeBlock)
                 .endControlFlow().build();
     }
 
-    public static CodeBlock wrapWithNotNullOrNullableIf(String getterLiteral, String nullableGetterLiteral, CodeBlock codeBlock) {
-        return CodeBlock.builder().beginControlFlow("if($L != null || $L)", getterLiteral, nullableGetterLiteral).add(codeBlock)
+    public static CodeBlock wrapWithNotNullOrNullableIf(@NonNull CodeBlock getterCodeBlock, @NonNull CodeBlock nullableGetterCodeBlock,
+            @NonNull CodeBlock codeBlock) {
+        return CodeBlock.builder().beginControlFlow("if($L != null || $L)", getterCodeBlock, nullableGetterCodeBlock).add(codeBlock)
                 .endControlFlow().build();
     }
 
-    public static CodeBlock wrapWithNullableIf(String nullableGetterLiteral, CodeBlock codeBlock) {
-        return CodeBlock.builder().beginControlFlow("if($L)", nullableGetterLiteral).add(codeBlock).endControlFlow().build();
+    public static CodeBlock wrapWithNullableIf(@NonNull CodeBlock nullableGetterCodeBlock, @NonNull CodeBlock codeBlock) {
+        return CodeBlock.builder().beginControlFlow("if($L)", nullableGetterCodeBlock).add(codeBlock).endControlFlow().build();
     }
 
-    public static CodeBlock wrapWithNotNullIf(String getterLiteral, CodeBlock codeBlock) {
-        return CodeBlock.builder().beginControlFlow("if($L != null)", getterLiteral).add(codeBlock).endControlFlow().build();
+    public static CodeBlock wrapWithNotNullIf(@NonNull CodeBlock getterCodeBlock, @NonNull CodeBlock codeBlock) {
+        return CodeBlock.builder().beginControlFlow("if($L != null)", getterCodeBlock).add(codeBlock).endControlFlow().build();
     }
 
-    public static CodeBlock wrapWithElse(CodeBlock codeBlock) {
+    public static CodeBlock wrapWithElse(@NonNull CodeBlock codeBlock) {
         return CodeBlock.builder().beginControlFlow("else").add(codeBlock).endControlFlow().build();
     }
 
-    public static CodeBlock concatenate(CodeBlock... blocks) {
+    public static CodeBlock concatenate(@NonNull CodeBlock... blocks) {
         CodeBlock.Builder builder = CodeBlock.builder();
         for (CodeBlock block : blocks) {
             builder.add(block);
@@ -103,12 +114,16 @@ public class CodeBlockUtils {
         return builder.build();
     }
 
-    public static String getterLiteral(String property, String getter) {
-        return String.format("%s.%s()", property, getter);
+    public static CodeBlock getterCodeBlock(@NonNull String property, @NonNull String getter) {
+        return CodeBlock.builder().add("$L.$L()", property, getter).build();
     }
 
-    public static String getterLiteral(String getter) {
-        return getterLiteral(DTO_PARAM_NAME, getter);
+    public static CodeBlock getterCodeBlock(@NonNull String getter) {
+        return getterCodeBlock(DTO_PARAM_NAME, getter);
+    }
+
+    public static CodeBlock codeBlock(String code) {
+        return CodeBlock.builder().add(code).build();
     }
 
 }
