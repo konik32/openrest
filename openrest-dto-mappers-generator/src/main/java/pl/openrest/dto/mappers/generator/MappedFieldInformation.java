@@ -4,6 +4,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
 import pl.openrest.dto.annotations.Dto;
@@ -32,7 +33,7 @@ public class MappedFieldInformation {
     }
 
     public String getSetterName() {
-        return propertyDescriptor.getReadMethod().getName();
+        return propertyDescriptor.getWriteMethod().getName();
     }
 
     public boolean isNullable() {
@@ -48,13 +49,13 @@ public class MappedFieldInformation {
     }
 
     public boolean isDto() {
-        return field.getAnnotation(Dto.class) != null;
+        return AnnotationUtils.getAnnotation(getType(), Dto.class) != null;
     }
 
     public Class<?> getEntityType() {
         if (!isDto())
             throw new IllegalStateException(String.format("%s field type is not dto", toString()));
-        return field.getAnnotation(Dto.class).entityType();
+        return AnnotationUtils.getAnnotation(getType(), Dto.class).entityType();
     }
 
     public String getNullableGetterName() {

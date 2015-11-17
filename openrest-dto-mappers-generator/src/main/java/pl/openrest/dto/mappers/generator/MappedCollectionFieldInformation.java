@@ -2,7 +2,6 @@ package pl.openrest.dto.mappers.generator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Collection;
 
 import org.springframework.core.annotation.AnnotationUtils;
@@ -18,7 +17,7 @@ public class MappedCollectionFieldInformation extends MappedFieldInformation {
     }
 
     public Class<?> getRawType() {
-        return (Class<?>) ((ParameterizedType) (Type) getType()).getActualTypeArguments()[0];
+        return (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
     }
 
     @Override
@@ -30,7 +29,7 @@ public class MappedCollectionFieldInformation extends MappedFieldInformation {
     public Class<?> getEntityType() {
         if (!isDto())
             throw new IllegalStateException(String.format("%s field raw type is not dto", toString()));
-        return super.getEntityType();
+        return AnnotationUtils.getAnnotation(getRawType(), Dto.class).entityType();
     }
 
 }
