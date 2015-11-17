@@ -30,13 +30,13 @@ public class RemotePredicateRepositoryGeneratorMojo extends AbstractGeneratorMoj
     }
 
     @Override
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
         typeResolvers.add(new PredicateRepositoryResolver());
         super.addDefaultTypeResolvers(typeResolvers);
     }
 
     @Override
-    protected void addDefaultScanners(List<Scanner> scanners) {
+    protected void addDefaultScanners(List<Scanner> scanners) throws MojoExecutionException {
         scanners.add(new TypeAnnotationsScanner());
         scanners.add(new MethodParameterNamesScanner());
     }

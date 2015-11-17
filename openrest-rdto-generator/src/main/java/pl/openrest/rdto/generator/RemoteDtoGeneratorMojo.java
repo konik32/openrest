@@ -47,7 +47,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     }
 
     @Override
-    protected Configuration createConfiguration() {
+    protected Configuration createConfiguration() throws MojoExecutionException {
         Configuration configuration = super.createConfiguration();
         configuration.put("dtoFieldFilters", dtoFieldFilters);
         configuration.put("entityAnnotations", getEntityAnnotations());
@@ -56,7 +56,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     };
 
     @Override
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
         dtoFieldFilters.add(new NonFinalOrStaticFieldFilter());
         typeResolvers.add(new EntityTypeResolver());
         DtoTypeResolver dtoTypeResolver = new DtoTypeResolver(new CompositeFieldFilter(dtoFieldFilters));
@@ -65,7 +65,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     }
 
     @Override
-    protected void initializeDefault() {
+    protected void initializeDefault() throws MojoExecutionException {
         super.initializeDefault();
         if (dtoFieldFilters == null) {
             dtoFieldFilters = new LinkedList<>();
@@ -76,7 +76,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     }
 
     @Override
-    protected void addDefaultScanners(List<Scanner> scanners) {
+    protected void addDefaultScanners(List<Scanner> scanners) throws MojoExecutionException {
         scanners.add(new TypeAnnotationsScanner());
     }
 

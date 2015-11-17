@@ -63,7 +63,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
 
     protected abstract void doExecute() throws MojoExecutionException;
 
-    protected Configuration createConfiguration() {
+    protected Configuration createConfiguration() throws MojoExecutionException {
         Configuration configuration = new Configuration();
         configuration.put("defaultNamingStrategy", defaultNamingStrategy);
         configuration.put("outputDirectory", outputDirectory);
@@ -77,12 +77,12 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
         return configuration;
     }
 
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
         typeResolvers.add(new EnumTypeResolver());
         typeResolvers.add(new SameTypeResolver());
     }
 
-    protected void initializeDefault() {
+    protected void initializeDefault() throws MojoExecutionException {
         if (defaultNamingStrategy == null)
             defaultNamingStrategy = new DefaultRemoteClassNamingStrategy();
         if (reflectionsFactory == null)
@@ -95,7 +95,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
             scanners = new LinkedList<>();
     }
 
-    protected abstract void addDefaultScanners(List<Scanner> scanners);
+    protected abstract void addDefaultScanners(List<Scanner> scanners) throws MojoExecutionException;
 
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
