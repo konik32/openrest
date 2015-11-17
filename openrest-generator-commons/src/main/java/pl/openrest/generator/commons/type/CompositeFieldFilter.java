@@ -1,4 +1,4 @@
-package pl.openrest.rdto.generator;
+package pl.openrest.generator.commons.type;
 
 import java.lang.reflect.Field;
 import java.util.List;

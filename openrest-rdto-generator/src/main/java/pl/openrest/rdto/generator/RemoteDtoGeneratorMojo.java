@@ -21,7 +21,9 @@ import pl.openrest.dto.annotations.Dto;
 import pl.openrest.generator.commons.AbstractGeneratorMojo;
 import pl.openrest.generator.commons.Configuration;
 import pl.openrest.generator.commons.entity.DefaultEntityInformationRegistry;
+import pl.openrest.generator.commons.type.CompositeFieldFilter;
 import pl.openrest.generator.commons.type.EntityTypeResolver;
+import pl.openrest.generator.commons.type.NonFinalOrStaticFieldFilter;
 import pl.openrest.generator.commons.type.TypeResolver;
 
 @Mojo(name = "process", defaultPhase = LifecyclePhase.PROCESS_SOURCES)

@@ -25,6 +25,7 @@ import pl.openrest.dto.annotations.Dto;
 import pl.openrest.dto.registry.DtoType;
 import pl.openrest.generator.commons.Configuration;
 import pl.openrest.generator.commons.RemoteClassNamingStrategy;
+import pl.openrest.generator.commons.type.NonFinalOrStaticFieldFilter;
 import pl.openrest.generator.commons.type.TypeFileWriter;
 import pl.openrest.generator.commons.type.TypeResolver;
 
