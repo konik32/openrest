@@ -1,6 +1,5 @@
 package pl.openrest.dto.mapper;
 
-import pl.openrest.dto.registry.DtoInformation;
 
 /**
  * This interface should be implemented if there is a need for more control over
