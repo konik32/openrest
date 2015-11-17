@@ -34,22 +34,22 @@ import pl.openrest.generator.commons.type.TypeResolverComposite;
 public abstract class AbstractGeneratorMojo extends AbstractMojo {
 
     @Parameter(required = true, defaultValue = "${project.build.directory}/generated-sources/java")
-    private File outputDirectory;
+    protected File outputDirectory;
 
     @Parameter
-    private RemoteClassNamingStrategy defaultNamingStrategy;
+    protected RemoteClassNamingStrategy defaultNamingStrategy;
 
     @Parameter
-    private List<TypeResolver> typeResolvers;
+    protected List<TypeResolver> typeResolvers;
 
     @Parameter(required = true, readonly = true)
-    private List<String> packagesToScan;
+    protected List<String> packagesToScan;
 
     @Parameter
-    private List<Scanner> scanners;
+    protected List<Scanner> scanners;
 
     @Parameter
-    private ReflectionsFactory reflectionsFactory;
+    protected ReflectionsFactory reflectionsFactory;
 
     protected Configuration configuration;
 
