@@ -14,9 +14,12 @@ import java.util.TreeSet;
 
 import javax.lang.model.element.Modifier;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import lombok.NonNull;
 import pl.openrest.dto.mapper.MapperDelegator;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -80,7 +83,7 @@ public class CodeBlockUtils {
     public static MethodSpec constructor() {
         return MethodSpec.constructorBuilder().addParameter(MapperDelegator.class, MAPPER_DELEGATOR_FIELD_NAME)
                 .addStatement("this.$L = $L", MAPPER_DELEGATOR_FIELD_NAME, MAPPER_DELEGATOR_FIELD_NAME).addModifiers(Modifier.PUBLIC)
-                .build();
+                .addAnnotation(AnnotationSpec.builder(Autowired.class).build()).build();
     }
 
     public static CodeBlock collecionLoop(@NonNull Class<?> elementType, @NonNull CodeBlock getterCodeBlock, @NonNull CodeBlock codeBlock) {

@@ -8,16 +8,15 @@ import javax.lang.model.element.Modifier;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import pl.openrest.dto.mapper.MapperDelegator;
-import pl.openrest.dto.mappers.generator.DtoMapperResolverTest.TestDto;
 import pl.openrest.generator.commons.utils.JavaPoetTestUtils;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
 
 public class CodeBlockUtilsTest {
 
@@ -127,7 +126,20 @@ public class CodeBlockUtilsTest {
         MethodSpec spec = CodeBlockUtils.constructor();
         // then
         Assert.assertThat(spec.toString(), Matchers.containsString("this.mapperDelegator = mapperDelegator;"));
-        Assert.assertThat(spec.toString(), Matchers.containsString("(pl.openrest.dto.mapper.MapperDelegator mapperDelegator)"));
+        Assert.assertEquals(1, spec.parameters.size());
+        Assert.assertEquals(TypeName.get(MapperDelegator.class), spec.parameters.get(0).type);
+        Assert.assertEquals("mapperDelegator", spec.parameters.get(0).name);
+    }
+
+    @Test
+    public void shouldConstructorReturnMethodSpecPublicConstructorWithAutowiredAnnotation() throws Exception {
+        // given
+        // when
+        MethodSpec spec = CodeBlockUtils.constructor();
+        // then
+        Assert.assertThat(spec.modifiers, Matchers.contains(Modifier.PUBLIC));
+        Assert.assertEquals(1, spec.annotations.size());
+        Assert.assertEquals(TypeName.get(Autowired.class), spec.annotations.get(0).type);
     }
 
     @Test
