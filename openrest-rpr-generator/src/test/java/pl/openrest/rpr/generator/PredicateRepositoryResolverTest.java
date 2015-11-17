@@ -108,7 +108,7 @@ public class PredicateRepositoryResolverTest {
         ArgumentCaptor<TypeSpec> dtoSpecCaptor = ArgumentCaptor.forClass(TypeSpec.class);
         Mockito.verify(typeFileWriter).write(dtoSpecCaptor.capture(), Mockito.anyString());
         TypeSpec spec = dtoSpecCaptor.getValue();
-        Assert.assertThat(spec.fieldSpecs.toString(), containsString("private static final boolean DEFAULTED_PAGEABLE = false"));
+        Assert.assertThat(spec.fieldSpecs.toString(), containsString("public static final boolean DEFAULTED_PAGEABLE = false"));
     }
 
     @Test
