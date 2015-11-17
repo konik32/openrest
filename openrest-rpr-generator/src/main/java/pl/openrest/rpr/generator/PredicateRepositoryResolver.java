@@ -70,7 +70,7 @@ public class PredicateRepositoryResolver implements TypeResolver, ConfigurationA
     }
 
     public void appendDefaultedPageableField(TypeSpec.Builder builder, boolean defaultedPageable) {
-        builder.addField(FieldSpec.builder(boolean.class, "DEFAULTED_PAGEABLE", Modifier.STATIC, Modifier.FINAL, Modifier.PRIVATE)
+        builder.addField(FieldSpec.builder(boolean.class, "DEFAULTED_PAGEABLE", Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
                 .initializer("$L", defaultedPageable).build());
     }
 
