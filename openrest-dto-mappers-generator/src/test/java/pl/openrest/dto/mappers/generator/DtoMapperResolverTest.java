@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldFilter;
 
@@ -134,14 +135,16 @@ public class DtoMapperResolverTest {
     }
 
     @Test
-    public void shouldResolveCreateTypeSpecWithGeneratedAnnotation() throws Exception {
+    public void shouldResolveCreateTypeSpecWithGeneratedAndComponentAnnotation() throws Exception {
         // given
         // when
         resolver.resolve(TestDto.class);
         // then
         TypeSpec spec = JavaPoetTestUtils.getTypeSpec(typeFileWriter);
+        Assert.assertEquals(2, spec.annotations.size());
         Assert.assertEquals(TypeName.get(Generated.class), spec.annotations.get(0).type);
         Assert.assertEquals("@javax.annotation.Generated(\"pl.openrest.dto.mappers.generator\")", spec.annotations.get(0).toString());
+        Assert.assertEquals(TypeName.get(Component.class), spec.annotations.get(1).type);
     }
 
     @Test

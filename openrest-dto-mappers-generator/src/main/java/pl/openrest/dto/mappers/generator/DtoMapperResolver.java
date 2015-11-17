@@ -7,6 +7,7 @@ import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
@@ -44,7 +45,7 @@ public class DtoMapperResolver implements TypeResolver, ConfigurationAware {
 
     @Override
     public boolean supports(Class<?> type) {
-        return type.getAnnotation(Dto.class) != null;
+        return AnnotationUtils.getAnnotation(type, Dto.class) != null;
     }
 
     @Override
@@ -56,7 +57,8 @@ public class DtoMapperResolver implements TypeResolver, ConfigurationAware {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(ParameterizedTypeName.get(CreateMapper.class, entityType, dtoType))
                 .addSuperinterface(ParameterizedTypeName.get(UpdateMapper.class, entityType, dtoType))
-                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value", "$S", GENERATOR_NAME).build());
+                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value", "$S", GENERATOR_NAME).build())
+                .addAnnotation(AnnotationSpec.builder(Component.class).build());
         //
         MethodSpec.Builder createMethod = getCreateMethodDefinition(dtoType, entityType);
         MethodSpec.Builder mergeMethod = getMergeMethodDefinition(dtoType, entityType);
