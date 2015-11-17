@@ -71,7 +71,7 @@ public class MappedFieldPairTest {
         Mockito.doReturn(Object.class).when(dtoFieldInfo).getType();
         Mockito.doReturn(Long.class).when(entityFieldInfo).getType();
         Mockito.when(dtoFieldInfo.isDto()).thenReturn(true);
-        Mockito.doReturn(Long.class).when(dtoFieldInfo).getEntityType();
+        Mockito.doReturn(Object.class).when(dtoFieldInfo).getEntityType();
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Matchers
@@ -110,7 +110,7 @@ public class MappedFieldPairTest {
         // when
         CodeBlock codeBlock = fieldPair.toCreateCodeBlock();
         // then
-        Assert.assertEquals("entity.setName(mapperDelegator.create(dto.getName()));\n", codeBlock.toString());
+        Assert.assertEquals("entity.setName((java.lang.Object) mapperDelegator.create(dto.getName()));\n", codeBlock.toString());
     }
 
     @Test
@@ -131,7 +131,7 @@ public class MappedFieldPairTest {
         // when
         CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
         // then
-        Assert.assertEquals("if(dto.getName()!=null){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock.toString()
+        Assert.assertEquals("if(dto.getName()!=null){mapperDelegator.merge(dto.getName(),entity.getName());}", codeBlock.toString()
                 .replaceAll("\\s", ""));
     }
 
@@ -144,7 +144,7 @@ public class MappedFieldPairTest {
         // when
         CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
         // then
-        Assert.assertEquals("if(dto.getName()!=null||dto.isSetName()){mapperDelegator.update(dto.getName(),entity.getName());}", codeBlock
+        Assert.assertEquals("if(dto.getName()!=null||dto.isSetName()){mapperDelegator.merge(dto.getName(),entity.getName());}", codeBlock
                 .toString().replaceAll("\\s", ""));
     }
 

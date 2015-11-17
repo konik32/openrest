@@ -83,7 +83,7 @@ public class MappedCollectionFieldPairTest {
         String expected = "if(dto.getList() !=null){"//
                 + "java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();"//
                 + "for(java.lang.Long o: dto.getList()){"//
-                + "list.add(mapperDelegator.create(o));"//
+                + "list.add((java.lang.Object) mapperDelegator.create(o));"//
                 + "}"//
                 + "entity.setList(list);"//
                 + "}else{"//
@@ -105,7 +105,7 @@ public class MappedCollectionFieldPairTest {
         String expected = "if(dto.getList() !=null || dto.isListSet()){"//
                 + "java.util.ArrayList<java.lang.Object> list = new java.util.ArrayList<java.lang.Object>();"//
                 + "for(java.lang.Long o: dto.getList()){"//
-                + "list.add(mapperDelegator.create(o));"//
+                + "list.add((java.lang.Object) mapperDelegator.create(o));"//
                 + "}"//
                 + "entity.setList(list);"//
                 + "}else{"//

@@ -12,37 +12,40 @@ public class MappedCollectionFieldPair extends MappedFieldPair {
 
     @Override
     public CodeBlock toCreateCodeBlock() {
-        String dtoFieldGetterLiteral = CodeBlockUtils.getterLiteral(dtoFieldInfo.getGetterName());
-        CodeBlock ifBlock = CodeBlockUtils.wrapWithNotNullIf(dtoFieldGetterLiteral, toIfInnerBlock());
+        CodeBlock dtoFieldGetterCodeBlock = CodeBlockUtils.getterCodeBlock(dtoFieldInfo.getGetterName());
+        CodeBlock ifBlock = CodeBlockUtils.wrapWithNotNullIf(dtoFieldGetterCodeBlock, toIfInnerBlock());
         return CodeBlockUtils.concatenate(ifBlock, toElseCodeBlock());
     }
 
     private CodeBlock toIfInnerBlock() {
-        String addLiteral = dtoFieldInfo.isDto() ? CodeBlockUtils.delegateCreateLiteral(CodeBlockUtils.COLLECTION_ELEM_NAME)
-                : CodeBlockUtils.COLLECTION_ELEM_NAME;
-        String dtoFieldGetterLiteral = CodeBlockUtils.getterLiteral(dtoFieldInfo.getGetterName());
-        CodeBlock add = CodeBlockUtils.addCodeBlock(dtoFieldInfo.getName(), addLiteral);
-        CodeBlock loop = CodeBlockUtils.collecionLoop(getDtoField().getRawType(), dtoFieldGetterLiteral, add);
+        CodeBlock addCodeBlock = dtoFieldInfo.isDto() ? CodeBlockUtils.delegateCreateCodeBlock(getEntityField().getRawType(),
+                CodeBlockUtils.codeBlock(CodeBlockUtils.COLLECTION_ELEM_NAME)) : CodeBlockUtils
+                .codeBlock(CodeBlockUtils.COLLECTION_ELEM_NAME);
+        CodeBlock dtoFieldGetterCodeBlock = CodeBlockUtils.getterCodeBlock(dtoFieldInfo.getGetterName());
+        CodeBlock add = CodeBlockUtils.addCodeBlock(dtoFieldInfo.getName(), addCodeBlock);
+        CodeBlock loop = CodeBlockUtils.collecionLoop(getDtoField().getRawType(), dtoFieldGetterCodeBlock, add);
         CodeBlock collectionVariable = CodeBlockUtils.collectionVariable(dtoFieldInfo.getName(), getEntityField().getType(),
                 getEntityField().getRawType());
-        CodeBlock setterNotNull = CodeBlockUtils.setterCodeBlock(entityFieldInfo.getSetterName(), dtoFieldInfo.getName());
+        CodeBlock setterNotNull = CodeBlockUtils.setterCodeBlock(entityFieldInfo.getSetterName(),
+                CodeBlockUtils.codeBlock(dtoFieldInfo.getName()));
         return CodeBlockUtils.concatenate(collectionVariable, loop, setterNotNull);
     }
 
     private CodeBlock toElseCodeBlock() {
-        CodeBlock setterNull = CodeBlockUtils.setterCodeBlock(entityFieldInfo.getSetterName(), "null");
+        CodeBlock setterNull = CodeBlockUtils.setterCodeBlock(entityFieldInfo.getSetterName(), CodeBlockUtils.codeBlock("null"));
         return CodeBlockUtils.wrapWithElse(setterNull);
     }
 
     @Override
     public CodeBlock toUpdateCodeBlock() {
-        String dtoFieldGetterLiteral = CodeBlockUtils.getterLiteral(dtoFieldInfo.getGetterName());
+        CodeBlock dtoFieldGetterCodeBlock = CodeBlockUtils.getterCodeBlock(dtoFieldInfo.getGetterName());
         CodeBlock ifBlock;
         if (dtoFieldInfo.isNullable()) {
-            String dtoFieldNullableGetterLiteral = CodeBlockUtils.getterLiteral(dtoFieldInfo.getNullableGetterName());
-            ifBlock = CodeBlockUtils.wrapWithNotNullOrNullableIf(dtoFieldGetterLiteral, dtoFieldNullableGetterLiteral, toIfInnerBlock());
+            CodeBlock dtoFieldNullableGetterCodeBlock = CodeBlockUtils.getterCodeBlock(dtoFieldInfo.getNullableGetterName());
+            ifBlock = CodeBlockUtils
+                    .wrapWithNotNullOrNullableIf(dtoFieldGetterCodeBlock, dtoFieldNullableGetterCodeBlock, toIfInnerBlock());
         } else {
-            ifBlock = CodeBlockUtils.wrapWithNotNullIf(dtoFieldGetterLiteral, toIfInnerBlock());
+            ifBlock = CodeBlockUtils.wrapWithNotNullIf(dtoFieldGetterCodeBlock, toIfInnerBlock());
         }
         return CodeBlockUtils.concatenate(ifBlock, toElseCodeBlock());
     }
