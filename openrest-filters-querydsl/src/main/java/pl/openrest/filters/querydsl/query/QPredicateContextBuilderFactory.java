@@ -7,15 +7,16 @@ import java.util.List;
 import lombok.Getter;
 
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.util.ReflectionUtils;
 
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
+import pl.openrest.filters.predicate.PredicateRepository;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.AbstractPredicateContextBuilderFactory;
 import pl.openrest.filters.query.PredicateContextBuilder;
 import pl.openrest.filters.query.registry.JoinInformation;
+import pl.openrest.filters.query.registry.QJoinInformation;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
 import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory.QPredicateContextBuilder;
 import pl.openrest.predicate.parser.FilterPart;
@@ -42,14 +43,14 @@ public class QPredicateContextBuilderFactory extends AbstractPredicateContextBui
 
     public class QPredicateContextBuilder implements PredicateContextBuilder {
 
-        private List<JoinInformation> joins = new LinkedList<>();
+        private List<QJoinInformation> joins = new LinkedList<>();
         private BooleanExpression expression;
-        private final FilterableEntityInformation entityInfo;
+        private final PredicateRepository predicateRepository;
         @SuppressWarnings("rawtypes")
         private final PathBuilder pathBuilder;
 
         public QPredicateContextBuilder(FilterableEntityInformation entityInfo) {
-            this.entityInfo = entityInfo;
+            this.predicateRepository = entityInfo.getPredicateRepository();
             this.pathBuilder = pathBuilderFactory.create(entityInfo.getEntityType());
         }
 
@@ -75,7 +76,7 @@ public class QPredicateContextBuilderFactory extends AbstractPredicateContextBui
         }
 
         public PredicateContextBuilder withStaticFilters() {
-            List<StaticFilterInformation> staticFilters = entityInfo.getStaticFilters();
+            List<StaticFilterInformation> staticFilters = predicateRepository.getStaticFilters();
             for (StaticFilterInformation staticFilter : staticFilters) {
                 if (staticFilterConditionEvaluator == null
                         || !staticFilterConditionEvaluator.evaluateCondition(staticFilter.getCondition())) {
@@ -107,7 +108,7 @@ public class QPredicateContextBuilderFactory extends AbstractPredicateContextBui
 
         @SuppressWarnings("rawtypes")
         private Expression createExpression(PredicateParts predicateParts) {
-            PredicateInformation predicateInfo = entityInfo.getPredicateInformation(predicateParts.getPredicateName());
+            PredicateInformation predicateInfo = predicateRepository.getPredicateInformation(predicateParts.getPredicateName());
             if (predicateInfo == null)
                 throw new IllegalArgumentException("No such predicate" + predicateParts.getPredicateName());
             Object[] parameters = predicateParameterConverter.convert(predicateInfo.getMethod(), predicateParts.getParameters());
@@ -116,8 +117,8 @@ public class QPredicateContextBuilderFactory extends AbstractPredicateContextBui
 
         @SuppressWarnings("rawtypes")
         private Expression createExpression(PredicateInformation predicateInfo, Object[] parameters) {
-            joins.addAll(predicateInfo.getJoins());
-            return (Expression) ReflectionUtils.invokeMethod(predicateInfo.getMethod(), entityInfo.getPredicateRepository(), parameters);
+            joins.addAll((List<QJoinInformation>) predicateInfo.getJoins());
+            return (Expression) predicateRepository.getPredicate(predicateInfo, parameters);
         }
 
         public QPredicateContext build() {

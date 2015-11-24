@@ -10,8 +10,9 @@ import pl.openrest.filters.predicate.ConversionServiceBasedIdConverter;
 import pl.openrest.filters.predicate.ConversionServiceBasedMethodParameterConverter;
 import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
+import pl.openrest.filters.predicate.PredicateRepositoryFactory;
 import pl.openrest.filters.predicate.SpelMethodParameterConverter;
-import pl.openrest.filters.query.PredicateContextBuilderFactory;
+import pl.openrest.filters.querydsl.predicate.QPredicateRepositoryFactory;
 import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory;
 import pl.openrest.filters.querydsl.webmvc.support.PageAndSortUtils;
 import pl.openrest.predicate.parser.PredicatePartsExtractor;
@@ -55,5 +56,10 @@ public class OpenRestQueryDslFiltersConfiguration {
     @Bean
     public OpenRestQueryDslFiltersConfigurer openRestQueryDslFiltersConfigurer() {
         return new OpenRestQueryDslFiltersConfigurer();
+    }
+
+    @Bean
+    public PredicateRepositoryFactory qPredicateRepositoryFactory() {
+        return new QPredicateRepositoryFactory();
     }
 }

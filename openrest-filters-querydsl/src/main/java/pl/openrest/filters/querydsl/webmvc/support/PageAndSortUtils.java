@@ -50,7 +50,7 @@ public class PageAndSortUtils {
 
     private Expression getExpression(Sort.Order order, FilterableEntityInformation entityInfo) {
         PredicateParts predicateParts = predicatePartsExtractor.extractParts(order.getProperty());
-        if (entityInfo.getPredicateInformation(predicateParts.getPredicateName()) != null) {
+        if (entityInfo.getPredicateRepository().getPredicateInformation(predicateParts.getPredicateName()) != null) {
             QPredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
             predicateContextBuilder.withPredicateParts(predicateParts);
             return predicateContextBuilder.build().getPredicate();

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.support.Repositories;
 
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
+import pl.openrest.filters.predicate.PredicateRepositoryFactory;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
 import pl.openrest.filters.webmvc.FilterableEntityResolver;
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
@@ -22,9 +23,12 @@ public class OpenRestFiltersConfiguration {
     @Autowired
     private PredicateContextBuilderFactory<?> predicateContextBuilderFactory;
 
+    @Autowired
+    private PredicateRepositoryFactory predicateRepositoryFactory;
+
     @Bean
     public FilterableEntityRegistry filterableEntityRegistry() {
-        return new FilterableEntityRegistry(repositories);
+        return new FilterableEntityRegistry(repositories, predicateRepositoryFactory);
     }
 
     @Bean

@@ -19,7 +19,7 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
-import pl.openrest.filters.query.registry.JoinInformation;
+import pl.openrest.filters.query.registry.QJoinInformation;
 import pl.openrest.filters.querydsl.query.QPredicateContext;
 
 import com.mysema.query.jpa.JPQLQuery;
@@ -92,7 +92,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query, QPredicateContext context) {
-        for (JoinInformation join : context.getJoins()) {
+        for (QJoinInformation join : context.getJoins()) {
             if (join.isCollection())
                 query = query.leftJoin((CollectionPath) join.getPath(), pathBuilderFactory.create(join.getType()));
             else

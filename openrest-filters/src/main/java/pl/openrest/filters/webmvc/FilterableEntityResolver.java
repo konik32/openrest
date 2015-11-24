@@ -48,7 +48,7 @@ public class FilterableEntityResolver implements ResourceResolver, QueryMethodEx
 
         PredicateContext<?> predicateContext = buildCollectionPredicateContext(resourceInformation, parameters, entityInfo);
 
-        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.isDefaultedPageable());
+        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.getPredicateRepository().isDefaultedPageable());
         return getResult(entityInfo.getRepositoryInvoker(), predicateContext, pageable, sort, addDefaultPageable);
     }
 
@@ -74,8 +74,9 @@ public class FilterableEntityResolver implements ResourceResolver, QueryMethodEx
 
         PredicateContext<?> predicateContext = buildQueryMethodPredicateContext(resourceInformation, parameters, searchPredicateParts,
                 entityInfo);
-        PredicateInformation searchPredicateInformation = entityInfo.getPredicateInformation(searchPredicateParts.getPredicateName());
-        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.isDefaultedPageable(),
+        PredicateInformation searchPredicateInformation = entityInfo.getPredicateRepository().getPredicateInformation(
+                searchPredicateParts.getPredicateName());
+        boolean addDefaultPageable = checkIfAddDefaultPageable(entityInfo.getPredicateRepository().isDefaultedPageable(),
                 searchPredicateInformation.isDefaultedPageable());
         return getResult(entityInfo.getRepositoryInvoker(), predicateContext, pageable, sort, addDefaultPageable);
     }
