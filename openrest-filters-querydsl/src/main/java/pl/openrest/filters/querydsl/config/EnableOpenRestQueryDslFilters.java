@@ -18,7 +18,7 @@ import pl.openrest.filters.querydsl.repository.PredicateContextAwareJpaFactoryBe
 @Documented
 @Inherited
 @EnableJpaRepositories(repositoryFactoryBeanClass = PredicateContextAwareJpaFactoryBean.class)
-@Import(OpenRestFiltersConfiguration.class)
+@Import({ OpenRestFiltersConfiguration.class, OpenRestQueryDslFiltersConfiguration.class })
 public @interface EnableOpenRestQueryDslFilters {
 
 }
