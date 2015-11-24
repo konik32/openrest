@@ -4,10 +4,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-import java.util.List;
-
-import lombok.Getter;
-import lombok.Setter;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,15 +16,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.repository.support.Repositories;
 
 import pl.openrest.filters.predicate.PredicateRepositoryFactory;
-import pl.openrest.filters.predicate.annotation.Predicate;
-import pl.openrest.filters.predicate.annotation.Predicate.PredicateType;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
-import pl.openrest.filters.query.annotation.Join;
-import pl.openrest.filters.query.annotation.StaticFilter;
 import pl.openrest.filters.repository.PredicateContextRepository;
-
-import com.mysema.query.types.expr.BooleanExpression;
-import com.mysema.query.types.expr.NumberExpression;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FilterableEntityRegistryTest {
