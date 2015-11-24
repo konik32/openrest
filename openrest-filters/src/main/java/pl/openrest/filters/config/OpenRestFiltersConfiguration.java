@@ -16,7 +16,6 @@ import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.SpelMethodParameterConverter;
 import pl.openrest.filters.query.PredicateContextBuilderFactory;
 import pl.openrest.filters.webmvc.FilterableEntityResolver;
-import pl.openrest.filters.webmvc.support.PageAndSortUtils;
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
 import pl.openrest.predicate.parser.DefaultPredicatePartsExtractor;
 import pl.openrest.predicate.parser.FilterTreeBuilder;
@@ -30,6 +29,9 @@ public class OpenRestFiltersConfiguration {
 
     // @Autowired
     // private ResourceMetadataHandlerMethodArgumentResolver resourceMetadataResolver;
+
+    @Autowired
+    private PredicateContextBuilderFactory<?> predicateContextBuilderFactory;
 
     @Autowired
     private ConversionService defaultConversionService;
@@ -65,23 +67,13 @@ public class OpenRestFiltersConfiguration {
     }
 
     @Bean
-    public PredicateContextBuilderFactory predicateContextBuilderFactory() {
-        return new PredicateContextBuilderFactory(predicateParameterConverter(), staticFiltersParameterConverter(), idConverter());
-    }
-
-    @Bean
     public OpenRestConfigurer openRestFiltersConfigurer() {
         return new OpenRestFiltersConfigurer();
     }
 
     @Bean
-    public PageAndSortUtils pageAndSortUtils() {
-        return new PageAndSortUtils(predicateContextBuilderFactory(), predicatePartsExtractor());
-    }
-
-    @Bean
     public FilterableEntityResolver filterableEntityResolver() {
-        return new FilterableEntityResolver(predicateContextBuilderFactory(), filterableEntityRegistry(), filterTreeBuilder(),
+        return new FilterableEntityResolver(predicateContextBuilderFactory, filterableEntityRegistry(), filterTreeBuilder(),
                 predicatePartsExtractor());
     }
 

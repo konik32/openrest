@@ -1,4 +1,4 @@
-package pl.openrest.filters.webmvc;
+package pl.openrest.filters.querydsl.webmvc;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.rest.webmvc.support.DefaultedPageable;
@@ -9,7 +9,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
-import pl.openrest.filters.webmvc.support.PageAndSortUtils;
+import pl.openrest.filters.querydsl.webmvc.support.PageAndSortUtils;
+import pl.openrest.filters.webmvc.FilterableEntityInformationMethodArgumentResolver;
 
 public class DefaultedQPageableHandlerMethodArgumentResolver extends DefaultedPageableHandlerMethodArgumentResolver {
 

@@ -23,7 +23,7 @@ import pl.openrest.filters.predicate.annotation.PredicateRepository;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
 import pl.openrest.filters.query.annotation.StaticFilter;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
-import pl.openrest.filters.repository.PredicateContextQueryDslRepository;
+import pl.openrest.filters.repository.PredicateContextRepository;
 import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 
 public class FilterableEntityRegistry implements ApplicationContextAware {
@@ -95,8 +95,8 @@ public class FilterableEntityRegistry implements ApplicationContextAware {
 
     private void addPredicateContextRepositoryInvoker(Class<?> entityType, FilterableEntityInformationBuilder builder) {
         Object repository = repositories.getRepositoryFor(entityType);
-        if (repository instanceof PredicateContextQueryDslRepository)
-            builder.repositoryInvoker(new PredicateContextRepositoryInvoker((PredicateContextQueryDslRepository) repository));
+        if (repository instanceof PredicateContextRepository)
+            builder.repositoryInvoker(new PredicateContextRepositoryInvoker((PredicateContextRepository) repository));
         else
             throw new IllegalStateException("You must specify PredicateContextQueryDslRepository for " + entityType);
     }

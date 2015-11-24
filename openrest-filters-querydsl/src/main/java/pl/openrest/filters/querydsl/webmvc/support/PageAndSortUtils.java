@@ -1,4 +1,4 @@
-package pl.openrest.filters.webmvc.support;
+package pl.openrest.filters.querydsl.webmvc.support;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,8 @@ import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
-import pl.openrest.filters.query.PredicateContextBuilderFactory;
-import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContextBuilder;
+import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory;
+import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory.QPredicateContextBuilder;
 import pl.openrest.predicate.parser.PredicateParts;
 import pl.openrest.predicate.parser.PredicatePartsExtractor;
 
@@ -23,7 +23,7 @@ import com.mysema.query.types.OrderSpecifier;
 @RequiredArgsConstructor
 public class PageAndSortUtils {
 
-    private final PredicateContextBuilderFactory predicateContextBuilderFactory;
+    private final QPredicateContextBuilderFactory predicateContextBuilderFactory;
     private final PredicatePartsExtractor predicatePartsExtractor;
 
     public QPageRequest toQPageRequest(Pageable pageable, FilterableEntityInformation entityInfo) {
@@ -51,7 +51,7 @@ public class PageAndSortUtils {
     private Expression getExpression(Sort.Order order, FilterableEntityInformation entityInfo) {
         PredicateParts predicateParts = predicatePartsExtractor.extractParts(order.getProperty());
         if (entityInfo.getPredicateInformation(predicateParts.getPredicateName()) != null) {
-            PredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
+            QPredicateContextBuilder predicateContextBuilder = predicateContextBuilderFactory.create(entityInfo);
             predicateContextBuilder.withPredicateParts(predicateParts);
             return predicateContextBuilder.build().getPredicate();
         }

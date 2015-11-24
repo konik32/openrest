@@ -16,8 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 
 import pl.openrest.filters.predicate.annotation.Predicate;
@@ -25,7 +23,7 @@ import pl.openrest.filters.predicate.annotation.Predicate.PredicateType;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
 import pl.openrest.filters.query.annotation.Join;
 import pl.openrest.filters.query.annotation.StaticFilter;
-import pl.openrest.filters.repository.PredicateContextQueryDslRepository;
+import pl.openrest.filters.repository.PredicateContextRepository;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.NumberExpression;
@@ -43,7 +41,7 @@ public class FilterableEntityRegistryTest {
 
     @Before
     public void setUp() {
-        when(repositories.getRepositoryFor(Product.class)).thenReturn(mock(PredicateContextQueryDslRepository.class));
+        when(repositories.getRepositoryFor(Product.class)).thenReturn(mock(PredicateContextRepository.class));
         when(applicationContext.getBeansWithAnnotation(PredicateRepository.class)).thenReturn(
                 Collections.singletonMap("ProductExpressions", (Object) new ProductPredicates()));
         registry = new FilterableEntityRegistry(repositories);

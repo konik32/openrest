@@ -1,4 +1,4 @@
-package pl.openrest.filters.query;
+package pl.openrest.filters.querydsl.query;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -19,9 +19,11 @@ import pl.openrest.filters.predicate.IdConverter;
 import pl.openrest.filters.predicate.MethodParameterConverter;
 import pl.openrest.filters.predicate.StaticFilterConditionEvaluator;
 import pl.openrest.filters.predicate.registry.PredicateInformation;
-import pl.openrest.filters.query.PredicateContextBuilderFactory.PredicateContextBuilder;
+import pl.openrest.filters.query.PredicateContext;
+import pl.openrest.filters.query.PredicateContextBuilder;
 import pl.openrest.filters.query.registry.JoinInformation;
 import pl.openrest.filters.query.registry.StaticFilterInformation;
+import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory.QPredicateContextBuilder;
 import pl.openrest.predicate.parser.DefaultFilterTreeBuilder;
 import pl.openrest.predicate.parser.DefaultPredicatePartsExtractor;
 import pl.openrest.predicate.parser.FilterPart;
@@ -31,7 +33,7 @@ import pl.openrest.predicate.parser.PredicateParts;
 import com.mysema.query.types.expr.BooleanExpression;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PredicateContextBuilderTest {
+public class QPredicateContextBuilderTest {
 
     @Mock
     private IdConverter idConverter;
@@ -59,7 +61,7 @@ public class PredicateContextBuilderTest {
 
     private Method method = ReflectionUtils.findMethod(TestClass.class, "testMethod");
 
-    private PredicateContextBuilderFactory builderFactory;
+    private QPredicateContextBuilderFactory builderFactory;
 
     @Before
     public void setUp() {
@@ -71,13 +73,13 @@ public class PredicateContextBuilderTest {
         Mockito.when(predicateInformation.getJoins()).thenReturn(Arrays.asList(joinInformation, joinInformation));
         Mockito.when(entityInfo.getPredicateInformation(Mockito.anyString())).thenReturn(predicateInformation);
 
-        builderFactory = new PredicateContextBuilderFactory(predicateParameterConverter, staticFilterParametersConverter, idConverter);
+        builderFactory = new QPredicateContextBuilderFactory(predicateParameterConverter, staticFilterParametersConverter, idConverter);
     }
 
     @Test
     public void shouldCallEntityInfoGetStaticFilters() throws Exception {
         // given
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         // when
         builder.withStaticFilters();
         // then
@@ -87,7 +89,7 @@ public class PredicateContextBuilderTest {
     @Test
     public void shouldCallStaticFilterParametersConverter() throws Exception {
         // given
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         String parameters[] = new String[] { "1", "2" };
         Mockito.when(staticFilterInformation.getParameters()).thenReturn(parameters);
         // when
@@ -105,7 +107,7 @@ public class PredicateContextBuilderTest {
         Mockito.when(staticFilterConditionEvaluator.evaluateCondition(staticFilterInformation.getCondition())).thenReturn(false);
         Mockito.when(entityInfo.getStaticFilters()).thenReturn(Arrays.asList(condintionalStaticFilter, staticFilterInformation));
         builderFactory.setStaticFilterConditionEvaluator(staticFilterConditionEvaluator);
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+       QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         // when
         builder.withStaticFilters();
         // then
@@ -116,7 +118,7 @@ public class PredicateContextBuilderTest {
     @Test
     public void shouldCallIdConverter() throws Exception {
         // given
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         Mockito.doReturn(TestClass.class).when(entityInfo).getEntityType();
         PersistentProperty idProperty = Mockito.mock(PersistentProperty.class);
         Mockito.when(idProperty.getName()).thenReturn("id");
@@ -131,7 +133,7 @@ public class PredicateContextBuilderTest {
     @Test
     public void shouldCallPredicateParametersConverter() throws Exception {
         // given
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         String parameters[] = new String[] { "1", "2" };
         PredicateParts predicateParts = new PredicateParts("testMethod", parameters);
         // when
@@ -146,7 +148,7 @@ public class PredicateContextBuilderTest {
         String parameters[] = new String[] { "1", "2" };
         PredicateParts predicateParts = new PredicateParts("testMethod", parameters);
         Mockito.when(entityInfo.getPredicateInformation(predicateParts.getPredicateName())).thenReturn(null);
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         // when
         builder.withPredicateParts(predicateParts);
         // then
@@ -156,10 +158,10 @@ public class PredicateContextBuilderTest {
     public void shouldAppendJoinsFromPredicateParts() throws Exception {
         // given
         PredicateParts predicateParts = new PredicateParts("testMethod", null);
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         // when
         builder.withPredicateParts(predicateParts);
-        PredicateContext context = builder.build();
+        QPredicateContext context = builder.build();
         // then
         Assert.assertEquals(Arrays.asList(joinInformation, joinInformation), context.getJoins());
     }
@@ -167,10 +169,10 @@ public class PredicateContextBuilderTest {
     @Test
     public void shouldAppendJoinsFromStaticFilters() throws Exception {
         // given
-        PredicateContextBuilder builder = builderFactory.create(entityInfo);
+        QPredicateContextBuilder builder = builderFactory.create(entityInfo);
         // when
         builder.withStaticFilters();
-        PredicateContext context = builder.build();
+        QPredicateContext context = builder.build();
         // then
         Assert.assertEquals(Arrays.asList(joinInformation, joinInformation, joinInformation, joinInformation), context.getJoins());
     }

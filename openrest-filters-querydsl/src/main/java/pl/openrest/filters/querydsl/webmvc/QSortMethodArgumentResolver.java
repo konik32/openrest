@@ -1,4 +1,4 @@
-package pl.openrest.filters.webmvc;
+package pl.openrest.filters.querydsl.webmvc;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
-import pl.openrest.filters.webmvc.support.PageAndSortUtils;
+import pl.openrest.filters.querydsl.webmvc.support.PageAndSortUtils;
+import pl.openrest.filters.webmvc.FilterableEntityInformationMethodArgumentResolver;
 
 @RequiredArgsConstructor
 public class QSortMethodArgumentResolver implements HandlerMethodArgumentResolver {

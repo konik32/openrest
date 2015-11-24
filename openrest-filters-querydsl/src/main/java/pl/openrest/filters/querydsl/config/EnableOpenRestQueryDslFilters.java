@@ -1,4 +1,4 @@
-package pl.openrest.filters.config;
+package pl.openrest.filters.querydsl.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import pl.openrest.filters.repository.PredicateContextAwareJpaFactoryBean;
+import pl.openrest.filters.config.OpenRestFiltersConfiguration;
+import pl.openrest.filters.querydsl.repository.PredicateContextAwareJpaFactoryBean;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,6 +19,6 @@ import pl.openrest.filters.repository.PredicateContextAwareJpaFactoryBean;
 @Inherited
 @EnableJpaRepositories(repositoryFactoryBeanClass = PredicateContextAwareJpaFactoryBean.class)
 @Import(OpenRestFiltersConfiguration.class)
-public @interface EnableOpenRestFilters {
+public @interface EnableOpenRestQueryDslFilters {
 
 }
