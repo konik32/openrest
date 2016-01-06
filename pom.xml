@@ -79,6 +79,7 @@
 		<module>openrest-rdto-generator</module>
 		<module>openrest-generator-commons</module>
 		<module>openrest-dto-mappers-generator</module>
+		<module>openrest-filters-querydsl</module>
 	</modules>
 
 	<build>

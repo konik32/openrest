@@ -1,4 +1,4 @@
-package pl.openrest.filters.webmvc;
+package pl.openrest.filters.querydsl.webmvc;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.querydsl.QSort;

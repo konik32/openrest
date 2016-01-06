@@ -1,4 +1,4 @@
-package pl.openrest.filters.repository;
+package pl.openrest.filters.querydsl.repository;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -19,8 +19,8 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
-import pl.openrest.filters.query.PredicateContext;
-import pl.openrest.filters.query.registry.JoinInformation;
+import pl.openrest.filters.query.registry.QJoinInformation;
+import pl.openrest.filters.querydsl.query.QPredicateContext;
 
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.AbstractJPAQuery;
@@ -38,7 +38,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     private final EntityPath<T> path;
     private final PathBuilder<T> builder;
     private final Querydsl querydsl;
-//    private final EntityManager em;
+    // private final EntityManager em;
     private final PathBuilderFactory pathBuilderFactory = new PathBuilderFactory();
 
     public PredicateContextQueryDslRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
@@ -60,24 +60,24 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     @Override
-    public T findOne(PredicateContext predicateContext) {
+    public T findOne(QPredicateContext predicateContext) {
         return createQuery(predicateContext).uniqueResult(path);
     }
 
     @Override
-    public Iterable<T> findAll(PredicateContext predicateContext) {
+    public Iterable<T> findAll(QPredicateContext predicateContext) {
         return createQuery(predicateContext).list(path);
     }
 
     @Override
-    public Iterable<T> findAll(PredicateContext predicateContext, Sort sort) {
+    public Iterable<T> findAll(QPredicateContext predicateContext, Sort sort) {
         JPQLQuery query = createQuery(predicateContext);
         query = querydsl.applySorting(sort, query);
         return query.list(path);
     }
 
     @Override
-    public Page<T> findAll(PredicateContext predicateContext, Pageable pageable) {
+    public Page<T> findAll(QPredicateContext predicateContext, Pageable pageable) {
         JPQLQuery countQuery = createQuery(predicateContext);
         JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicateContext));
 
@@ -87,12 +87,12 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
     }
 
     @Override
-    public long count(PredicateContext predicateContext) {
+    public long count(QPredicateContext predicateContext) {
         return createQuery(predicateContext).count();
     }
 
-    protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query, PredicateContext context) {
-        for (JoinInformation join : context.getJoins()) {
+    protected AbstractJPAQuery<JPAQuery> addJoins(AbstractJPAQuery<JPAQuery> query, QPredicateContext context) {
+        for (QJoinInformation join : context.getJoins()) {
             if (join.isCollection())
                 query = query.leftJoin((CollectionPath) join.getPath(), pathBuilderFactory.create(join.getType()));
             else
@@ -103,7 +103,7 @@ public class PredicateContextQueryDslRepositoryImpl<T, ID extends Serializable> 
         return query;
     }
 
-    protected JPQLQuery createQuery(PredicateContext context) {
+    protected JPQLQuery createQuery(QPredicateContext context) {
         AbstractJPAQuery<JPAQuery> query = querydsl.createQuery(path);
         query = addJoins(query, context);
         query.where(context.getPredicate());

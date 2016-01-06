@@ -1,4 +1,4 @@
-package pl.openrest.filters.repository;
+package pl.openrest.filters.querydsl.repository;
 
 import static org.springframework.data.querydsl.QueryDslUtils.QUERY_DSL_PRESENT;
 

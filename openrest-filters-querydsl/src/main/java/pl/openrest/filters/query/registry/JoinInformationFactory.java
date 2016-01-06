@@ -9,14 +9,14 @@ import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
-public class JoinInformationBuilder {
+public class JoinInformationFactory {
 
     private static PathBuilderFactory builderFactory = new PathBuilderFactory();
 
-    public static List<JoinInformation> getJoinsInformation(String joinPath, Class<?> entityType, boolean fetch) {
+    public static List<QJoinInformation> createJoinsInformation(String joinPath, Class<?> entityType, boolean fetch) {
         PathBuilder<?> builder = builderFactory.create(entityType);
         PropertyPath propertyPath = PropertyPath.from(joinPath, entityType);
-        List<JoinInformation> joins = new ArrayList<JoinInformation>();
+        List<QJoinInformation> joins = new ArrayList<QJoinInformation>();
         String dotPath = "";
         while (propertyPath != null) {
             Path<?> path = null;
@@ -28,7 +28,7 @@ public class JoinInformationBuilder {
             } else {
                 path = builder.get(dotPath, propertyPath.getType());
             }
-            joins.add(new JoinInformation(path, collection, fetch, propertyPath.getType()));
+            joins.add(new QJoinInformation(path, fetch, collection, propertyPath.getType()));
             propertyPath = propertyPath.next();
         }
         return joins;
