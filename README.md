@@ -7,5 +7,5 @@ If you want to read documentation for the release that was described in an [arti
 
 If you want to contribute to the project in any way please send me an email.
 Tasks that you can contribute to:
-- #13
+- [#13](https://github.com/konik32/openrest/issues/13)
 
