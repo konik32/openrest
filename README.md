@@ -6,7 +6,8 @@ If you want to read documentation for the release that was described in an [arti
 # Contribution
 
 Tasks that you can contribute to:
-- [#13](https://github.com/konik32/openrest/issues/13)
+- [Add openrest-filters JPA implementation #13](https://github.com/konik32/openrest/issues/13)
+- [Create/Enhance OpenRest documentation #14](https://github.com/konik32/openrest/issues/14)
 
 If you want to contribute to the project in any way please send me an email.
 
