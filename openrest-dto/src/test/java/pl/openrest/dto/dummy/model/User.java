@@ -1,5 +1,7 @@
 package pl.openrest.dto.dummy.model;
 
+import org.springframework.data.annotation.Id;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +9,9 @@ import lombok.Setter;
 @Setter
 public class User{
 	public User() {}
+	
+	@Id
+	private Long id;
 	
 	private String name;
 
