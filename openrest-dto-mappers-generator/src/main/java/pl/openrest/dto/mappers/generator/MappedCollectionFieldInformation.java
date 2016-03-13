@@ -10,8 +10,8 @@ import pl.openrest.dto.annotations.Dto;
 
 public class MappedCollectionFieldInformation extends MappedFieldInformation {
 
-    public MappedCollectionFieldInformation(Field field) {
-        super(field);
+    public MappedCollectionFieldInformation(Field field, boolean isEntity) {
+        super(field, isEntity);
         if (!Collection.class.isAssignableFrom(field.getType()))
             throw new IllegalArgumentException(String.format("%s is not a Collection", toString()));
     }

@@ -14,6 +14,7 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 
 import pl.openrest.dto.annotations.Dto;
 import pl.openrest.dto.mapper.CreateMapper;
+import pl.openrest.dto.mapper.Default;
 import pl.openrest.dto.mapper.UpdateMapper;
 import pl.openrest.dto.mappers.generator.utils.CodeBlockUtils;
 import pl.openrest.generator.commons.Configuration;
@@ -58,7 +59,8 @@ public class DtoMapperResolver implements TypeResolver, ConfigurationAware {
                 .addSuperinterface(ParameterizedTypeName.get(CreateMapper.class, entityType, dtoType))
                 .addSuperinterface(ParameterizedTypeName.get(UpdateMapper.class, entityType, dtoType))
                 .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value", "$S", GENERATOR_NAME).build())
-                .addAnnotation(AnnotationSpec.builder(Component.class).build());
+                .addAnnotation(AnnotationSpec.builder(Component.class).build())
+                .addAnnotation(AnnotationSpec.builder(Default.class).build());
         //
         MethodSpec.Builder createMethod = getCreateMethodDefinition(dtoType, entityType);
         MethodSpec.Builder mergeMethod = getMergeMethodDefinition(dtoType, entityType);

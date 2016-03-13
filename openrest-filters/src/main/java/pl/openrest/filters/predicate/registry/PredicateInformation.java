@@ -1,6 +1,7 @@
 package pl.openrest.filters.predicate.registry;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
@@ -20,7 +21,7 @@ public class PredicateInformation {
     protected final Method method;
     protected final PredicateType type;
     protected final boolean defaultedPageable;
-    protected @Setter List<? extends JoinInformation> joins;
+    protected @Setter List<? extends JoinInformation> joins = Collections.emptyList();
 
     public PredicateInformation(Method method, Predicate predicateAnn) {
         this.name = predicateAnn.name().isEmpty() ? method.getName() : predicateAnn.name();

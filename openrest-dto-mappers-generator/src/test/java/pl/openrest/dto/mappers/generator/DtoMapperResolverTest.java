@@ -25,6 +25,7 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 
 import pl.openrest.dto.annotations.Dto;
 import pl.openrest.dto.mapper.CreateMapper;
+import pl.openrest.dto.mapper.Default;
 import pl.openrest.dto.mapper.MapperDelegator;
 import pl.openrest.dto.mapper.UpdateMapper;
 import pl.openrest.dto.mappers.generator.utils.CodeBlockUtils;
@@ -141,10 +142,11 @@ public class DtoMapperResolverTest {
         resolver.resolve(TestDto.class);
         // then
         TypeSpec spec = JavaPoetTestUtils.getTypeSpec(typeFileWriter);
-        Assert.assertEquals(2, spec.annotations.size());
+        Assert.assertEquals(3, spec.annotations.size());
         Assert.assertEquals(TypeName.get(Generated.class), spec.annotations.get(0).type);
         Assert.assertEquals("@javax.annotation.Generated(\"pl.openrest.dto.mappers.generator\")", spec.annotations.get(0).toString());
         Assert.assertEquals(TypeName.get(Component.class), spec.annotations.get(1).type);
+        Assert.assertEquals(TypeName.get(Default.class), spec.annotations.get(2).type);
     }
 
     @Test

@@ -147,5 +147,19 @@ public class MappedFieldPairTest {
         Assert.assertEquals("if(dto.getName()!=null||dto.isSetName()){mapperDelegator.merge(dto.getName(),entity.getName());}", codeBlock
                 .toString().replaceAll("\\s", ""));
     }
+    
+    @Test
+    public void shouldToUpdateCodeBlockReturnCodeBlockWithOnlySetterIfFieldIsPrimitive() throws Exception {
+        // given
+        Mockito.when(dtoFieldInfo.isDto()).thenReturn(false);
+        Mockito.when(dtoFieldInfo.isNullable()).thenReturn(false);
+        Mockito.when(dtoFieldInfo.isPrimitive()).thenReturn(true);
+        // when
+        CodeBlock codeBlock = fieldPair.toUpdateCodeBlock();
+        // then
+        Assert.assertEquals("entity.setName(dto.getName());", codeBlock
+                .toString().replaceAll("\\s", ""));
+    }
+    
 
 }

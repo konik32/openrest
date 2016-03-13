@@ -8,9 +8,6 @@ import org.springframework.validation.FieldError;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Jon Brisbin
- */
 public class DtoConstraintViolationExceptionMessage {
 
 	private final List<ValidationError> errors = new ArrayList<ValidationError>();
@@ -35,7 +32,7 @@ public class DtoConstraintViolationExceptionMessage {
 					fieldError.getRejectedValue()), fieldError.getField()));
 		}
 	}
-
+	
 	@JsonProperty("errors")
 	public List<ValidationError> getErrors() {
 		return errors;

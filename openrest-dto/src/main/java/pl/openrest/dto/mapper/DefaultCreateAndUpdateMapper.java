@@ -9,8 +9,6 @@ import java.util.Iterator;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.core.CollectionFactory;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -29,6 +27,7 @@ import pl.openrest.dto.registry.DtoType;
  * @author Szymon Konicki
  *
  */
+@Default
 public class DefaultCreateAndUpdateMapper implements
 		CreateMapper<Object, Object>, UpdateMapper<Object, Object> {
 

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.reflections.Reflections;
@@ -30,7 +31,7 @@ public class RemotePredicateRepositoryGeneratorMojo extends AbstractGeneratorMoj
     }
 
     @Override
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException, MojoFailureException {
         typeResolvers.add(new PredicateRepositoryResolver());
         super.addDefaultTypeResolvers(typeResolvers);
     }

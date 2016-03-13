@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.reflections.scanners.Scanner;
 
@@ -53,7 +54,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
 
     protected Configuration configuration;
 
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         initializeDefault();
         configuration = createConfiguration();
         configuration.initializeConfigurationAware();
@@ -61,9 +62,9 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
         doExecute();
     }
 
-    protected abstract void doExecute() throws MojoExecutionException;
+    protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
 
-    protected Configuration createConfiguration() throws MojoExecutionException {
+    protected Configuration createConfiguration() throws MojoExecutionException, MojoFailureException {
         Configuration configuration = new Configuration();
         configuration.put("defaultNamingStrategy", defaultNamingStrategy);
         configuration.put("outputDirectory", outputDirectory);
@@ -77,12 +78,12 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
         return configuration;
     }
 
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException, MojoFailureException {
         typeResolvers.add(new EnumTypeResolver());
         typeResolvers.add(new SameTypeResolver());
     }
 
-    protected void initializeDefault() throws MojoExecutionException {
+    protected void initializeDefault() throws MojoExecutionException, MojoFailureException {
         if (defaultNamingStrategy == null)
             defaultNamingStrategy = new DefaultRemoteClassNamingStrategy();
         if (reflectionsFactory == null)
@@ -95,7 +96,7 @@ public abstract class AbstractGeneratorMojo extends AbstractMojo {
             scanners = new LinkedList<>();
     }
 
-    protected abstract void addDefaultScanners(List<Scanner> scanners) throws MojoExecutionException;
+    protected abstract void addDefaultScanners(List<Scanner> scanners) throws MojoExecutionException, MojoFailureException;
 
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;

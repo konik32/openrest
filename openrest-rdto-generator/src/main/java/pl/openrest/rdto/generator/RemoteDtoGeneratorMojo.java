@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -47,7 +48,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     }
 
     @Override
-    protected Configuration createConfiguration() throws MojoExecutionException {
+    protected Configuration createConfiguration() throws MojoExecutionException, MojoFailureException {
         Configuration configuration = super.createConfiguration();
         configuration.put("dtoFieldFilters", dtoFieldFilters);
         configuration.put("entityAnnotations", getEntityAnnotations());
@@ -56,7 +57,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     };
 
     @Override
-    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException {
+    protected void addDefaultTypeResolvers(List<TypeResolver> typeResolvers) throws MojoExecutionException, MojoFailureException {
         dtoFieldFilters.add(new NonFinalOrStaticFieldFilter());
         typeResolvers.add(new EntityTypeResolver());
         DtoTypeResolver dtoTypeResolver = new DtoTypeResolver(new CompositeFieldFilter(dtoFieldFilters));
@@ -65,7 +66,7 @@ public class RemoteDtoGeneratorMojo extends AbstractGeneratorMojo {
     }
 
     @Override
-    protected void initializeDefault() throws MojoExecutionException {
+    protected void initializeDefault() throws MojoExecutionException, MojoFailureException {
         super.initializeDefault();
         if (dtoFieldFilters == null) {
             dtoFieldFilters = new LinkedList<>();

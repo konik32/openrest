@@ -7,9 +7,9 @@ public class MappedFieldPairFactory {
 
     public static MappedFieldPair create(Field dtoField, Field entityField) {
         if (Collection.class.isAssignableFrom(dtoField.getType()))
-            return new MappedCollectionFieldPair(new MappedCollectionFieldInformation(dtoField), new MappedCollectionFieldInformation(
-                    entityField));
-        return new MappedFieldPair(new MappedFieldInformation(dtoField), new MappedFieldInformation(entityField));
+            return new MappedCollectionFieldPair(new MappedCollectionFieldInformation(dtoField, false), new MappedCollectionFieldInformation(
+                    entityField,false));
+        return new MappedFieldPair(new MappedFieldInformation(dtoField,false), new MappedFieldInformation(entityField,false));
     }
 
 }
