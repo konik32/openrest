@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import pl.openrest.dto.mapper.BeforeCreateMappingHandler;
-import pl.openrest.dto.mapper.BeforeUpdateMappingHandler;
+import pl.openrest.dto.handler.BeforeCreateMappingHandler;
+import pl.openrest.dto.handler.BeforeUpdateMappingHandler;
 import pl.openrest.dto.mapper.MappingManager;
 import pl.openrest.dto.security.authorization.AuthorizeDtoAnnotationAuthorizationStrategy;
 import pl.openrest.dto.security.authorization.DtoAuthorizationStrategyMappingHandler;

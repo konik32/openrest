@@ -16,15 +16,15 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.validation.Errors;
 
+import pl.openrest.dto.handler.DtoRequestContext;
+import pl.openrest.dto.handler.validation.DtoValidationErrors;
 import pl.openrest.dto.validation.annotation.ValidateExpression;
-import pl.openrest.dto.validation.handler.DtoValidationErrors;
-import pl.openrest.dto.validation.handler.ValidationContext;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DtoFieldExpressionValidatorTest {
 
     @Mock
-    private ValidationContext updateValidationContext;
+    private DtoRequestContext updateValidationContext;
 
     @Mock
     private BeanFactory beanFactory;

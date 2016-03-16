@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import pl.openrest.filters.query.PredicateContext;
-import pl.openrest.filters.query.registry.QJoinInformation;
 
 import com.mysema.query.types.Predicate;
 

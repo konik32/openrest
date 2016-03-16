@@ -105,7 +105,7 @@ public class DtoAwareDeserializerModifier extends BeanDeserializerModifier {
      * @return
      */
     private boolean isLinkableAssociation(Class<?> type) {
-        ResourceMetadata metadata = resourceMappings.getMappingFor(type);
+        ResourceMetadata metadata = resourceMappings.getMetadataFor(type);
         return metadata == null ? false : metadata.isExported();
     }
 

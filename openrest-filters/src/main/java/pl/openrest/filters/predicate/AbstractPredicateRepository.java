@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,12 +14,12 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 
 import pl.openrest.filters.predicate.annotation.Predicate;
+import pl.openrest.filters.predicate.annotation.Predicate.PredicateType;
 import pl.openrest.filters.predicate.annotation.PredicateRepository;
-import pl.openrest.filters.predicate.registry.PredicateInformation;
+import pl.openrest.filters.query.JoinInformation;
+import pl.openrest.filters.query.StaticFilterInformation;
 import pl.openrest.filters.query.annotation.Join;
 import pl.openrest.filters.query.annotation.StaticFilter;
-import pl.openrest.filters.query.registry.JoinInformation;
-import pl.openrest.filters.query.registry.StaticFilterInformation;
 
 public abstract class AbstractPredicateRepository implements pl.openrest.filters.predicate.PredicateRepository {
 
@@ -61,6 +62,16 @@ public abstract class AbstractPredicateRepository implements pl.openrest.filters
     @Override
     public boolean isDefaultedPageable() {
         return defaultedPageable;
+    }
+
+    @Override
+    public List<Method> getSearchPredicates() {
+        List<Method> methods = new LinkedList<Method>();
+        for(PredicateInformation info: predicateInfoRegistry.values()){
+            if(info.getType().equals(PredicateType.SEARCH))
+                methods.add(info.getMethod());
+        }
+        return methods;
     }
 
     public static PredicateRepository findAnnotation(Object predicateRepo) {

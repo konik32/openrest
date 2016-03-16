@@ -20,17 +20,17 @@ import pl.openrest.core.util.traverser.AnnotationFieldFilter;
 import pl.openrest.core.util.traverser.ObjectGraphTraverser;
 import pl.openrest.core.util.traverser.TraverserCallback;
 import pl.openrest.dto.annotations.Dto;
-import pl.openrest.dto.spel.evaluation.DtoEvaluationWrapper;
-import pl.openrest.dto.spel.evaluation.SpelEvaluator;
+import pl.openrest.dto.handler.DtoRequestContext;
+import pl.openrest.dto.handler.spel.DtoEvaluationWrapper;
+import pl.openrest.dto.handler.spel.SpelEvaluator;
 import pl.openrest.dto.validation.annotation.ValidateExpression;
-import pl.openrest.dto.validation.handler.ValidationContext;
 
 public class DtoFieldExpressionValidator implements Validator {
 
     private final String FIELD_NAME_MESSAGE_FORMAT = "Field: %s validation expression evaluated to false";
 
     @Autowired
-    private ValidationContext updateValidationContext;
+    private DtoRequestContext updateValidationContext;
 
     @Autowired
     private BeanFactory beanFactory;

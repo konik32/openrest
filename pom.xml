@@ -5,12 +5,18 @@
 	<groupId>pl.openrest</groupId>
 	<artifactId>openrest-parent</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-
+	<distributionManagement>
+		<repository>
+			<id>internal.repo</id>
+			<name>Temporary Staging Repository</name>
+			<url>file://${project.build.directory}/mvn-repo</url>
+		</repository>
+	</distributionManagement>
 
 	<properties>
-		<springdata-rest>2.2.3.RELEASE</springdata-rest>
-		<springdata-jpa>1.7.3.RELEASE</springdata-jpa>
-
+		<springdata-rest>2.4.4.RELEASE</springdata-rest>
+		<springdata-jpa>1.9.4.RELEASE</springdata-jpa>
+		<github.global.server>github</github.global.server>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -74,9 +80,9 @@
 		<module>openrest-dto-security</module>
 		<module>openrest-filters</module>
 		<module>openrest-dto-validation</module>
-		<module>openrest-rpr-generator</module>
+		<!-- <module>openrest-rpr-generator</module> -->
 		<module>openrest-client</module>
-		<module>openrest-rdto-generator</module>
+<!-- 		<module>openrest-rdto-generator</module> -->
 		<module>openrest-generator-commons</module>
 		<module>openrest-dto-mappers-generator</module>
 		<module>openrest-filters-querydsl</module>
@@ -104,6 +110,38 @@
 							<goal>jar</goal>
 						</goals>
 						<phase>generate-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.11</version>
+				<configuration>
+					<message>Maven artifacts for ${project.version}</message> 
+					<noJekyll>true</noJekyll>
+					<merge>true</merge>                       
+					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+					<branch>refs/heads/mvn-repo</branch>                       
+					<includes>
+						<include>**/*</include>
+					</includes>
+					<repositoryName>openrest</repositoryName>     
+					<repositoryOwner>konik32</repositoryOwner>   
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>deploy</phase>
 					</execution>
 				</executions>
 			</plugin>

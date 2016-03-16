@@ -5,8 +5,8 @@ import java.util.List;
 
 import pl.openrest.filters.predicate.AbstractPredicateRepository;
 import pl.openrest.filters.query.annotation.Join;
-import pl.openrest.filters.query.registry.JoinInformationFactory;
-import pl.openrest.filters.query.registry.QJoinInformation;
+import pl.openrest.filters.querydsl.query.JoinInformationFactory;
+import pl.openrest.filters.querydsl.query.QJoinInformation;
 
 public class QPredicateRepository extends AbstractPredicateRepository {
 

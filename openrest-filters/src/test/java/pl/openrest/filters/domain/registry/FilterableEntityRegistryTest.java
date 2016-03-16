@@ -50,7 +50,6 @@ public class FilterableEntityRegistryTest {
         FilterableEntityInformation entityInfo = registry.get(Object.class);
         // then
         Assert.assertNotNull(entityInfo.getPredicateRepository());
-        Assert.assertNotNull(entityInfo.getRepositoryInvoker());
         // Assert.assertFalse(entityInfo.getStaticFilters().isEmpty());
         // Assert.assertEquals(PredicateType.SEARCH, entityInfo.getPredicateInformation("userIdEq").getType());
         // Assert.assertEquals("principal.id != null", entityInfo.getStaticFilters().get(0).getCondition());

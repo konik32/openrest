@@ -8,8 +8,8 @@ import lombok.Setter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import pl.openrest.dto.mapper.BeforeCreateMappingHandler;
-import pl.openrest.dto.mapper.BeforeUpdateMappingHandler;
+import pl.openrest.dto.handler.BeforeCreateMappingHandler;
+import pl.openrest.dto.handler.BeforeUpdateMappingHandler;
 
 @SuppressWarnings("rawtypes")
 public class DtoAuthorizationStrategyMappingHandler implements BeforeCreateMappingHandler, BeforeUpdateMappingHandler {

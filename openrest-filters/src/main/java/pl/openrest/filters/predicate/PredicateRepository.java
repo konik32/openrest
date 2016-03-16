@@ -1,9 +1,9 @@
 package pl.openrest.filters.predicate;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
-import pl.openrest.filters.predicate.registry.PredicateInformation;
-import pl.openrest.filters.query.registry.StaticFilterInformation;
+import pl.openrest.filters.query.StaticFilterInformation;
 
 public interface PredicateRepository {
 
@@ -14,6 +14,8 @@ public interface PredicateRepository {
     List<StaticFilterInformation> getStaticFilters();
 
     PredicateInformation getPredicateInformation(String predicateName);
+    
+    List<Method> getSearchPredicates();
 
     boolean isDefaultedPageable();
 }

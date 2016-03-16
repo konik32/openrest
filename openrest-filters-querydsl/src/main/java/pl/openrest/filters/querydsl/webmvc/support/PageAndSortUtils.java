@@ -13,6 +13,7 @@ import org.springframework.data.querydsl.QSort;
 import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory;
 import pl.openrest.filters.querydsl.query.QPredicateContextBuilderFactory.QPredicateContextBuilder;
+import pl.openrest.filters.querydsl.webmvc.QDefaultedPageRequest;
 import pl.openrest.predicate.parser.PredicateParts;
 import pl.openrest.predicate.parser.PredicatePartsExtractor;
 
@@ -26,11 +27,11 @@ public class PageAndSortUtils {
     private final QPredicateContextBuilderFactory predicateContextBuilderFactory;
     private final PredicatePartsExtractor predicatePartsExtractor;
 
-    public QPageRequest toQPageRequest(Pageable pageable, FilterableEntityInformation entityInfo) {
+    public QDefaultedPageRequest toQPageRequest(Pageable pageable, FilterableEntityInformation entityInfo) {
         QSort qSort = null;
         if (pageable.getSort() != null)
             qSort = toQSort(pageable.getSort(), entityInfo);
-        return new QPageRequest(pageable.getPageNumber(), pageable.getPageSize(), qSort);
+        return new QDefaultedPageRequest(pageable.getPageNumber(), pageable.getPageSize(), qSort);
 
     }
 

@@ -8,27 +8,36 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.rest.core.UriToEntityConverter;
 import org.springframework.data.rest.core.mapping.ResourceMappings;
+import org.springframework.data.rest.webmvc.config.RootResourceInformationHandlerMethodArgumentResolver;
+import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
 import org.springframework.data.util.AnnotatedTypeScanner;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 
 import pl.openrest.core.config.OpenRestConfigurer;
 import pl.openrest.dto.annotations.Dto;
 import pl.openrest.dto.event.AnnotatedDtoEventHandlerBeanPostProcessor;
-import pl.openrest.dto.mapper.BeforeCreateMappingHandler;
-import pl.openrest.dto.mapper.BeforeUpdateMappingHandler;
+import pl.openrest.dto.handler.BeforeCreateMappingHandler;
+import pl.openrest.dto.handler.BeforeUpdateMappingHandler;
+import pl.openrest.dto.handler.DtoRequestContext;
+import pl.openrest.dto.handler.DtoRequestContextHandler;
+import pl.openrest.dto.handler.spel.SpelEvaluatorBean;
 import pl.openrest.dto.mapper.DefaultCreateAndUpdateMapper;
 import pl.openrest.dto.mapper.MapperDelegator;
 import pl.openrest.dto.mapper.MapperFactory;
 import pl.openrest.dto.mapper.MappingManager;
 import pl.openrest.dto.registry.DtoInformation;
 import pl.openrest.dto.registry.DtoInformationRegistry;
-import pl.openrest.dto.spel.evaluation.SpelEvaluatorBean;
+import pl.openrest.dto.webmvc.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
+import pl.openrest.dto.webmvc.DtoRepositoryInvokerResolver;
 import pl.openrest.dto.webmvc.NonDtoRequestsFilter;
 import pl.openrest.dto.webmvc.json.DtoAwareDeserializerModifier;
 
@@ -43,6 +52,20 @@ public class OpenRestDtoConfiguration {
     private Repositories repositories;
     @Autowired
     private List<HttpMessageConverter<?>> defaultMessageConverters;
+
+    @Autowired
+    private MappingManager mappingManager;
+
+    @Autowired
+    private DtoRepositoryInvokerResolver dtoRepositoryInvokerResolver;
+
+    @Autowired
+    private PageableHandlerMethodArgumentResolver pageableResolver;
+
+    @Autowired
+    private RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver;
+    @Autowired
+    private BackendIdHandlerMethodArgumentResolver backendIdResolver;
 
     @Bean
     public DtoInformationRegistry dtoInformationRegistry() {
@@ -100,6 +123,33 @@ public class OpenRestDtoConfiguration {
     @Bean
     public OpenRestConfigurer openRestDtoConfigurer() {
         return new OpenRestDtoConfigurer();
+    }
+
+    @Bean
+    public DtoRepositoryInvokerResolver dtoRepositoryInvokerResolver() {
+        return new DtoRepositoryInvokerResolver();
+    }
+
+    @Bean
+    @Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public DtoRequestContext dtoRequestContext() {
+        return new DtoRequestContext();
+    }
+
+    @Bean
+    public DtoRequestContextHandler dtoRequestContextHandler() {
+        return new DtoRequestContextHandler();
+    }
+
+    @Bean
+    public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver dtoPersistentEntityResolver() {
+        return new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(rootResourceResolver, backendIdResolver, mappingManager);
+    }
+
+    @Autowired
+    public void addDtoRequestContextHandler(MappingManager mappingManager, DtoRequestContextHandler dtoRequestContextHandler) {
+        mappingManager.addHandler((BeforeCreateMappingHandler) dtoRequestContextHandler,0);
+        mappingManager.addHandler((BeforeUpdateMappingHandler) dtoRequestContextHandler,0);
     }
 
     @Autowired

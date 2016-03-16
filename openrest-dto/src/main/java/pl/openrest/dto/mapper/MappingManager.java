@@ -8,7 +8,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.NonNull;
 
-import org.springframework.data.rest.core.invoke.RepositoryInvoker;
+import org.springframework.data.repository.support.RepositoryInvoker;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpInputMessage;
@@ -17,6 +17,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.util.StringUtils;
 
+import pl.openrest.dto.handler.BeforeCreateMappingHandler;
+import pl.openrest.dto.handler.BeforeUpdateMappingHandler;
 import pl.openrest.dto.registry.DtoInformation;
 import pl.openrest.dto.registry.DtoInformationRegistry;
 
@@ -83,6 +85,20 @@ public class MappingManager {
 
     public void addHandler(BeforeUpdateMappingHandler handler) {
         beforeUpdateHandlers.add(handler);
+    }
+    
+    public void addHandler(BeforeCreateMappingHandler handler, int index ) {
+        if(index > beforeCreateHandlers.size())
+            beforeCreateHandlers.add(handler);
+        else
+            beforeCreateHandlers.add(index, handler);
+    }
+
+    public void addHandler(BeforeUpdateMappingHandler handler, int index) {
+        if(index > beforeUpdateHandlers.size())
+            beforeUpdateHandlers.add(handler);
+        else
+            beforeUpdateHandlers.add(index, handler);
     }
 
     private Object convertToDto(MediaType contentType, HttpInputMessage inputMessage, Class<?> dtoType) {

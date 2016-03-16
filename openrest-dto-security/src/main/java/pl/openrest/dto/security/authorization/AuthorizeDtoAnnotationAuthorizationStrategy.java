@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.NonNull;
-import pl.openrest.core.utils.HierarchicalAnnotationUtils;
+import pl.openrest.core.util.HierarchicalAnnotationUtils;
 import pl.openrest.dto.security.authorization.annotation.AuthorizeDto;
 
 public class AuthorizeDtoAnnotationAuthorizationStrategy implements DtoAuthorizationStrategy<Object, Object, Object> {

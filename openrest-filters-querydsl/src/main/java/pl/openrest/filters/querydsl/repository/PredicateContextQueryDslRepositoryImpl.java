@@ -19,7 +19,7 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
-import pl.openrest.filters.query.registry.QJoinInformation;
+import pl.openrest.filters.querydsl.query.QJoinInformation;
 import pl.openrest.filters.querydsl.query.QPredicateContext;
 
 import com.mysema.query.jpa.JPQLQuery;

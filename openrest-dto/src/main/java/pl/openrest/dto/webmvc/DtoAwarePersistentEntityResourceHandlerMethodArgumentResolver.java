@@ -23,9 +23,10 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.data.rest.core.invoke.RepositoryInvoker;
+import org.springframework.data.repository.support.RepositoryInvoker;
 import org.springframework.data.rest.webmvc.IncomingRequest;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
+import org.springframework.data.rest.webmvc.PersistentEntityResource.Builder;
 import org.springframework.data.rest.webmvc.RootResourceInformation;
 import org.springframework.data.rest.webmvc.config.RootResourceInformationHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
@@ -40,61 +41,59 @@ import pl.openrest.dto.mapper.MappingManager;
 import pl.openrest.dto.mapper.MappingManager.DtoAndEntityWrapper;
 
 /**
- * Custom {@link HandlerMethodArgumentResolver} to create
- * {@link PersistentEntityResource} instances.
+ * Custom {@link HandlerMethodArgumentResolver} to create {@link PersistentEntityResource} instances.
  * 
  * @author Szymon Konicki
  */
 public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	public static final String DTO_PARAM_NAME = "dto";
-	private final RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver;
+    public static final String DTO_PARAM_NAME = "dto";
+    private final RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver;
 
-	private final BackendIdHandlerMethodArgumentResolver idResolver;
-	private final MappingManager mappingManager;
+    private final BackendIdHandlerMethodArgumentResolver idResolver;
+    private final MappingManager mappingManager;
 
-	public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
-			@NonNull RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver,
-			@NonNull BackendIdHandlerMethodArgumentResolver idResolver,
-			@NonNull MappingManager mappingManager) {
-		this.resourceInformationResolver = resourceInformationResolver;
-		this.idResolver = idResolver;
-		this.mappingManager = mappingManager;
-	}
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return PersistentEntityResourceWithDtoWrapper.class.isAssignableFrom(parameter.getParameterType());
-	}
+    public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
+            @NonNull RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver,
+            @NonNull BackendIdHandlerMethodArgumentResolver idResolver, @NonNull MappingManager mappingManager) {
+        this.resourceInformationResolver = resourceInformationResolver;
+        this.idResolver = idResolver;
+        this.mappingManager = mappingManager;
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return PersistentEntityResource.class.isAssignableFrom(parameter.getParameterType());
+    }
 
-		String dtoParam = webRequest.getParameter(DTO_PARAM_NAME);
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) throws Exception {
 
-		RootResourceInformation resourceInformation = resourceInformationResolver.resolveArgument(parameter,
-				mavContainer, webRequest, binderFactory);
+        String dtoParam = webRequest.getParameter(DTO_PARAM_NAME);
 
-		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
-		ServletServerHttpRequest request = new ServletServerHttpRequest(nativeRequest);
-		IncomingRequest incoming = new IncomingRequest(request);
+        RootResourceInformation resourceInformation = resourceInformationResolver.resolveArgument(parameter, mavContainer, webRequest,
+                binderFactory);
 
-		MediaType contentType = request.getHeaders().getContentType();
+        HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+        ServletServerHttpRequest request = new ServletServerHttpRequest(nativeRequest);
+        IncomingRequest incoming = new IncomingRequest(request);
 
-		Serializable id = idResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
-		DtoAndEntityWrapper wrapper;
-		if (incoming.isPatchRequest()) {
-			RepositoryInvoker invoker = resourceInformation.getInvoker();
-			wrapper = mappingManager.merge(contentType, incoming.getServerHttpRequest(), invoker, id, dtoParam);
-		} else {
-			wrapper = mappingManager.create(contentType, incoming.getServerHttpRequest(), dtoParam);
-		}
+        MediaType contentType = request.getHeaders().getContentType();
 
-		PersistentEntityResource entityResource = PersistentEntityResource.build(wrapper.getEntity(),
-				resourceInformation.getPersistentEntity()).build();
-
-		return new PersistentEntityResourceWithDtoWrapper(entityResource, wrapper.getDto());
-	}
+        Serializable id = idResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+        DtoAndEntityWrapper wrapper;
+        boolean forUpdate = false;
+        if (incoming.isPatchRequest()) {
+            RepositoryInvoker invoker = resourceInformation.getInvoker();
+            wrapper = mappingManager.merge(contentType, incoming.getServerHttpRequest(), invoker, id, dtoParam);
+            forUpdate = true;
+        } else {
+            wrapper = mappingManager.create(contentType, incoming.getServerHttpRequest(), dtoParam);
+        }
+        Builder builder = PersistentEntityResource.build(wrapper.getEntity(), resourceInformation.getPersistentEntity());
+        return forUpdate ? builder.build() : builder.forCreation();
+    }
 
 }

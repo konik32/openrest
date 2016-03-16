@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import pl.openrest.filters.predicate.PredicateRepository;
-import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
+import pl.openrest.filters.repository.PredicateContextRepositoryInvokerAdapter;
 
 @ToString
 @EqualsAndHashCode
@@ -13,7 +13,6 @@ import pl.openrest.filters.repository.PredicateContextRepositoryInvoker;
 public class FilterableEntityInformation {
 
     private @Getter final Class<?> entityType;
-    private @Getter final PredicateContextRepositoryInvoker repositoryInvoker;
     private @Getter final PredicateRepository predicateRepository;
 
 }
