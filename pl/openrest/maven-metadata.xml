@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <plugins>
+    <plugin>
+      <name>openrest-dto-mappers-generator</name>
+      <prefix>openrest-dto-mappers-generator</prefix>
+      <artifactId>openrest-dto-mappers-generator</artifactId>
+    </plugin>
+  </plugins>
+</metadata>
