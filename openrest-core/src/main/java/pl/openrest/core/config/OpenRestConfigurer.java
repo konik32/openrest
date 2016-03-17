@@ -10,6 +10,4 @@ public interface OpenRestConfigurer {
 
     void addDefaultMethodArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers);
 
-    void addRepositoryInvokerResolvers(List<RepositoryInvokerResolver> resolvers);
-
 }

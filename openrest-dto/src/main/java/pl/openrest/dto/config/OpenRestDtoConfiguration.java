@@ -19,7 +19,6 @@ import org.springframework.data.rest.core.mapping.ResourceMappings;
 import org.springframework.data.rest.webmvc.config.RootResourceInformationHandlerMethodArgumentResolver;
 import org.springframework.data.rest.webmvc.support.BackendIdHandlerMethodArgumentResolver;
 import org.springframework.data.util.AnnotatedTypeScanner;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 
 import pl.openrest.core.config.OpenRestConfigurer;
@@ -38,7 +37,6 @@ import pl.openrest.dto.registry.DtoInformation;
 import pl.openrest.dto.registry.DtoInformationRegistry;
 import pl.openrest.dto.webmvc.DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver;
 import pl.openrest.dto.webmvc.DtoRepositoryInvokerResolver;
-import pl.openrest.dto.webmvc.NonDtoRequestsFilter;
 import pl.openrest.dto.webmvc.json.DtoAwareDeserializerModifier;
 
 import com.fasterxml.jackson.core.Version;
@@ -52,20 +50,13 @@ public class OpenRestDtoConfiguration {
     private Repositories repositories;
     @Autowired
     private List<HttpMessageConverter<?>> defaultMessageConverters;
-
-    @Autowired
-    private MappingManager mappingManager;
-
-    @Autowired
-    private DtoRepositoryInvokerResolver dtoRepositoryInvokerResolver;
-
-    @Autowired
-    private PageableHandlerMethodArgumentResolver pageableResolver;
-
     @Autowired
     private RootResourceInformationHandlerMethodArgumentResolver rootResourceResolver;
     @Autowired
     private BackendIdHandlerMethodArgumentResolver backendIdResolver;
+    
+    @Autowired
+    private BeanFactory beanFactory;
 
     @Bean
     public DtoInformationRegistry dtoInformationRegistry() {
@@ -112,12 +103,13 @@ public class OpenRestDtoConfiguration {
 
     @Bean
     public MappingManager mappingManager() {
-        return new MappingManager(mapperDelegator(), defaultMessageConverters, dtoInformationRegistry());
-    }
-
-    @Bean
-    public NonDtoRequestsFilter nonDtoRequestFilter() {
-        return new NonDtoRequestsFilter();
+        MappingManager mappingManager =  new MappingManager(mapperDelegator(), defaultMessageConverters, dtoInformationRegistry());
+        mappingManager.addHandler((BeforeCreateMappingHandler) dtoRequestContextHandler(),0);
+        mappingManager.addHandler((BeforeUpdateMappingHandler) dtoRequestContextHandler(),0);
+        SpelEvaluatorBean spelEvaluator = new SpelEvaluatorBean(beanFactory);
+        mappingManager.addHandler((BeforeCreateMappingHandler) spelEvaluator);
+        mappingManager.addHandler((BeforeUpdateMappingHandler) spelEvaluator);
+        return mappingManager;
     }
 
     @Bean
@@ -143,20 +135,7 @@ public class OpenRestDtoConfiguration {
 
     @Bean
     public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver dtoPersistentEntityResolver() {
-        return new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(rootResourceResolver, backendIdResolver, mappingManager);
-    }
-
-    @Autowired
-    public void addDtoRequestContextHandler(MappingManager mappingManager, DtoRequestContextHandler dtoRequestContextHandler) {
-        mappingManager.addHandler((BeforeCreateMappingHandler) dtoRequestContextHandler,0);
-        mappingManager.addHandler((BeforeUpdateMappingHandler) dtoRequestContextHandler,0);
-    }
-
-    @Autowired
-    public void addSpelEvaluatorHandler(MappingManager mappingManager, BeanFactory beanFactory) {
-        SpelEvaluatorBean spelEvaluator = new SpelEvaluatorBean(beanFactory);
-        mappingManager.addHandler((BeforeCreateMappingHandler) spelEvaluator);
-        mappingManager.addHandler((BeforeUpdateMappingHandler) spelEvaluator);
+        return new DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(rootResourceResolver, backendIdResolver, mappingManager());
     }
 
     @Autowired

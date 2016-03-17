@@ -1,8 +1,8 @@
 package pl.openrest.core.webmvc;
 
-import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.repository.support.RepositoryInvoker;
@@ -16,7 +16,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class OpenRestAwareRootResourceInformationHandlerMethodArgumentResolver extends RootResourceInformationHandlerMethodArgumentResolver {
 
-    private List<RepositoryInvokerResolver> repositoryInvokerResolvers = new LinkedList<RepositoryInvokerResolver>();
+    @Autowired
+    private List<RepositoryInvokerResolver> repositoryInvokerResolvers;
     private Repositories repositories;
 
     public OpenRestAwareRootResourceInformationHandlerMethodArgumentResolver(Repositories repositories,

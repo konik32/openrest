@@ -12,12 +12,10 @@ import org.springframework.data.web.HateoasSortHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
 import pl.openrest.core.config.OpenRestConfigurer;
-import pl.openrest.core.webmvc.RepositoryInvokerResolver;
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
 import pl.openrest.filters.querydsl.webmvc.DefaultedQPageableHandlerMethodArgumentResolver;
 import pl.openrest.filters.querydsl.webmvc.QSortMethodArgumentResolver;
 import pl.openrest.filters.querydsl.webmvc.support.PageAndSortUtils;
-import pl.openrest.filters.webmvc.SearchPredicateRepositoryInvokerResolver;
 import pl.openrest.filters.webmvc.PredicateContextResolver;
 
 public class OpenRestQueryDslFiltersConfigurer implements OpenRestConfigurer {
@@ -50,15 +48,10 @@ public class OpenRestQueryDslFiltersConfigurer implements OpenRestConfigurer {
                 sortResolver = (HateoasSortHandlerMethodArgumentResolver) resolver;
             }
         }
-        resolvers.add(0,new DefaultedQPageableHandlerMethodArgumentResolver(pageableResolver, pageAndSortUtils, filterableEntityRegistry,
+        resolvers.add(0, new DefaultedQPageableHandlerMethodArgumentResolver(pageableResolver, pageAndSortUtils, filterableEntityRegistry,
                 resourceMetadataResolver));
-        resolvers.add(0,new QSortMethodArgumentResolver(sortResolver, pageAndSortUtils, filterableEntityRegistry, resourceMetadataResolver));
-    }
-
-    @Override
-    public void addRepositoryInvokerResolvers(List<RepositoryInvokerResolver> resolvers) {
-        // TODO Auto-generated method stub
-
+        resolvers.add(0,
+                new QSortMethodArgumentResolver(sortResolver, pageAndSortUtils, filterableEntityRegistry, resourceMetadataResolver));
     }
 
 }

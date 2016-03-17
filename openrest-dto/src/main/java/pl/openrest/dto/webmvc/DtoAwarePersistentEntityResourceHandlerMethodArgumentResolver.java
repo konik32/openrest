@@ -53,7 +53,6 @@ public class DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver imple
     private final BackendIdHandlerMethodArgumentResolver idResolver;
     private final MappingManager mappingManager;
 
-
     public DtoAwarePersistentEntityResourceHandlerMethodArgumentResolver(
             @NonNull RootResourceInformationHandlerMethodArgumentResolver resourceInformationResolver,
             @NonNull BackendIdHandlerMethodArgumentResolver idResolver, @NonNull MappingManager mappingManager) {

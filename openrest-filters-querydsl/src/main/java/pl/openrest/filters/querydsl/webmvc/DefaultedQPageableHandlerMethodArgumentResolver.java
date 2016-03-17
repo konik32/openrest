@@ -14,7 +14,7 @@ import pl.openrest.filters.domain.registry.FilterableEntityInformation;
 import pl.openrest.filters.domain.registry.FilterableEntityRegistry;
 import pl.openrest.filters.querydsl.webmvc.support.PageAndSortUtils;
 
-public class DefaultedQPageableHandlerMethodArgumentResolver extends DefaultedPageableHandlerMethodArgumentResolver {
+public class DefaultedQPageableHandlerMethodArgumentResolver extends DefaultedPageableHandlerMethodArgumentResolver{
 
     private final PageAndSortUtils pageAndSortUtils;
 

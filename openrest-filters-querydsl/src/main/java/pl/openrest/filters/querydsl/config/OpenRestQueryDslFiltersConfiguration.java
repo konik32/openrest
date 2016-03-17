@@ -62,4 +62,5 @@ public class OpenRestQueryDslFiltersConfiguration {
     public PredicateRepositoryFactory qPredicateRepositoryFactory() {
         return new QPredicateRepositoryFactory();
     }
+
 }
