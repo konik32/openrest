@@ -80,11 +80,7 @@
 		<module>openrest-dto-security</module>
 		<module>openrest-filters</module>
 		<module>openrest-dto-validation</module>
-		<!-- <module>openrest-rpr-generator</module> -->
 		<module>openrest-client</module>
-<!-- 		<module>openrest-rdto-generator</module> -->
-		<module>openrest-generator-commons</module>
-		<module>openrest-dto-mappers-generator</module>
 		<module>openrest-filters-querydsl</module>
 	</modules>
 

@@ -6,3 +6,7 @@
 */.settings
 */.classpath
 /target/
+.idea
+*/.idea
+*.iml
+*/*.iml
